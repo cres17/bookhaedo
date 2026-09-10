@@ -1,0 +1,5 @@
+import 'dotenv/config';import {routeSegment} from '../server/routing.js';import {computeSegment} from '../server/providers.js';import {writeFile} from 'node:fs/promises';
+const a={id:'761caacf-fd2a-5076-852c-65e876d063ff',latitude:43.0625,longitude:141.3536},b={id:'0f338d0c-78dc-5e12-80c4-c230783dbb79',latitude:43.0599,longitude:141.3475};
+const results:any[]=[];for(const mode of ['DRIVE','WALK','BICYCLE']){const r=await routeSegment(a,b,mode);results.push({mode,source:r.source,distance:r.distanceMeters,duration:r.durationSeconds,points:'coordinates' in r?r.coordinates.length:0});}
+const departure=new Date(Date.now()+86400000).toISOString();for(const mode of ['DRIVE','TRANSIT']){const r=await computeSegment(a,b,mode,fetch,departure);results.push({mode:'GOOGLE_'+mode,source:r.source,distance:r.distanceMeters,duration:r.durationSeconds,transitFare:r.transitFare,tolls:r.tolls});}
+console.log(JSON.stringify(results,null,2));await writeFile('docs/bookhaedo-live-check.json',JSON.stringify({checkedAt:new Date().toISOString(),results},null,2));

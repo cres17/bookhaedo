@@ -1,0 +1,69 @@
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'MEMBER' | 'ADMIN';
+  status: 'ACTIVE' | 'SUSPENDED';
+};
+export type Region = {
+  id: string;
+  name: string;
+  ja: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  count: number;
+  image: string;
+};
+export type Place = {
+  id: string;
+  regionId: string;
+  category: string;
+  name: string;
+  nameJa: string;
+  nameKo?: string;
+  nameEn?: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  municipality?: string;
+  website?: string;
+  phone?: string;
+  openingHours?: string;
+  tags: Record<string, string>;
+  sources?: { source: string; url: string; license: string }[];
+  seasonNotice?: string;
+  recommendationReasons?: string[];
+  recommended?: boolean;
+  position?: number;
+  note?: string;
+  trendBadge?: string | null;
+};
+export type Trip = {
+  id: string;
+  title: string;
+  transportMode: string;
+  costSettings?: Record<string, any>;
+  days: Day[];
+};
+export type Day = { id: string; date: string; revision: number; items: Place[] };
+export type TripSummary = {
+  id: string;
+  title: string;
+  transportMode: string;
+  startDate: string;
+  endDate: string;
+  days: number;
+};
+export type Segment = {
+  from: string;
+  to: string;
+  distanceMeters: number;
+  durationSeconds: number | null;
+  polyline: string | null;
+  source: string;
+  notice?: string;
+  coordinates?: number[][];
+  estimatedCost?: number | null;
+  costNotice?: string;
+};
