@@ -43,7 +43,7 @@ describe('리뷰 추천의 범위·품질·실패 상태', () => {
     businessStatus: 'OPERATIONAL',
     reviewEvidence: { japaneseCount: 2, sampleCount: 5 },
   });
-  it('최대 6곳, 음식점과 관광지를 함께 검사하고 보정 평점순으로 정렬한다', async () => {
+  it('최대 10곳, 음식점과 관광지를 함께 검사하고 보정 평점순으로 정렬한다', async () => {
     let active = 0,
       max = 0;
     const inspect = vi.fn(async (p: any) => {
@@ -54,11 +54,29 @@ describe('리뷰 추천의 범위·품질·실패 상태', () => {
       return details(p.id === '0' ? 3.6 : 4.5);
     });
     const r = await reviewRecommendations(candidates, inspect);
-    expect(inspect).toHaveBeenCalledTimes(6);
+    expect(inspect).toHaveBeenCalledTimes(10);
+    expect(r.data).toHaveLength(10);
+    expect(r.evidence.inspected).toBe(10);
+    expect(r.notice).toContain('최대 10곳');
     expect(max).toBeLessThanOrEqual(2);
     expect(new Set(r.data.map((p) => p.category)).size).toBe(2);
     expect(r.data.at(-1).id).toBe('0');
     expect(reviewScore(4.5, 100)).toBeGreaterThan(reviewScore(4.5, 5));
+  });
+  it('한 분류만 있어도 10곳까지 검사하고 후보가 적으면 있는 만큼만 반환한다', async () => {
+    const onlyRestaurants = Array.from({ length: 12 }, (_, i) => ({
+      id: String(i),
+      category: 'RESTAURANT',
+    }));
+    for (const [input, count] of [
+      [onlyRestaurants, 10],
+      [onlyRestaurants.slice(0, 3), 3],
+    ] as const) {
+      const inspect = vi.fn(async () => details());
+      const result = await reviewRecommendations(input, inspect);
+      expect(inspect).toHaveBeenCalledTimes(count);
+      expect(result.data).toHaveLength(count);
+    }
   });
   it('낮은 평점·폐업·일본어 표본 없음은 추천하지 않는다', async () => {
     const r = await reviewRecommendations(candidates.slice(0, 3), async (p) =>

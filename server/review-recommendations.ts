@@ -1,4 +1,5 @@
 type Candidate = { id: string; category: string; [key: string]: any };
+export const REVIEW_CANDIDATE_LIMIT = 10;
 // A documented confidence adjustment, not a Japanese-only average or a resident score.
 export function reviewScore(rating: number, count: number) {
   return (rating * count + 3.5 * 20) / (count + 20);
@@ -11,9 +12,9 @@ export async function reviewRecommendations(
     candidates.filter((p) => p.category === category),
   );
   const selected: Candidate[] = [];
-  while (selected.length < 6 && queues.some((q) => q.length))
+  while (selected.length < REVIEW_CANDIDATE_LIMIT && queues.some((q) => q.length))
     for (const queue of queues) {
-      if (queue.length && selected.length < 6) selected.push(queue.shift()!);
+      if (queue.length && selected.length < REVIEW_CANDIDATE_LIMIT) selected.push(queue.shift()!);
     }
   const signal = AbortSignal.timeout(12000),
     results: any[] = [];
@@ -78,7 +79,6 @@ export async function reviewRecommendations(
       available: sampled,
       failed,
     },
-    notice:
-      '음식점·관광지 후보 최대 6곳을 확인합니다. 전체 평점 3.5 이상·리뷰 5개 이상·일본어 원문 표본이 있는 후보를 리뷰 수로 보정한 전체 평점순으로 표시합니다. 일본어 리뷰만의 평점·현지인 여부·숨은 명소 여부는 판단하지 않습니다.',
+    notice: `음식점·관광지 후보 최대 ${REVIEW_CANDIDATE_LIMIT}곳을 확인합니다. 전체 평점 3.5 이상·리뷰 5개 이상·일본어 원문 표본이 있는 후보를 리뷰 수로 보정한 전체 평점순으로 표시합니다. 일본어 리뷰만의 평점·현지인 여부·숨은 명소 여부는 판단하지 않습니다.`,
   };
 }
