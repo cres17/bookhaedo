@@ -1,4 +1,4 @@
-<p align="center"><img src="frontend/public/bookhaedo.svg" alt="Book해도." width="240"></p>
+<p align="center"><img src="frontend/public/bookhaedo-crystal.png" alt="Book해도." width="240"></p>
 
 <h1 align="center">가고 싶은 곳을<br>하나의 여행으로 .</h1>
 <p align="center">홋카이도 12개 관광권 · 지도 탐색 · 날짜별 일정 · 근거를 보여주는 추천</p>
