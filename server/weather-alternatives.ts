@@ -195,7 +195,7 @@ alternatives.patch(
         return res.status(400).json({ error: '주변 실내 대체 장소를 선택해주세요.' });
       }
       await db.query(
-        "UPDATE planner.itinerary_item SET place_id=$1,note='' WHERE day_id=$2 AND place_id=$3",
+        "UPDATE planner.itinerary_item SET place_id=$1,note='',estimated_cost=NULL WHERE day_id=$2 AND place_id=$3",
         [input.replacementId, day.rows[0].id, input.targetId],
       );
       await db.query('UPDATE planner.trip_day SET revision=revision+1 WHERE id=$1', [

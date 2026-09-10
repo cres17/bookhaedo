@@ -3,7 +3,9 @@ import { ref } from 'vue';
 import { api, json } from '../api';
 import { state, selectTrip, notify } from '../store';
 import Icon from './Icon.vue';
-const props = defineProps<{ trip: { id: string; title: string; transportMode: string } }>();
+const props = defineProps<{
+  trip: { id: string; title: string; transportMode: string; isOwner?: boolean };
+}>();
 const emit = defineEmits<{ changed: []; deleted: [] }>();
 const action = ref(''),
   title = ref(''),
@@ -52,7 +54,7 @@ async function save() {
         <Icon name="user" :size="16" />
         여행 이름 수정
       </button>
-      <button class="danger" @click="choose('delete')">
+      <button v-if="trip.isOwner !== false" class="danger" @click="choose('delete')">
         <Icon name="trash" :size="16" />
         여행 삭제
       </button>
@@ -78,8 +80,9 @@ async function save() {
         </button>
         <h2>{{ action === 'delete' ? '이 여행을 삭제할까요?' : '여행 이름 수정' }}</h2>
         <p v-if="action === 'delete'">
-          “{{ trip.title }}”의 날짜·장소 순서·메모·설정이 삭제되며 되돌릴 수 없습니다. 다른 여행과
-          장소 기본정보는 남습니다.
+          “{{ trip.title }}”의 날짜·장소 순서·메모·예산·체크리스트·초대·채팅·정산이 삭제되며
+          동행자도 더 이상 접근할 수 없습니다. 되돌릴 수 없습니다. 다른 여행과 장소 기본정보는
+          남습니다.
         </p>
         <form @submit.prevent="save">
           <label v-if="action === 'rename'">

@@ -222,8 +222,8 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
             일부 구간의 실제 경로를 확인하지 못했어요. 직선거리로 이동시간을 만들지 않습니다.
           </p>
           <small>
-            기존 일정 전체를 새 코스로 바꿉니다. 새 코스에도 남는 장소의 메모만 유지되며, 다른
-            장소의 메모는 삭제됩니다.
+            기존 일정 전체를 새 코스로 바꿉니다. 새 코스에도 남는 장소의 메모·예상 비용은 유지되며,
+            제외되는 장소의 메모·예상 비용은 삭제됩니다. 동행자의 일정에도 함께 반영됩니다.
           </small>
           <div class="actions">
             <button class="button dark" :disabled="saving || disabled" @click="replaceDay">

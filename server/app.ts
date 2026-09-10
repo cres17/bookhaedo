@@ -5,6 +5,7 @@ import { rateLimit } from 'express-rate-limit';
 import { randomUUID, randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto';
 import { ZodError, z } from 'zod';
 import { pool } from './db.js';
+import { collaboration, invitations } from './collaboration.js';
 import {
   registerInput,
   loginInput,
@@ -111,6 +112,54 @@ async function setSession(res: Response, userId: string) {
   });
 }
 app.use('/api/admin', requireAuth, admin);
+app.use(
+  '/api',
+  (req, res, next) =>
+    /^\/(notifications|invitations)(\/|$)/.test(req.path) ? requireAuth(req, res, next) : next(),
+  invitations,
+);
+app.delete(
+  '/api/auth/me',
+  requireAuth,
+  rateLimit({
+    windowMs: 15 * 60000,
+    limit: 10,
+    keyGenerator: (_req, res) => res.locals.user.id,
+    message: { error: '탈퇴 확인 시도가 많습니다. 잠시 후 다시 시도해주세요.' },
+  }),
+  wrap(async (req, res) => {
+    const { password } = z.object({ password: z.string().min(1).max(128) }).parse(req.body);
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
+      await db.query("SELECT pg_advisory_xact_lock(hashtext('bookhaedo-account-deletion'))");
+      const user = (
+        await db.query('SELECT * FROM planner.app_user WHERE id=$1 FOR UPDATE', [
+          res.locals.user.id,
+        ])
+      ).rows[0];
+      if (!user || !verifyPassword(password, user.password_hash)) {
+        await db.query('ROLLBACK');
+        return res.status(403).json({ error: '비밀번호가 일치하지 않아요.' });
+      }
+      if (user.role === 'ADMIN') {
+        await db.query('ROLLBACK');
+        return res
+          .status(409)
+          .json({ error: '관리자는 다른 관리자를 통해 회원 역할로 변경한 후 탈퇴해주세요.' });
+      }
+      await db.query('DELETE FROM planner.app_user WHERE id=$1', [user.id]);
+      await db.query('COMMIT');
+      res.clearCookie('kita_session', { path: '/' });
+      res.status(204).end();
+    } catch (e) {
+      await db.query('ROLLBACK');
+      throw e;
+    } finally {
+      db.release();
+    }
+  }),
+);
 app.get(
   '/api/health',
   wrap(async (_req, res) => {
@@ -291,10 +340,10 @@ app.get(
       exclude: string[] = [];
     const notices: string[] = [];
     if (i.tripId) {
-      const owner = await pool.query('SELECT id FROM planner.trip WHERE id=$1 AND user_id=$2', [
-        i.tripId,
-        res.locals.user.id,
-      ]);
+      const owner = await pool.query(
+        'SELECT id FROM planner.trip WHERE id=$1 AND (user_id=$2 OR EXISTS(SELECT 1 FROM planner.trip_member m WHERE m.trip_id=planner.trip.id AND m.user_id=$2))',
+        [i.tripId, res.locals.user.id],
+      );
       if (!owner.rowCount)
         return res.status(404).json({ error: '추천에 사용할 여행을 찾을 수 없어요.' });
       const saved = await pool.query(
@@ -445,7 +494,7 @@ app.get(
   '/api/trips',
   wrap(async (_req, res) => {
     const q = await pool.query(
-      `SELECT t.id,t.title,t.transport_mode AS "transportMode",min(d.visit_date)::text AS "startDate",max(d.visit_date)::text AS "endDate",count(d.id)::int AS days FROM planner.trip t LEFT JOIN planner.trip_day d ON d.trip_id=t.id WHERE t.user_id=$1 GROUP BY t.id ORDER BY t.updated_at DESC`,
+      `SELECT t.id,t.title,(t.user_id=$1) AS "isOwner",t.transport_mode AS "transportMode",min(d.visit_date)::text AS "startDate",max(d.visit_date)::text AS "endDate",count(d.id)::int AS days FROM planner.trip t LEFT JOIN planner.trip_day d ON d.trip_id=t.id WHERE t.user_id=$1 OR EXISTS(SELECT 1 FROM planner.trip_member m WHERE m.trip_id=t.id AND m.user_id=$1) GROUP BY t.id ORDER BY t.updated_at DESC`,
       [res.locals.user.id],
     );
     res.json({ data: q.rows });
@@ -479,13 +528,13 @@ app.post(
     }
   }),
 );
-// Every trip subresource checks ownership before exposing data or calling Google.
+// Only the owner and accepted collaborators may access trip subresources.
 app.use('/api/trips/:id', (req, res, next) => {
   Promise.resolve()
     .then(async () => {
       const id = uuid.parse(req.params.id);
       const q = await pool.query(
-        'SELECT id,title,transport_mode AS "transportMode",cost_settings AS "costSettings" FROM planner.trip WHERE id=$1 AND user_id=$2',
+        'SELECT id,title,(user_id=$2) AS "isOwner",transport_mode AS "transportMode",cost_settings AS "costSettings" FROM planner.trip WHERE id=$1 AND (user_id=$2 OR EXISTS(SELECT 1 FROM planner.trip_member m WHERE m.trip_id=planner.trip.id AND m.user_id=$2))',
         [id, res.locals.user.id],
       );
       if (!q.rowCount) return res.status(404).json({ error: '여행을 찾을 수 없습니다.' });
@@ -494,6 +543,7 @@ app.use('/api/trips/:id', (req, res, next) => {
     })
     .catch(next);
 });
+app.use('/api/trips/:id', collaboration);
 app.get(
   '/api/trips/:id',
   wrap(async (req, res) => {
@@ -502,7 +552,7 @@ app.get(
       [req.params.id],
     );
     const items = await pool.query(
-      `SELECT i.id AS "itemId",i.day_id AS "dayId",i.position,i.note,p.id,p.region_id AS "regionId",p.category,p.name_ja AS "nameJa",p.name_ko AS "nameKo",COALESCE(p.name_ko,p.name_ja) AS name,p.latitude,p.longitude,p.address,p.website,p.opening_hours AS "openingHours",p.osm_tags AS tags FROM planner.itinerary_item i JOIN planner.trip_day d ON d.id=i.day_id JOIN geo_data.place p ON p.id=i.place_id WHERE d.trip_id=$1 ORDER BY i.position`,
+      `SELECT i.id AS "itemId",i.day_id AS "dayId",i.position,i.note,i.estimated_cost AS "estimatedCost",p.id,p.region_id AS "regionId",p.category,p.name_ja AS "nameJa",p.name_ko AS "nameKo",COALESCE(p.name_ko,p.name_ja) AS name,p.latitude,p.longitude,p.address,p.website,p.opening_hours AS "openingHours",p.osm_tags AS tags FROM planner.itinerary_item i JOIN planner.trip_day d ON d.id=i.day_id JOIN geo_data.place p ON p.id=i.place_id WHERE d.trip_id=$1 ORDER BY i.position`,
       [req.params.id],
     );
     res.json({
@@ -577,19 +627,20 @@ app.put(
         return res.status(400).json({ error: '존재하지 않는 장소가 포함되어 있습니다.' });
       }
       const notes = await db.query(
-        'SELECT place_id,note FROM planner.itinerary_item WHERE day_id=$1',
+        'SELECT place_id,note,estimated_cost FROM planner.itinerary_item WHERE day_id=$1',
         [day.rows[0].id],
       );
       await db.query('DELETE FROM planner.itinerary_item WHERE day_id=$1', [day.rows[0].id]);
       for (const [position, placeId] of input.placeIds.entries())
         await db.query(
-          'INSERT INTO planner.itinerary_item(id,day_id,place_id,position,note) VALUES($1,$2,$3,$4,$5)',
+          'INSERT INTO planner.itinerary_item(id,day_id,place_id,position,note,estimated_cost) VALUES($1,$2,$3,$4,$5,$6)',
           [
             randomUUID(),
             day.rows[0].id,
             placeId,
             position,
             notes.rows.find((n) => n.place_id === placeId)?.note || '',
+            notes.rows.find((n) => n.place_id === placeId)?.estimated_cost ?? null,
           ],
         );
       await db.query('UPDATE planner.trip_day SET revision=revision+1 WHERE id=$1', [
@@ -731,6 +782,8 @@ app.post(
 app.delete(
   '/api/trips/:id',
   wrap(async (req, res) => {
+    if (!res.locals.trip.isOwner)
+      return res.status(403).json({ error: '여행 삭제는 소유자만 할 수 있어요.' });
     await pool.query('DELETE FROM planner.trip WHERE id=$1', [req.params.id]);
     res.status(204).end();
   }),

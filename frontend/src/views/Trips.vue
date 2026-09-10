@@ -114,6 +114,9 @@ function tripStatus(trip: TripSummary) {
               {{ shortDate(trip.startDate) }} — {{ shortDate(trip.endDate) }}
             </span>
             <h2>{{ trip.title }}</h2>
+            <small v-if="trip.isOwner === false" class="shared-trip-label">
+              초대받은 여행 · 함께 편집 중
+            </small>
             <div class="trip-facts">
               <span>
                 <strong>{{ trip.days }}</strong>
@@ -184,6 +187,13 @@ function tripStatus(trip: TripSummary) {
 </template>
 
 <style scoped>
+.shared-trip-label {
+  display: block;
+  margin: -4px 0 14px;
+  color: #527462;
+  font-weight: 600;
+  font-size: 12px;
+}
 .trips-page {
   max-width: 1460px;
   padding: 64px clamp(22px, 7vw, 100px) 110px;

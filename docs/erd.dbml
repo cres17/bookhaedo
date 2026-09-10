@@ -47,6 +47,7 @@ Table planner.trip_day {
  indexes { (trip_id, visit_date) [unique] }
 }
 Table planner.itinerary_item {
+ estimated_cost integer [note: 'JPY 예상 총액. NULL=미입력, 0..100000000']
  id uuid [pk]
  day_id uuid [not null]
  place_id text [not null]
@@ -192,3 +193,57 @@ Table planner.place_review_trend {
  calculated_at timestamptz [not null, default: `now()`]
 }
 Ref: planner.place_review_stats.import_id > planner.review_import.id [delete: cascade]
+
+Table planner.trip_member {
+ trip_id uuid [not null, ref: > planner.trip.id]
+ user_id uuid [not null, ref: > planner.app_user.id]
+ joined_at timestamptz [not null, default: `now()`]
+ indexes { (trip_id,user_id) [pk] }
+}
+Table planner.trip_invitation {
+ id uuid [pk]
+ trip_id uuid [not null, ref: > planner.trip.id]
+ sender_id uuid [ref: > planner.app_user.id]
+ email text
+ token_hash text [not null, unique]
+ status text [not null, default: 'PENDING', note: 'PENDING / ACCEPTED / DECLINED / REVOKED']
+ accepted_by uuid [ref: > planner.app_user.id]
+ expires_at timestamptz [not null, note: '발급 7일 후 만료, 1회 수락']
+ created_at timestamptz [not null, default: `now()`]
+}
+Table planner.notification {
+ id uuid [pk]
+ user_id uuid [not null, ref: > planner.app_user.id]
+ trip_id uuid [ref: > planner.trip.id]
+ message text [not null]
+ read_at timestamptz
+ created_at timestamptz [not null, default: `now()`]
+}
+Table planner.checklist_item {
+ id uuid [pk]
+ trip_id uuid [not null, ref: > planner.trip.id]
+ label text [not null]
+ done boolean [not null, default: false]
+ created_at timestamptz [not null, default: `now()`]
+}
+Table planner.trip_message {
+ id uuid [pk]
+ trip_id uuid [not null, ref: > planner.trip.id]
+ user_id uuid [ref: > planner.app_user.id]
+ body text [not null, note: '1..2000 characters']
+ created_at timestamptz [not null, default: `now()`]
+}
+Table planner.expense {
+ id uuid [pk]
+ trip_id uuid [not null, ref: > planner.trip.id]
+ label text [not null]
+ amount integer [not null, note: 'JPY 정수 1..100000000']
+ payer_id uuid [not null, note: '입력 시 참여자 검증. 탈퇴 후 정산 보존용 ID 유지']
+ created_at timestamptz [not null, default: `now()`]
+}
+Table planner.expense_share {
+ expense_id uuid [not null, ref: > planner.expense.id]
+ participant_id uuid [not null, note: '입력 시 참여자 검증. 탈퇴 후 정산 보존용 ID 유지']
+ amount integer [not null, note: '엔 단위 균등분담. 나머지는 ID순으로 1엔 배분']
+ indexes { (expense_id,participant_id) [pk] }
+}
