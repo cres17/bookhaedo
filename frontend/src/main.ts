@@ -9,6 +9,7 @@ import Trips from './views/Trips.vue';
 import Planner from './views/Planner.vue';
 import Admin from './views/Admin.vue';
 import Detail from './views/Detail.vue';
+import Invite from './views/Invite.vue';
 import { boot, state } from './store';
 import { dialog } from './dialog';
 import './style.css';
@@ -27,6 +28,7 @@ const router = createRouter({
     { path: '/admin', component: Admin, meta: { auth: true, admin: true } },
     { path: '/explore', component: Explore, meta: { auth: true } },
     { path: '/trips', component: Trips, meta: { auth: true } },
+    { path: '/invite/:token', component: Invite, meta: { auth: true } },
     { path: '/trips/:id', component: Planner, meta: { auth: true } },
     { path: '/places/:id', component: Detail, meta: { auth: true } },
     { path: '/:pathMatch(.*)*', redirect: '/' },

@@ -19,6 +19,7 @@ export async function migrate() {
     await db.query("SELECT pg_advisory_xact_lock(hashtext('bookhaedo-schema'))");
     await db.query(await readFile(new URL('../db/planner.sql', import.meta.url), 'utf8'));
     await db.query(await readFile(new URL('../db/admin.sql', import.meta.url), 'utf8'));
+    await db.query(await readFile(new URL('../db/collaboration.sql', import.meta.url), 'utf8'));
     await db.query('COMMIT');
   } catch (error) {
     await db.query('ROLLBACK');

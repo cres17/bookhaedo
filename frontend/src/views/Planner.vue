@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import WeatherAlternatives from '../components/WeatherAlternatives.vue';
 import DayAlternatives from '../components/DayAlternatives.vue';
+import TripTools from '../components/TripTools.vue';
 import TripMenu from '../components/TripMenu.vue';
 import RouteOptions from '../components/RouteOptions.vue';
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
@@ -26,6 +27,50 @@ const route = useRoute(),
   title = ref(''),
   mode = ref('DRIVE');
 const costs = ref<Record<string, any>>({});
+const recommendationKey = `bookhaedo-recommendations:${route.params.id}`;
+const showRecommendations = ref(localStorage.getItem(recommendationKey) !== 'hidden');
+function toggleRecommendations() {
+  showRecommendations.value = !showRecommendations.value;
+  localStorage.setItem(recommendationKey, showRecommendations.value ? 'shown' : 'hidden');
+  dayPreview.value = null;
+  alternativePreview.value = null;
+}
+const remoteChanged = ref(false);
+let syncTimer: ReturnType<typeof setInterval>,
+  checking = false;
+const signature = (t: Trip) =>
+  JSON.stringify([t.title, t.transportMode, t.days.map((d) => [d.id, d.revision])]);
+async function checkChanges() {
+  if (checking || saving.value || document.hidden || !trip.value) return;
+  checking = true;
+  try {
+    const r = await api<{ data: Trip }>('/trips/' + route.params.id);
+    remoteChanged.value = signature(r.data) !== signature(trip.value);
+  } catch (e: any) {
+    if (e.status === 404 || e.status === 401) error.value = e.message;
+  } finally {
+    checking = false;
+  }
+}
+async function saveBudget(p: any) {
+  if (saving.value || !current.value) return;
+  saving.value = true;
+  try {
+    const r = await api(
+      `/trips/${route.params.id}/days/${active.value}/items/${p.id}/budget`,
+      json('PATCH', {
+        estimatedCost: p.estimatedCost === '' ? null : (p.estimatedCost ?? null),
+        expectedRevision: current.value.revision,
+      }),
+    );
+    current.value.revision = r.revision;
+    notify('장소 예상 비용을 저장했어요.');
+  } catch (e: any) {
+    error.value = e.message;
+  } finally {
+    saving.value = false;
+  }
+}
 let generation = 0;
 const alternativePreview = ref<any>(null);
 const dayPreview = ref<any>(null);
@@ -59,6 +104,7 @@ onBeforeUnmount(() => {
   loadGeneration++;
   generation++;
   controller?.abort();
+  clearInterval(syncTimer);
 });
 async function load() {
   const token = ++loadGeneration;
@@ -66,6 +112,7 @@ async function load() {
     const data = await api<{ data: Trip }>('/trips/' + route.params.id);
     if (token !== loadGeneration) return;
     trip.value = data.data;
+    remoteChanged.value = false;
     if (!trip.value.days.some((d) => d.date === active.value))
       active.value = trip.value.days[0]?.date || '';
     selectTrip(String(route.params.id), active.value);
@@ -110,7 +157,10 @@ async function loadRoutes() {
     : Promise.resolve();
   await Promise.all([paths, forecast]);
 }
-onMounted(load);
+onMounted(() => {
+  void load();
+  syncTimer = setInterval(checkChanges, 15000);
+});
 watch(active, async () => {
   await nextTick();
   document
@@ -226,8 +276,19 @@ const duration = (seconds: number) => {
           {{ saving ? '저장 중' : '일정 변경 자동 저장 · 메모는 저장 버튼' }}
         </span>
         <button class="button subtle small" @click="editing = true">여행 설정</button>
+        <button
+          class="button subtle small"
+          :aria-pressed="showRecommendations"
+          @click="toggleRecommendations"
+        >
+          {{ showRecommendations ? '추천 숨기기' : '하루 코스 추천 켜기' }}
+        </button>
       </div>
     </div>
+    <p v-if="remoteChanged" class="collaboration-notice" role="status">
+      동행자가 일정을 수정했어요. 작성 중인 메모·비용은 저장한 후 최신 내용을 불러오세요.
+      <button class="text-button" :disabled="saving" @click="load">최신 일정 불러오기</button>
+    </p>
     <p v-if="error && !editing && !addingDay" role="alert" class="form-error">
       {{ error }}
       <button type="button" class="icon-button" aria-label="오류 닫기" @click="error = ''">
@@ -292,7 +353,13 @@ const duration = (seconds: number) => {
           </div>
           <span class="count-badge">{{ current.items.length }}곳</span>
         </div>
+        <div v-if="showRecommendations" class="recommendation-close-row">
+          <button class="icon-button" aria-label="일정 추천 숨기기" @click="toggleRecommendations">
+            ×
+          </button>
+        </div>
         <DayAlternatives
+          v-if="showRecommendations"
           :key="trip.id + trip.transportMode"
           :trip-id="trip.id"
           :date="active"
@@ -310,6 +377,7 @@ const duration = (seconds: number) => {
           "
         />
         <WeatherAlternatives
+          v-if="showRecommendations"
           :key="trip.id + trip.transportMode"
           :trip-id="trip.id"
           :date="active"
@@ -384,6 +452,32 @@ const duration = (seconds: number) => {
                 </button>
                 <p v-if="p.name !== p.nameJa" lang="ja">{{ p.nameJa }}</p>
                 <p>{{ p.openingHours || '운영시간 확인 필요' }}</p>
+                <details class="stop-budget">
+                  <summary>
+                    얼마나 들까요? ·
+                    {{
+                      p.estimatedCost == null
+                        ? '예상 비용 미입력'
+                        : Number(p.estimatedCost).toLocaleString() + '엔'
+                    }}
+                  </summary>
+                  <label>
+                    이 장소에서 쓸 예상 총액 (JPY · 엔)
+                    <input
+                      type="number"
+                      min="0"
+                      max="100000000"
+                      step="1"
+                      v-model.number="p.estimatedCost"
+                      :disabled="saving"
+                      :aria-label="p.name + ' 예상 비용'"
+                      placeholder="금액 미정이면 비워두세요"
+                    />
+                  </label>
+                  <button class="text-button" :disabled="saving" @click="saveBudget(p)">
+                    예상 비용 저장
+                  </button>
+                </details>
                 <details class="stop-note">
                   <summary>메모 {{ p.note ? '· 작성됨' : '추가' }}</summary>
                   <textarea
@@ -428,9 +522,18 @@ const duration = (seconds: number) => {
             장소 추가
           </RouterLink>
           <small>운영시간과 계절별 개방 여부를 출발 전에 확인하세요.</small>
+          <small>
+            오늘 입력한 예상 비용 합계:
+            {{
+              current.items
+                .reduce((sum, p) => sum + Number(p.estimatedCost || 0), 0)
+                .toLocaleString()
+            }}엔 · 실제 지출은 아래 정산 계산기에 기록
+          </small>
         </div>
       </aside>
     </div>
+    <TripTools v-if="trip" :key="trip.id" :trip-id="trip.id" :is-owner="trip.isOwner === true" />
     <div
       v-if="addingDay || editing"
       class="modal-backdrop"
@@ -528,3 +631,40 @@ const duration = (seconds: number) => {
     </div>
   </main>
 </template>
+<style scoped>
+.recommendation-close-row {
+  display: flex;
+  justify-content: flex-end;
+  background: #f4f5ed;
+  padding: 0 10px;
+}
+.recommendation-close-row button {
+  height: 26px;
+}
+.collaboration-notice {
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: #eaf2ec;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.stop-budget {
+  margin: 12px 0;
+  color: #51586d;
+  font-size: 13px;
+}
+.stop-budget summary {
+  cursor: pointer;
+}
+.stop-budget input[type='number'] {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #d5dfd7;
+  border-radius: 10px;
+}
+.stop-budget label {
+  font-size: 12px;
+  line-height: 1.6;
+}
+</style>

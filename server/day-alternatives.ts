@@ -276,11 +276,26 @@ dayAlternatives.patch(
           .json({ error: '기존 일정과 너무 멀리 떨어진 장소가 포함되어 있어요.' });
       }
       const notes = new Map(context.items.map((p: any) => [p.id, p.note || '']));
+      const budgets = new Map(
+        (
+          await db.query(
+            'SELECT place_id,estimated_cost FROM planner.itinerary_item WHERE day_id=$1',
+            [context.dayId],
+          )
+        ).rows.map((p) => [p.place_id, p.estimated_cost]),
+      );
       await db.query('DELETE FROM planner.itinerary_item WHERE day_id=$1', [context.dayId]);
       for (const [position, placeId] of input.placeIds.entries())
         await db.query(
-          'INSERT INTO planner.itinerary_item(id,day_id,place_id,position,note) VALUES($1,$2,$3,$4,$5)',
-          [randomUUID(), context.dayId, placeId, position, notes.get(placeId) || ''],
+          'INSERT INTO planner.itinerary_item(id,day_id,place_id,position,note,estimated_cost) VALUES($1,$2,$3,$4,$5,$6)',
+          [
+            randomUUID(),
+            context.dayId,
+            placeId,
+            position,
+            notes.get(placeId) || '',
+            budgets.get(placeId) ?? null,
+          ],
         );
       await db.query('UPDATE planner.trip_day SET revision=revision+1 WHERE id=$1', [
         context.dayId,

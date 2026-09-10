@@ -4,6 +4,7 @@ import { state, notify, dismissToast, selectTrip } from './store';
 import { api } from './api';
 import Crystal from './components/Crystal.vue';
 import Icon from './components/Icon.vue';
+import AccountPanel from './components/AccountPanel.vue';
 const route = useRoute(),
   router = useRouter();
 async function logout() {
@@ -48,6 +49,7 @@ async function logout() {
         <template v-if="state.user">
           <RouterLink v-if="state.user.role === 'ADMIN'" to="/admin">관리자</RouterLink>
           <span class="user-name">{{ state.user.name }} 님</span>
+          <AccountPanel />
           <button class="text-button" @click="logout">로그아웃</button>
         </template>
         <template v-else>

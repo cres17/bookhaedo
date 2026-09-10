@@ -234,8 +234,8 @@ const minutes = (s: number) => Math.round(s / 60) + '분';
             </template>
             <small>
               여행일 오전 9시 출발을 가정한 인접 구간 비교입니다. 기상·휴업·교통 상황을 보장하지
-              않아요. 기존 장소의 메모는 교체 시 삭제되며, 다른 장소의 메모와 방문 순서는
-              유지됩니다.
+              않아요. 기존 장소의 메모·예상 비용은 교체 시 초기화되며, 다른 장소의 메모와 방문
+              순서는 유지됩니다.
             </small>
             <div class="replacement-actions">
               <button class="button dark" :disabled="saving || disabled" @click="replace">

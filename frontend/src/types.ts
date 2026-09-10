@@ -37,9 +37,11 @@ export type Place = {
   recommended?: boolean;
   position?: number;
   note?: string;
+  estimatedCost?: number | null;
   trendBadge?: string | null;
 };
 export type Trip = {
+  isOwner?: boolean;
   id: string;
   title: string;
   transportMode: string;
@@ -48,6 +50,7 @@ export type Trip = {
 };
 export type Day = { id: string; date: string; revision: number; items: Place[] };
 export type TripSummary = {
+  isOwner?: boolean;
   id: string;
   title: string;
   transportMode: string;
