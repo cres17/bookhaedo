@@ -3,6 +3,20 @@
 <h1 align="center">가고 싶은 곳을<br>하나의 여행으로 .</h1>
 <p align="center">홋카이도 12개 관광권 · 지도 탐색 · 날짜별 일정 · 근거를 보여주는 추천</p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Vue_3-4FC08D?style=flat-square&amp;logo=vuedotjs&amp;logoColor=white" alt="Vue 3">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&amp;logo=vite&amp;logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Node.js-5FA04E?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Express-000000?style=flat-square&amp;logo=express&amp;logoColor=white" alt="Express">
+  <br>
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&amp;logo=postgresql&amp;logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/PostGIS-2E314E?style=flat-square" alt="PostGIS">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&amp;logo=docker&amp;logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&amp;logo=vitest&amp;logoColor=white" alt="Vitest">
+  <img src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square" alt="Playwright">
+</p>
+
 ## 서비스 소개
 
 Book해도는 소도시의 장소와 일본어 이름을 찾는 불편함, 여행 순서를 지도에 정리하는 어려움, 날씨가 달라졌을 때 일정을 다시 짜는 부담을 줄이는 웹 서비스입니다. 장소를 발견하고, 방문할 날짜에 담고, 지도에서 동선을 비교한 뒤 직접 일정을 확정합니다.
