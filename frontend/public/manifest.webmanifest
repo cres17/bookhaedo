@@ -1,0 +1,17 @@
+{
+  "name": "Book해도.",
+  "short_name": "Book해도.",
+  "lang": "ko",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#303252",
+  "background_color": "#f7f8fb",
+  "icons": [
+    {
+      "src": "/bookhaedo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

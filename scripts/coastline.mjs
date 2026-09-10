@@ -1,0 +1,10 @@
+import {writeFile} from 'node:fs/promises';
+const url='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson';
+const response=await fetch(url);if(!response.ok)throw Error('Coastline download failed');
+const data=await response.json();const japan=data.features.find(f=>f.properties.ADM0_A3==='JPN');
+const rings=japan.geometry.coordinates.map(p=>p[0]).filter(r=>r.every(([x,y])=>x>139&&x<146.5&&y>41.25&&y<46));
+if(!rings.some(r=>r.length>100))throw Error('Hokkaido land polygon missing');
+const project=([lon,lat])=>[55+(lon-139)*105,45+(45.7-lat)*145];
+const path=rings.map(r=>'M'+r.map(p=>project(p).map(n=>n.toFixed(2)).join(',')).join(' L')+' Z').join(' ');
+await writeFile('frontend/public/hokkaido-outline.json',JSON.stringify({path,source:'Natural Earth 1:10m land boundaries',url,license:'Public domain',projection:'x=55+(longitude-139)*105; y=45+(45.7-latitude)*145'}));
+console.log('Land coastline exported:',rings.length,'islands');

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book해도. 프로젝트 Appendix</title>
+  <style>
+    :root{--ink:#172044;--blue:#24358f;--ice:#eaf3ff;--red:#d83345;--muted:#67708d;--line:#dce3ef;--paper:#fff;--shadow:0 24px 70px rgba(25,40,91,.14)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf1f7;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif;line-height:1.55}
+    .toolbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:12px 20px;background:rgba(255,255,255,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(18px)}
+    .brand{display:flex;align-items:center;gap:9px;font-weight:800;white-space:nowrap}.brand img{width:28px;height:28px}.toolbar label{font-size:13px;color:var(--muted)}
+    .toolbar select,.toolbar button,.toolbar a{height:36px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);padding:0 14px;font:inherit;font-size:13px;text-decoration:none;cursor:pointer}.toolbar button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.toolbar-spacer{flex:1}
+    main{padding:36px 16px 80px}.page{position:relative;width:min(210mm,calc(100vw - 32px));min-height:297mm;margin:0 auto 34px;padding:19mm 18mm 17mm;background:var(--paper);box-shadow:var(--shadow);overflow:hidden;break-after:page;page-break-after:always}
+    .page::before{content:"";position:absolute;left:0;top:0;width:8px;height:100%;background:linear-gradient(var(--blue),#5972dd)}.page::after{content:"";position:absolute;right:-75px;top:-78px;width:220px;height:220px;border:38px solid rgba(50,78,177,.055);transform:rotate(18deg);border-radius:42%}
+    .page-no{position:absolute;right:18mm;bottom:10mm;color:#8790a9;font-size:11px;letter-spacing:.12em}.page-no b{color:var(--blue)}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.eyebrow::before{content:"";width:22px;height:2px;background:var(--red)}
+    h1{font-size:52px;line-height:1.08;letter-spacing:-.05em;margin:20px 0}h2{font-size:31px;letter-spacing:-.04em;margin:12px 0 22px}h3{font-size:17px;margin:0 0 8px}p{margin:0 0 12px}.lead{font-size:19px;color:#46506f;max-width:620px}.muted{color:var(--muted)}
+    .cover{display:flex;flex-direction:column;justify-content:center;background:linear-gradient(145deg,#f8fbff 0 60%,#e3edff)}.cover-logo{width:112px;height:112px;margin-bottom:28px}.cover h1{font-size:64px}.cover .meta{margin-top:80px;padding-top:22px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.cover .meta small{display:block;color:var(--muted);margin-bottom:4px}.cover .meta strong{font-size:14px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:15px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}.card.tint{background:var(--ice);border-color:#d2e2fb}.card .num{display:block;color:var(--red);font-size:12px;font-weight:900;margin-bottom:18px}.card p{font-size:13px;color:#59627d;margin:0}
+    table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f3f6fb;color:#36405f;font-weight:800}td:first-child{font-weight:700;color:var(--blue)}
+    pre{margin:0;padding:16px 18px;border-radius:14px;background:#121a35;color:#dce7ff;overflow:hidden;white-space:pre-wrap;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.code-light{background:#f5f7fb;color:#26304f;border:1px solid var(--line)}
+    .tree{font-size:10.5px;line-height:1.45}.chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}.chip{padding:6px 10px;border-radius:999px;background:var(--ice);color:var(--blue);font-size:11px;font-weight:700}
+    .flow{display:flex;align-items:stretch;gap:8px;margin:14px 0}.flow .step{flex:1;padding:13px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:11px;text-align:center}.flow .step b{display:block;color:var(--blue);margin-bottom:4px}.flow .arrow{align-self:center;color:var(--red);font-weight:900}
+    .callout{border-left:4px solid var(--red);padding:12px 16px;background:#fff5f6;border-radius:0 12px 12px 0;font-size:13px}.metric{padding:15px;border-top:3px solid var(--blue);background:#f7f9fd}.metric strong{display:block;font-size:27px;color:var(--blue)}.metric span{font-size:11px;color:var(--muted)}
+    .file-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}.file{padding:10px 12px;border:1px solid var(--line);border-radius:11px}.file code{font-size:11px;color:var(--blue);font-weight:700}.file span{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+    .footer-note{position:absolute;left:18mm;bottom:10mm;font-size:10px;color:#9198ac}.spacer{height:14px}.small{font-size:11px}.check{margin:0;padding:0;list-style:none}.check li{position:relative;padding:7px 0 7px 23px;border-bottom:1px solid #edf0f5;font-size:12px}.check li::before{content:"✓";position:absolute;left:0;color:#16845b;font-weight:900}
+    @media(max-width:760px){.toolbar label,.toolbar a{display:none}.toolbar{padding:9px}.toolbar select{min-width:0;max-width:42vw}.page{padding:11mm 9mm 16mm;min-height:auto}.page-no{right:9mm}.grid-3{grid-template-columns:1fr}.grid-2,.file-list{grid-template-columns:1fr}.cover .meta{grid-template-columns:1fr}.flow{flex-direction:column}.flow .arrow{transform:rotate(90deg)}h1{font-size:38px}.cover h1{font-size:46px}}
+    @media print{@page{size:A4;margin:0}body{background:#fff}.toolbar{display:none}main{padding:0}.page{width:210mm;height:297mm;min-height:297mm;margin:0;box-shadow:none}.page:last-child{break-after:auto;page-break-after:auto}}
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <span class="brand"><img src="/bookhaedo.svg" alt="" />Book해도. Appendix</span>
+    <label for="pageSelect">페이지 이동</label>
+    <select id="pageSelect" aria-label="Appendix 페이지 이동"></select>
+    <div class="toolbar-spacer"></div>
+    <a href="/">서비스로 돌아가기</a>
+    <button id="prev" type="button">이전</button><button id="next" type="button">다음</button>
+    <button class="primary" type="button" onclick="window.print()">PDF로 인쇄</button>
+  </header>
+  <main>
+    <p style="text-align:center;padding:12px">이 자료는 2026-09-09 발표용 기록입니다. 현재 API 계약은 <a href="/swagger.html">Swagger</a>, 최신 구현·검증 기준은 <a href="https://github.com/cres17/bookhaedo">저장소 README</a>를 확인해주세요.</p>
+    <section class="page cover" id="page-1" data-title="표지">
+      <img class="cover-logo" src="/bookhaedo.svg" alt="Book해도 눈 결정 로고" />
+      <span class="eyebrow">Frontend · REST API · Cloud Data</span>
+      <h1>Book해도.<br/>Project Appendix</h1>
+      <p class="lead">홋카이도의 작은 도시와 숨은 장소까지 연결하는 데이터 기반 여행 플래너</p>
+      <div class="meta"><div><small>DOCUMENT</small><strong>프로젝트 구조 및 구현 참고자료</strong></div><div><small>STACK</small><strong>Vue 3 · Express · PostGIS</strong></div><div><small>UPDATED</small><strong>2026. 09. 09.</strong></div></div>
+      <span class="footer-note">개인 여행 프로젝트 · 홋카이도 공식 서비스가 아닙니다.</span><span class="page-no"><b>01</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-2" data-title="기획 의도와 Pain Point">
+      <span class="eyebrow">01 · Product Intent</span><h2>기획 의도와 해결하려는 불편</h2>
+      <p class="lead">유명 도시 중심의 여행 검색에서 벗어나, 소도시의 현지 장소를 발견하고 날씨 변화에도 여행을 이어가도록 돕습니다.</p><div class="spacer"></div>
+      <div class="grid-2">
+        <article class="card"><span class="num">PAIN 01</span><h3>소도시 장소 탐색의 공백</h3><p>기존 플래너에서 홋카이도 소도시와 비주류 장소가 충분히 노출되지 않아 별도 검색을 반복해야 합니다.</p></article>
+        <article class="card"><span class="num">PAIN 02</span><h3>일본어 장소명의 장벽</h3><p>한국어 정보가 부족한 장소는 검색과 비교가 어렵습니다. 한국어 상세정보와 일본어 원문을 함께 제공합니다.</p></article>
+        <article class="card"><span class="num">PAIN 03</span><h3>급변하는 날씨와 일정 중단</h3><p>눈·비로 계획을 실행하기 어려워졌을 때 날씨에 맞는 실내·도심 후보를 다시 찾는 인지 부담이 큽니다.</p></article>
+        <article class="card"><span class="num">PAIN 04</span><h3>유명 장소에 편중된 동선</h3><p>여행 후에야 알게 되는 장소를 줄이도록 현지 데이터와 일본어 리뷰 단서를 탐색 과정에 연결합니다.</p></article>
+      </div><div class="spacer"></div>
+      <div class="callout"><b>핵심 경험</b> — 지역과 가고 싶은 장소를 검색 → 지도에서 비교 → 날짜별 일정에 추가 → 거리·시간·날씨를 확인 → 순서를 조정합니다.</div>
+      <span class="page-no"><b>02</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-3" data-title="기술 스택">
+      <span class="eyebrow">02 · Technology</span><h2>기술 스택과 선택 이유</h2>
+      <table><thead><tr><th>영역</th><th>기술</th><th>프로젝트 내 역할</th></tr></thead><tbody>
+        <tr><td>Frontend</td><td>Vue 3, TypeScript, Vue Router</td><td>SPA 화면, 컴포넌트, 라우팅과 상태 표현</td></tr>
+        <tr><td>Build</td><td>Vite, vue-tsc</td><td>개발 서버, 타입 검사, production 번들</td></tr>
+        <tr><td>Backend</td><td>Node.js, Express 5</td><td>REST API, 인증, 검색·추천·일정 도메인 처리</td></tr>
+        <tr><td>Database</td><td>PostgreSQL 17, PostGIS</td><td>관계 데이터, JSONB 장소 태그, 공간 인덱스</td></tr>
+        <tr><td>Map & Place</td><td>Google Maps JS, Places API (New)</td><td>지도·마커, 사진·평점·리뷰·공식 사이트 보강</td></tr>
+        <tr><td>Route</td><td>Google Routes, Valhalla</td><td>장소 사이 경로·거리·예상시간 계산과 대체 경로</td></tr>
+        <tr><td>Weather</td><td>Open-Meteo</td><td>여행 날짜별 기온·강수·적설 예보</td></tr>
+        <tr><td>Data ETL</td><td>Python, osmium, Shapely, psycopg</td><td>OSM 추출·정규화·중복 병합·PostGIS 적재</td></tr>
+        <tr><td>Security</td><td>HttpOnly Cookie, scrypt, Helmet, Zod</td><td>세션·비밀번호 보호, 보안 헤더, 입력 검증</td></tr>
+        <tr><td>Test</td><td>Vitest, Supertest, Playwright</td><td>화이트박스·REST 블랙박스·브라우저 E2E</td></tr>
+      </tbody></table>
+      <div class="chips"><span class="chip">AI/RAG 미사용</span><span class="chip">규칙 기반 추천</span><span class="chip">실제 공간 데이터</span><span class="chip">REST 분리</span></div>
+      <span class="page-no"><b>03</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-4" data-title="전체 파일 구조">
+      <span class="eyebrow">03 · Repository</span><h2>전체 파일 구조</h2>
+      <pre class="tree">web-mini-project/
+├── frontend/
+│   ├── public/               # 이미지·로고·Swagger·Appendix
+│   └── src/
+│       ├── components/       # 지도·카드·눈·경로 UI
+│       ├── views/            # 라우트 단위 화면
+│       ├── api.ts            # REST 요청 공통 처리
+│       ├── store.ts          # 사용자·지역·여행 상태
+│       ├── types.ts          # 프론트 데이터 타입
+│       └── main.ts           # Vue 시작점과 라우터
+├── server/
+│   ├── app.ts                # Express 라우트 조합
+│   ├── admin.ts              # 관리자 RBAC·회원 관리
+│   ├── db.ts                 # PostgreSQL 연결
+│   ├── place-search.ts       # 검색 의도 파싱·SQL 조건
+│   ├── place-details.ts      # Google Places 상세 보강
+│   ├── routing.ts            # Routes·Valhalla 경로 계산
+│   └── recommendations.ts    # 날씨·취향 규칙 추천
+├── db/
+│   ├── schema.sql            # 장소·공간 데이터 스키마
+│   └── planner.sql           # 회원·여행·관리자 스키마
+├── scripts/                  # ETL·적재·명세·실호출 검사
+├── tests/                    # Vitest·Supertest
+│   └── e2e/                  # Playwright 사용자 시나리오
+├── docs/                     # OpenAPI·ERD·흐름도·보고서
+├── data/processed/           # 정제 결과·품질 리포트
+├── docker-compose.yml        # PostgreSQL + PostGIS
+├── package.json              # 실행·빌드·검증 명령
+└── README.md                 # 설치·구조·운영 안내</pre>
+      <p class="small muted">원천 CSV/PBF, 환경변수, node_modules, 빌드 결과는 Git 추적 대상에서 제외됩니다.</p><span class="page-no"><b>04</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-5" data-title="Frontend 구조">
+      <span class="eyebrow">04 · Frontend</span><h2>Vue 화면과 컴포넌트 구조</h2>
+      <div class="file-list">
+        <div class="file"><code>views/Landing.vue</code><span>서비스 소개, 홋카이도 인터랙티브 지도</span></div><div class="file"><code>views/Auth.vue</code><span>로그인·회원가입</span></div>
+        <div class="file"><code>views/Explore.vue</code><span>지역 소개, 취향 선택, 통합 검색, 장소 목록</span></div><div class="file"><code>views/Detail.vue</code><span>장소 원문·한국어 상세, 리뷰, 일정 추가</span></div>
+        <div class="file"><code>views/Trips.vue</code><span>사용자별 여행 목록과 관리 메뉴</span></div><div class="file"><code>views/Planner.vue</code><span>날짜별 일정, 순서 변경, 경로·날씨</span></div>
+        <div class="file"><code>views/Admin.vue</code><span>회원 권한·상태·감사 로그</span></div><div class="file"><code>views/DataPolicy.vue</code><span>이용 안내와 개인정보 안내</span></div>
+        <div class="file"><code>components/TravelMap.vue</code><span>Google 지도·마커·경로선</span></div><div class="file"><code>components/PlaceCard.vue</code><span>장소 요약·상태·액션</span></div>
+        <div class="file"><code>components/Snowfall.vue</code><span>Canvas 기반 눈 인터랙션</span></div><div class="file"><code>components/RouteOptions.vue</code><span>이동수단별 거리·시간 선택</span></div>
+      </div><div class="spacer"></div>
+      <pre class="code-light">main.ts
+  └─ App.vue
+      ├─ Site Header / Account Navigation
+      ├─ RouterView
+      │   └─ View → Reusable Components → api.ts
+      ├─ Mobile Navigation
+      └─ Global Toast</pre>
+      <span class="page-no"><b>05</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-6" data-title="UI 라우팅 흐름">
+      <span class="eyebrow">05 · UI Flow</span><h2>회원·관리자 UI 흐름</h2>
+      <h3>회원</h3><div class="flow"><div class="step"><b>/</b>서비스 소개</div><span class="arrow">→</span><div class="step"><b>/login</b>인증</div><span class="arrow">→</span><div class="step"><b>/explore</b>검색·발견</div><span class="arrow">→</span><div class="step"><b>/places/:id</b>장소 상세</div></div>
+      <div class="flow"><div class="step"><b>/trips</b>여행 선택·생성</div><span class="arrow">→</span><div class="step"><b>/trips/:id</b>날짜별 계획</div><span class="arrow">↔</span><div class="step"><b>/explore</b>장소 추가 탐색</div></div>
+      <div class="spacer"></div><h3>관리자</h3><div class="flow"><div class="step"><b>/login</b>관리자 로그인</div><span class="arrow">→</span><div class="step"><b>/admin</b>운영 대시보드</div><span class="arrow">→</span><div class="step"><b>회원 관리</b>상태·권한 변경</div><span class="arrow">→</span><div class="step"><b>감사 로그</b>변경 이력 확인</div></div>
+      <div class="callout">인증이 필요한 라우트는 Vue Router 가드와 Express 세션 검사를 모두 통과해야 합니다. 관리자 기능은 <b>ADMIN</b> 역할을 서버에서 다시 검증합니다.</div>
+      <div class="spacer"></div><h3>발견하기 내부 흐름</h3><div class="flow"><div class="step"><b>01</b>지역 소개 카드</div><span class="arrow">→</span><div class="step"><b>02</b>마음이 가는 장면</div><span class="arrow">→</span><div class="step"><b>03</b>지도 연결 장소</div></div>
+      <span class="page-no"><b>06</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-7" data-title="Backend 구조">
+      <span class="eyebrow">06 · Backend</span><h2>Express REST 처리 구조</h2>
+      <div class="flow"><div class="step"><b>Vue api.ts</b>JSON 요청</div><span class="arrow">→</span><div class="step"><b>Middleware</b>CORS·Helmet·Rate limit</div><span class="arrow">→</span><div class="step"><b>Zod</b>입력 검증</div><span class="arrow">→</span><div class="step"><b>Route Handler</b>도메인 조합</div></div>
+      <div class="flow"><div class="step"><b>PostGIS</b>장소·일정</div><span class="arrow">↔</span><div class="step"><b>Service</b>검색·추천·경로</div><span class="arrow">↔</span><div class="step"><b>External API</b>Google·날씨</div></div>
+      <div class="grid-2">
+        <article class="card tint"><h3>검색 요청</h3><p><code>place-search.ts</code>가 지역명과 업종·활동 동의어를 분리하고, PostGIS JSONB 태그 조건과 잔여 장소명을 함께 적용합니다.</p></article>
+        <article class="card tint"><h3>장소 상세</h3><p>로컬 장소의 일본어 이름과 좌표로 Google 후보를 조회하고, 이름·거리 검증을 통과한 경우에만 상세정보를 연결합니다.</p></article>
+        <article class="card tint"><h3>일정 저장</h3><p>세션 사용자 소유권을 검사한 뒤 날짜, 장소, 순서를 트랜잭션으로 저장하고 순서 변경 후 경로를 재계산합니다.</p></article>
+        <article class="card tint"><h3>오류 응답</h3><p>검증 실패 400, 인증 실패 401, 권한 부족 403, 미존재 404, 외부 연동 실패는 안전한 대체 응답으로 구분합니다.</p></article>
+      </div><span class="page-no"><b>07</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-8" data-title="REST API 명세 요약">
+      <span class="eyebrow">07 · REST API</span><h2>주요 API 명세 요약</h2>
+      <table><thead><tr><th>Method</th><th>Endpoint</th><th>기능</th></tr></thead><tbody>
+        <tr><td>GET</td><td><code>/api/regions</code></td><td>12개 관광권과 소개 정보</td></tr><tr><td>GET</td><td><code>/api/places?q=</code></td><td>지역·업종·활동·장소명 통합 검색</td></tr>
+        <tr><td>GET</td><td><code>/api/places/:id</code></td><td>로컬 장소·출처 상세</td></tr><tr><td>GET</td><td><code>/api/places/:id/enrichment</code></td><td>한국어 이름, 사진, 평점, 리뷰, 공식 사이트</td></tr>
+        <tr><td>POST</td><td><code>/api/auth/login</code></td><td>HttpOnly 세션 쿠키 발급</td></tr><tr><td>GET/POST</td><td><code>/api/trips</code></td><td>내 여행 조회·생성</td></tr>
+        <tr><td>PUT</td><td><code>/api/trips/:id/days/:date/items</code></td><td>날짜별 장소 추가·순서 저장</td></tr><tr><td>PATCH</td><td><code>/api/trips/:id</code></td><td>여행 이름·이동수단 변경</td></tr>
+        <tr><td>GET</td><td><code>/api/trips/:id/days/:date/routes</code></td><td>저장된 일정의 구간 경로 계산</td></tr><tr><td>GET</td><td><code>/api/weather</code></td><td>날짜·좌표 기반 날씨 예보</td></tr>
+        <tr><td>GET</td><td><code>/api/admin/users</code></td><td>관리자 회원 조회</td></tr><tr><td>PATCH</td><td><code>/api/admin/users/:id</code></td><td>회원 상태·권한 변경과 감사 기록</td></tr>
+      </tbody></table>
+      <div class="callout"><b>전체 실행 명세</b> — 개발 서버 실행 후 <code>/swagger.html</code>에서 OpenAPI 3.1 문서를 확인합니다.</div>
+      <span class="page-no"><b>08</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-9" data-title="Database 구조">
+      <span class="eyebrow">08 · Database</span><h2>PostgreSQL · PostGIS 데이터 구조</h2>
+      <div class="grid-2">
+        <div><h3>장소 도메인 · geo_data</h3><pre class="code-light">region 1 ── N place
+place  1 ── N place_source
+place
+├─ id UUID
+├─ category
+├─ name_ja / name_ko_source
+├─ latitude / longitude
+├─ geom geometry(Point, 4326)
+└─ osm_tags JSONB</pre></div>
+        <div><h3>여행 도메인 · planner</h3><pre class="code-light">app_user 1 ── N trip
+trip     1 ── N trip_day
+trip_day 1 ── N itinerary_item
+place    1 ── N itinerary_item
+
+app_user 1 ── N session
+app_user 1 ── N admin_audit</pre></div>
+      </div><div class="spacer"></div>
+      <table><thead><tr><th>설계 요소</th><th>적용 방식</th></tr></thead><tbody><tr><td>공간 검색</td><td>Point geometry와 GiST 인덱스로 반경·거리 계산</td></tr><tr><td>가변 태그</td><td>OSM 속성을 JSONB로 보존하고 검색 의도에 맞춰 필터</td></tr><tr><td>중복 방지</td><td>정규화 이름·거리·출처 ID와 체인 브랜드 기준 적용</td></tr><tr><td>데이터 출처</td><td>place_source에 OSM·공공 데이터 식별자와 원본 정보 기록</td></tr><tr><td>권한 추적</td><td>관리자 변경 전후 상태와 수행자를 감사 로그에 기록</td></tr></tbody></table>
+      <p class="small muted">dbdiagram.io 복사용 전체 DBML은 <code>docs/erd.dbml</code>에 있습니다.</p><span class="page-no"><b>09</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-10" data-title="데이터 파이프라인">
+      <span class="eyebrow">09 · Data Pipeline</span><h2>홋카이도 장소 데이터 ETL</h2>
+      <div class="flow"><div class="step"><b>Source</b>OSM PBF<br/>홋카이도 CSV</div><span class="arrow">→</span><div class="step"><b>Extract</b>관광·음식·숙박<br/>상점·공방 태그</div><span class="arrow">→</span><div class="step"><b>Normalize</b>이름·좌표·분류<br/>태그 정규화</div><span class="arrow">→</span><div class="step"><b>Merge</b>이름+250m<br/>중복 병합</div><span class="arrow">→</span><div class="step"><b>Load</b>PostGIS<br/>Upsert</div></div>
+      <div class="grid-3"><div class="metric"><strong>20,810</strong><span>현재 장소 전체</span></div><div class="metric"><strong>12,744</strong><span>관광·체험·상점</span></div><div class="metric"><strong>5,963</strong><span>음식점·카페</span></div><div class="metric"><strong>2,103</strong><span>숙소·캠핑</span></div><div class="metric"><strong>24,999</strong><span>장소 출처 연결</span></div><div class="metric"><strong>12</strong><span>홋카이도 관광권</span></div></div>
+      <div class="spacer"></div><pre>npm run data:setup    # Python 격리 환경과 의존성
+npm run data:prepare  # POI 추출·정규화·병합·품질 리포트
+npm run db:up         # PostgreSQL/PostGIS 컨테이너
+npm run data:load     # 스키마 적용과 데이터 적재</pre>
+      <p class="small muted">공공 CSV는 경고에 따라 단독 장소 생성에 사용하지 않고, 동일 이름·근거리 OSM 장소의 보강 자료로만 사용합니다.</p><span class="page-no"><b>10</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-11" data-title="외부 연동과 보안">
+      <span class="eyebrow">10 · Integration & Security</span><h2>외부 API 경계와 보안 원칙</h2>
+      <div class="grid-2">
+        <article class="card"><span class="num">GOOGLE MAPS</span><h3>브라우저 지도 표현</h3><p>Maps JavaScript API는 허용 웹사이트 제한이 적용된 브라우저 키로 지도·마커·경로선을 표시합니다.</p></article>
+        <article class="card"><span class="num">GOOGLE PLACES</span><h3>검증된 상세정보</h3><p>서버가 장소명·거리 일치를 확인한 후 한국어 상세를 반환합니다. 존재하지 않는 공식 사이트를 생성하지 않습니다.</p></article>
+        <article class="card"><span class="num">ROUTES · VALHALLA</span><h3>경로 계산과 대체</h3><p>Google Routes를 우선 사용하고 지원 범위·실패 조건에 따라 Valhalla 기반 경로로 보완합니다.</p></article>
+        <article class="card"><span class="num">OPEN-METEO</span><h3>날씨 예보</h3><p>서버에서 기온·강수·적설을 받아 추천과 일정 화면에 전달하며, 미확인 상태를 실제 정보처럼 표현하지 않습니다.</p></article>
+      </div><div class="spacer"></div>
+      <ul class="check"><li>DB와 서버용 API 키는 브라우저에 직접 노출하지 않음</li><li>세션 쿠키 HttpOnly·SameSite 적용, 운영 HTTPS에서는 Secure 적용</li><li>Zod 입력 검증, Helmet 보안 헤더, 인증·상세 API 요청 제한</li><li>관리자 라우트 RBAC와 변경 감사 로그</li><li>사진·리뷰 응답을 서비스 DB에 영구 복제하지 않음</li></ul>
+      <span class="page-no"><b>11</b> / 12</span>
+    </section>
+
+    <section class="page" id="page-12" data-title="검증과 제출 파일">
+      <span class="eyebrow">11 · Verification</span><h2>검증 결과와 제출 참고 파일</h2>
+      <div class="grid-3"><div class="metric"><strong>61 / 61</strong><span>Vitest·Supertest 통과</span></div><div class="metric"><strong>2 / 2</strong><span>핵심 탐색 E2E 통과</span></div><div class="metric"><strong>PASS</strong><span>Vue production build</span></div></div><div class="spacer"></div>
+      <div class="file-list">
+        <div class="file"><code>README.md</code><span>설치, 기술 스택, 아키텍처, 운영 안내</span></div><div class="file"><code>docs/openapi-rest.json</code><span>실제 Express 구현 기준 OpenAPI 3.1</span></div>
+        <div class="file"><code>docs/erd.dbml</code><span>dbdiagram.io 복사 입력용 ERD</span></div><div class="file"><code>docs/api-flow.svg</code><span>REST API 연결 흐름도</span></div>
+        <div class="file"><code>docs/data-sources.md</code><span>원천 데이터·라이선스·품질 정책</span></div><div class="file"><code>docs/test-report.md</code><span>화이트박스·블랙박스 검증 범위</span></div>
+        <div class="file"><code>frontend/public/appendix.html</code><span>현재 12페이지 인쇄용 문서</span></div><div class="file"><code>frontend/public/swagger.html</code><span>브라우저 API 명세 화면</span></div>
+      </div><div class="spacer"></div>
+      <pre>npm install
+npm run db:up
+npm run dev          # http://127.0.0.1:5173
+npm run build        # production bundle
+npm test             # unit + REST integration
+npm run test:e2e     # browser scenario</pre>
+      <div class="callout"><b>Appendix 제출</b> — 이 화면 상단의 ‘PDF로 인쇄’를 선택하고 용지를 A4, 배율 100%, 배경 그래픽 포함으로 저장합니다.</div>
+      <span class="footer-note">END OF DOCUMENT · Book해도.</span><span class="page-no"><b>12</b> / 12</span>
+    </section>
+  </main>
+  <script>
+    const pages=[...document.querySelectorAll('.page')],select=document.querySelector('#pageSelect');let current=0;
+    pages.forEach((page,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=`${String(index+1).padStart(2,'0')} · ${page.dataset.title}`;select.append(option)});
+    function go(index){current=Math.max(0,Math.min(pages.length-1,index));select.value=String(current);pages[current].scrollIntoView({behavior:'smooth',block:'start'})}
+    select.addEventListener('change',()=>go(Number(select.value)));document.querySelector('#prev').addEventListener('click',()=>go(current-1));document.querySelector('#next').addEventListener('click',()=>go(current+1));
+    const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){current=pages.indexOf(entry.target);select.value=String(current)}},{threshold:.55});pages.forEach(page=>observer.observe(page));
+  </script>
+</body>
+</html>

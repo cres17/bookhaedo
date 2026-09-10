@@ -1,0 +1,10 @@
+import 'dotenv/config';
+import {writeFile} from 'node:fs/promises';
+import {getGoogleKey,computeSegment,forecast} from '../server/providers.js';
+const results:any={checkedAt:new Date().toISOString(),keyPresent:!!getGoogleKey(),requests:[]};
+const inspect:typeof fetch=async(input,options)=>{const r=await fetch(input,options);const clone=await r.clone().json().catch(()=>({}));results.requests.push({service:String(input).includes('routes.googleapis')?'Routes API':'Open-Meteo',status:r.status,error:clone.error?{status:clone.error.status,message:clone.error.message,reason:clone.error.details?.find((d:any)=>d.reason)?.reason}:null});return r;};
+results.route=await computeSegment({id:'sapporo-station',latitude:43.0687,longitude:141.3508},{id:'odori-park',latitude:43.0599,longitude:141.3475},'DRIVE',inspect);
+const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+results.weather=await forecast(43.0687,141.3508,date,inspect);
+const sanitized=JSON.stringify(results,null,2).replaceAll(getGoogleKey(),'[REDACTED]');
+await writeFile('docs/google-live-check.json',sanitized);console.log(sanitized);
