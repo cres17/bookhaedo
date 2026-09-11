@@ -267,6 +267,10 @@ async function saveNote(p: any) {
     saving.value = false;
   }
 }
+const transportName = (value: string) =>
+  ({ DRIVE: '렌터카', TAXI: '택시', WALK: '도보', BICYCLE: '자전거', TRANSIT: '대중교통' })[
+    value
+  ] || value;
 const duration = (seconds: number) => {
   const min = Math.ceil(seconds / 60);
   return min >= 60 ? `${Math.floor(min / 60)}시간 ${min % 60}분` : `${min}분`;
@@ -422,40 +426,31 @@ const duration = (seconds: number) => {
             </RouterLink>
           </div>
           <template v-for="(p, i) in current.items" :key="p.id">
-            <div v-if="i > 0" class="route-between">
-              <span class="route-line" />
-              <Icon name="route" :size="16" />
-              <span v-if="routing">길을 확인하고 있어요…</span>
-              <template v-else-if="segments[i - 1]">
-                <span>
-                  {{ segments[i - 1]!.source === 'straight-line' ? '직선거리 ' : ''
-                  }}{{ (segments[i - 1]!.distanceMeters / 1000).toFixed(1) }} km
-                  <span v-if="segments[i - 1]!.durationSeconds !== null">
-                    · {{ duration(segments[i - 1]!.durationSeconds!) }}
-                  </span>
-                  <small v-if="segments[i - 1]!.source === 'straight-line'">
-                    실제 경로·이동시간 확인 불가
-                  </small>
-                  <small v-else>
-                    {{
-                      segments[i - 1]!.source === 'valhalla'
-                        ? 'Valhalla · OSM 기준 예상'
-                        : 'Google 경로'
-                    }}
-                    · 아래에서 교통비 비교
-                  </small>
-                </span>
-              </template>
-              <span v-else>경로를 확인하지 못했어요</span>
-            </div>
             <RouteOptions
               v-if="i > 0"
-              :key="active + p.id"
+              :key="active + p.id + trip.transportMode"
               :trip-id="trip.id"
               :date="active"
               :from="current.items[i - 1]!.id"
               :to="p.id"
-            />
+            >
+              <template #summary>
+                <span class="route-default-mode">{{ transportName(trip.transportMode) }}</span>
+                <span v-if="routing">계산 중…</span>
+                <template v-else-if="segments[i - 1]">
+                  <span>
+                    {{ segments[i - 1]!.source === 'straight-line' ? '직선 ' : ''
+                    }}{{ (segments[i - 1]!.distanceMeters / 1000).toFixed(1) }} km ·
+                    {{
+                      segments[i - 1]!.durationSeconds !== null
+                        ? duration(segments[i - 1]!.durationSeconds!)
+                        : '시간 정보 없음'
+                    }}
+                  </span>
+                </template>
+                <span v-else>경로 정보 없음</span>
+              </template>
+            </RouteOptions>
             <article :class="['itinerary-stop', p.category.toLowerCase()]">
               <span class="stop-number">{{ i + 1 }}</span>
               <div class="stop-content">
