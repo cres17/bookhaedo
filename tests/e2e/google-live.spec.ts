@@ -73,8 +73,8 @@ test('실제 Google 지도·지역 검색·경로·날씨의 REST → Vue 연결
     const weather = await (await weatherResponse).json();
     expect(weather.available).toBe(true);
     expect(weather.source).toBe('Open-Meteo');
-    await expect(page.locator('.route-between')).toContainText('분');
-    await expect(page.locator('.route-between')).not.toContainText('직선거리');
+    await expect(page.locator('.route-default-summary')).toContainText('분');
+    await expect(page.locator('.route-default-summary')).not.toContainText('직선거리');
     await expect(page.locator('.weather-chip')).toContainText('Open-Meteo');
     await expect(page.locator('.map-loading')).toBeHidden();
     await expect(page.locator('.map-fallback')).toHaveCount(0);
