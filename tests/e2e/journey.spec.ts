@@ -28,6 +28,7 @@ test('실제 UI: 가입 → 여행 생성 → 탐색 → 장소 담기 → 날�
   await page.getByLabel('이름', { exact: true }).fill('눈꽃 여행자');
   await page.getByLabel('이메일', { exact: true }).fill(email);
   await page.getByLabel('비밀번호', { exact: true }).fill(password);
+  await page.getByLabel('비밀번호 재확인', { exact: true }).fill(password);
   await page.getByRole('button', { name: '계정 만들고 시작하기' }).click();
   await expect(page).toHaveURL(/explore/);
   await expect(page.locator('.place-card').first()).toBeVisible();

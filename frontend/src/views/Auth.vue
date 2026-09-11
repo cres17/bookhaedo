@@ -11,9 +11,15 @@ const route = useRoute(),
 const name = ref(''),
   email = ref(''),
   password = ref(''),
+  passwordConfirmation = ref(''),
   error = ref(''),
   busy = ref(false);
 async function submit() {
+  if (busy.value) return;
+  if (signup.value && password.value !== passwordConfirmation.value) {
+    error.value = '비밀번호가 일치하지 않아요. 다시 확인해주세요.';
+    return;
+  }
   busy.value = true;
   error.value = '';
   try {
@@ -101,6 +107,21 @@ async function submit() {
             placeholder="10자 이상 입력해주세요"
           />
         </label>
+        <label v-if="signup">
+          비밀번호 재확인
+          <input
+            v-model="passwordConfirmation"
+            type="password"
+            autocomplete="new-password"
+            required
+            minlength="10"
+            maxlength="128"
+            placeholder="비밀번호를 한 번 더 입력해주세요"
+          />
+        </label>
+        <p v-if="route.query.redirect" class="auth-invite-notice">
+          로그인 또는 회원가입 후 원래 보던 페이지로 돌아갑니다.
+        </p>
         <p v-if="error" role="alert" class="form-error">{{ error }}</p>
         <button class="button dark wide" :disabled="busy">
           {{ busy ? '잠시만 기다려주세요' : signup ? '계정 만들고 시작하기' : '로그인' }}

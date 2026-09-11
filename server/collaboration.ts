@@ -60,12 +60,34 @@ invitations.get(
       .regex(/^[a-f0-9]{64}$/)
       .parse(req.params.token);
     const q = await pool.query(
-      `SELECT i.id,t.title,i.email FROM planner.trip_invitation i JOIN planner.trip t ON t.id=i.trip_id WHERE i.token_hash=$1 AND i.status='PENDING' AND i.expires_at>now() AND (i.email IS NULL OR i.email=$2)`,
-      [hash(token), res.locals.user.email],
+      `SELECT i.id,t.title,i.email,i.trip_id AS "tripId",i.status,i.expires_at,
+       (t.user_id=$3) AS "isOwner",
+       EXISTS(SELECT 1 FROM planner.trip_member m WHERE m.trip_id=t.id AND m.user_id=$3) AS "isMember"
+       FROM planner.trip_invitation i JOIN planner.trip t ON t.id=i.trip_id
+       WHERE i.token_hash=$1 AND (i.email IS NULL OR i.email=$2 OR t.user_id=$3)`,
+      [hash(token), res.locals.user.email, res.locals.user.id],
     );
-    if (!q.rowCount)
-      return res.status(404).json({ error: '초대가 만료되었거나 사용할 수 없어요.' });
-    res.json(q.rows[0]);
+    const invitation = q.rows[0];
+    if (!invitation)
+      return res.status(404).json({
+        error: '초대를 찾을 수 없어요. 이메일 초대라면 초대받은 계정으로 로그인해주세요.',
+      });
+    const alreadyMember = invitation.isOwner || invitation.isMember;
+    if (
+      !alreadyMember &&
+      (invitation.status !== 'PENDING' || new Date(invitation.expires_at).getTime() <= Date.now())
+    )
+      return res
+        .status(404)
+        .json({ error: '이미 사용했거나 만료·취소된 초대 링크예요. 새로운 초대를 요청해주세요.' });
+    res.json({
+      id: invitation.id,
+      title: invitation.title,
+      email: invitation.email,
+      tripId: invitation.tripId,
+      alreadyMember,
+      isOwner: invitation.isOwner,
+    });
   }),
 );
 invitations.post(
@@ -160,6 +182,26 @@ collaboration.post(
       .parse(req.body);
     if (email === res.locals.user.email)
       return res.status(400).json({ error: '본인은 이미 여행 소유자예요.' });
+    if (email) {
+      const recipient = await pool.query(
+        "SELECT id FROM planner.app_user WHERE email=$1 AND status='ACTIVE'",
+        [email],
+      );
+      if (!recipient.rowCount)
+        return res
+          .status(400)
+          .json({ error: '가입된 사용자가 없는 이메일이에요. 회원가입 후 초대해주세요.' });
+      const member = await pool.query(
+        'SELECT 1 FROM planner.trip_member WHERE trip_id=$1 AND user_id=$2',
+        [req.params.id, recipient.rows[0].id],
+      );
+      if (member.rowCount)
+        return res.status(409).json({ error: '이미 이 여행에 참여 중인 동행자예요.' });
+      await pool.query(
+        "UPDATE planner.trip_invitation SET status='REVOKED' WHERE trip_id=$1 AND email=$2 AND status='PENDING' AND expires_at<=now()",
+        [req.params.id, email],
+      );
+    }
     const token = randomBytes(32).toString('hex');
     try {
       await pool.query(

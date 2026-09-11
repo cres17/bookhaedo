@@ -68,9 +68,38 @@ it('초대 수락 전에는 접근 불가, 다른 이메일 수락 불가, 수�
   ).toBe(404);
   expect((await agents[1]!.get('/api/trips')).body.data.some((t: any) => t.id === trip)).toBe(true);
   expect((await agents[1]!.get('/api/trips/' + trip)).body.data.isOwner).toBe(false);
+  expect((await agents[1]!.get('/api/invitations/link/' + token)).body).toMatchObject({
+    alreadyMember: true,
+    tripId: trip,
+  });
+  expect((await agents[2]!.get('/api/invitations/link/' + token)).status).toBe(404);
   expect((await agents[1]!.delete('/api/trips/' + trip)).status).toBe(403);
   expect((await agents[1]!.post(`/api/trips/${trip}/invitations`).send({})).status).toBe(403);
   expect((await agents[0]!.get('/api/notifications')).body.notifications.length).toBeGreaterThan(0);
+});
+it('미가입 이메일 초대를 거절하고 초대 레코드를 만들지 않는다', async () => {
+  const email = `missing-${randomUUID()}@example.test`;
+  const r = await agents[0]!.post(`/api/trips/${trip}/invitations`).send({ email });
+  expect(r.status).toBe(400);
+  expect(r.body.error).toContain('가입된 사용자가 없는');
+  expect(
+    (await pool.query('SELECT id FROM planner.trip_invitation WHERE email=$1', [email])).rowCount,
+  ).toBe(0);
+});
+it('소유자는 링크를 미리 보고 수락한 동행자는 같은 링크로 여행에 다시 들어간다', async () => {
+  const link = await agents[0]!.post(`/api/trips/${trip}/invitations`).send({});
+  const token = link.body.path.split('/').pop();
+  const owner = await agents[0]!.get('/api/invitations/link/' + token);
+  expect(owner.body).toMatchObject({ alreadyMember: true, isOwner: true, tripId: trip });
+  const member = await agents[1]!.get('/api/invitations/link/' + token);
+  expect(member.body).toMatchObject({ alreadyMember: true, isOwner: false, tripId: trip });
+  const emailInvite = (
+    await pool.query(
+      'SELECT token_hash FROM planner.trip_invitation WHERE trip_id=$1 AND email=$2',
+      [trip, emails[1]],
+    )
+  ).rows[0];
+  expect(emailInvite).toBeDefined();
 });
 it('공동 메모·예산은 저장되고 순서 변경에도 유지되며 오래된 revision은 거절한다', async () => {
   expect(
