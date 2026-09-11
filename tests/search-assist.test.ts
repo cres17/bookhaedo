@@ -58,7 +58,7 @@ it('외부 검색 오류와 이름 불일치는 가상 장소를 만들지 않�
   expect(r.status).toBe('NO_MATCH');
   expect(r.data).toEqual([]);
 });
-it('production은 개발용 키 공유와 공공 데모 라우터 사용을 거절한다', () => {
+it('production은 선택적 외부 제공자를 허용하되 키 공유와 공공 데모 라우터는 거절한다', () => {
   expect(() => validateProduction({ NODE_ENV: 'production' })).toThrow('DATABASE_URL');
   const env = {
     NODE_ENV: 'production',
@@ -69,6 +69,14 @@ it('production은 개발용 키 공유와 공공 데모 라우터 사용을 거�
     VALHALLA_BASE_URL: 'http://routing.internal',
   };
   expect(() => validateProduction(env)).not.toThrow();
+  expect(() =>
+    validateProduction({
+      NODE_ENV: 'production',
+      DATABASE_URL: env.DATABASE_URL,
+      APP_ORIGINS: env.APP_ORIGINS,
+      VITE_GOOGLE_MAPS_API_KEY: env.VITE_GOOGLE_MAPS_API_KEY,
+    }),
+  ).not.toThrow();
   expect(() => validateProduction({ ...env, GOOGLE_MAPS_SERVER_API_KEY: 'browser' })).toThrow(
     'separate',
   );
