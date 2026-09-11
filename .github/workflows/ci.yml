@@ -19,8 +19,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://bookhaedo_test:ci_test_only@127.0.0.1:5432/bookhaedo_test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
