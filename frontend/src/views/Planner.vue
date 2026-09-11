@@ -112,6 +112,19 @@ async function load() {
     const data = await api<{ data: Trip }>('/trips/' + route.params.id);
     if (token !== loadGeneration) return;
     trip.value = data.data;
+    const slug =
+      trip.value.title
+        .normalize('NFKC')
+        .replace(/[^\p{L}\p{N}]+/gu, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 80) || 'travel';
+    if (route.params.slug !== slug)
+      await router.replace({
+        name: 'trip',
+        params: { id: route.params.id, slug },
+        query: route.query,
+        hash: route.hash,
+      });
     remoteChanged.value = false;
     if (!trip.value.days.some((d) => d.date === active.value))
       active.value = trip.value.days[0]?.date || '';

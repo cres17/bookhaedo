@@ -2414,6 +2414,13 @@ paths:
                     type:
                       - string
                       - 'null'
+                  tripId:
+                    type: string
+                    format: uuid
+                  alreadyMember:
+                    type: boolean
+                  isOwner:
+                    type: boolean
         '400':
           description: 잘못된 입력
           content:
@@ -2727,7 +2734,9 @@ paths:
                 email:
                   type: string
                   format: email
-      description: email 생략 시 링크 초대. 이메일 발송이 아닌 서비스 알림함 전달. 토큰은 해시만 DB 저장. 발급 직후에만 링크 반환.
+      description: >-
+        email 지정 시 가입된 활성 계정만 초대 가능하며 미가입 이메일은 400, 기존 동행자는 409. email 생략 시 링크 초대. 이메일 발송이 아닌 서비스 알림함 전달. 토큰은 해시만 DB 저장.
+        발급 직후에만 링크 반환.
       tags:
         - 여행
       operationId: post__trips_id_invitations
