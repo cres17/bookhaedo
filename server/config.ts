@@ -17,7 +17,9 @@ export function validateProduction(env: NodeJS.ProcessEnv = process.env) {
     env.GOOGLE_MAPS_SERVER_API_KEY &&
     env.GOOGLE_MAPS_SERVER_API_KEY === env.VITE_GOOGLE_MAPS_API_KEY
   )
-    throw Error('Production requires a separate server Google key when server enrichment is enabled');
+    throw Error(
+      'Production requires a separate server Google key when server enrichment is enabled',
+    );
   if (
     env.VALHALLA_BASE_URL &&
     new URL(env.VALHALLA_BASE_URL).hostname === 'valhalla1.openstreetmap.de'
