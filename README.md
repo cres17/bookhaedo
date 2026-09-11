@@ -228,6 +228,8 @@ npm run dev
 
 빈 DB에서는 장소가 표시되지 않습니다. [데이터 소스](docs/data-sources.md)와 [데이터 적재 기록](docs/data-import-report.md)을 확인하고, 다운로드한 CSV·OSM PBF를 준비합니다. 데이터 도구는 `npm run data:setup`으로 설치하고 각 스크립트의 `--help`에서 파일 경로 옵션을 확인할 수 있습니다.
 
+운영용 자동차·택시·도보·자전거 경로는 `docker-compose.valhalla.yml`로 홋카이도 OSM 데이터를 사용하는 Valhalla를 자체 실행할 수 있습니다. 실행과 갱신 절차는 [운영 안내](docs/operations.md#valhalla-자체-운영)를 따릅니다.
+
 ```bash
 npm run data:prepare -- --help
 npm run data:load -- --help

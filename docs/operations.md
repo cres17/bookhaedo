@@ -14,6 +14,17 @@ production 시작 시 DATABASE_URL과 HTTPS APP_ORIGINS를 검사합니다. Goog
 4. `npm run build` 실행 후, 운영 환경 변수를 주입하고 `npm start`로 기동합니다.
 5. `/api/health`의 DB 연결과 장소 수를 확인하고 테스트 계정으로 추가·재정렬·메모·충돌 처리를 점검합니다.
 
+## Valhalla 자체 운영
+
+EC2에서 Docker를 설치한 뒤 저장소 루트의 `docker-compose.valhalla.yml`을 사용합니다. 컨테이너는 Geofabrik의 홋카이도 OSM PBF를 내려받아 `data/valhalla`에 라우팅 타일을 만들며, 재시작 시 생성물을 재사용합니다. 첫 빌드는 CPU·메모리·디스크 성능에 따라 오래 걸릴 수 있습니다.
+
+```bash
+docker compose -f docker-compose.valhalla.yml up -d
+docker compose -f docker-compose.valhalla.yml logs -f valhalla
+```
+
+서비스가 준비되면 EC2 안에서 `http://127.0.0.1:8002/status`를 확인하고 앱 환경 변수에 `VALHALLA_BASE_URL=http://127.0.0.1:8002`를 설정합니다. 8002 포트는 루프백에만 바인딩하므로 EC2 보안 그룹에 공개하지 않습니다. 기본 스레드는 2개이며 메모리가 부족하면 `VALHALLA_THREADS=1`로 시작합니다. 최신 OSM 데이터로 갱신하려면 유지보수 시간에 PBF와 생성 타일을 교체하고 재빌드한 뒤 경로 회귀를 확인합니다.
+
 v2는 `planner.trip_day.revision`을 추가합니다. 기존 여행/카탈로그를 삭제하지 않으며 기존 날짜는 revision=0에서 시작합니다. 초기화 SQL은 트랜잭션과 advisory lock으로 순서대로 적용합니다. 모든 서버 인스턴스를 v2 계약으로 맞춰야 합니다. 구버전 클라이언트의 전체 일정·메모·대안 저장은 expectedRevision이 없어 428을 받습니다.
 
 ## 동시 수정 계약

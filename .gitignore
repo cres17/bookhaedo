@@ -13,6 +13,7 @@
 # local data pipeline runtime and generated datasets
 /.venv-data/
 /data/processed/
+/data/valhalla/
 *.osm.pbf
 Hokkaido_OD_GeoDataBase.csv
 
