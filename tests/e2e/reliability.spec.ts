@@ -141,5 +141,5 @@ test('경로 응답이 대기 중이어도 날씨를 먼저 표시한다', async
   await mocks(page, async (r) => r.fulfill({ json: { data: trip } }), true);
   await page.goto('/trips/' + tid);
   await expect(page.locator('.weather-chip')).toContainText('맑음');
-  await expect(page.locator('.route-between')).toContainText('길을 확인');
+  await expect(page.locator('.route-default-summary')).toContainText('계산 중');
 });
