@@ -29,7 +29,7 @@ const router = createRouter({
     { path: '/explore', component: Explore, meta: { auth: true } },
     { path: '/trips', component: Trips, meta: { auth: true } },
     { path: '/invite/:token', component: Invite, meta: { auth: true } },
-    { path: '/trips/:id', component: Planner, meta: { auth: true } },
+    { path: '/trips/:id/:slug?', name: 'trip', component: Planner, meta: { auth: true } },
     { path: '/places/:id', component: Detail, meta: { auth: true } },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],

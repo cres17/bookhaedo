@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api, json } from '../api';
 const route = useRoute(),
@@ -7,14 +7,25 @@ const route = useRoute(),
   invitation = ref<any>(null),
   error = ref(''),
   busy = ref(false);
-onMounted(async () => {
-  try {
-    invitation.value = await api('/invitations/link/' + route.params.token);
-  } catch (e: any) {
-    error.value = e.message;
-  }
-});
+watch(
+  () => route.params.token,
+  async () => {
+    invitation.value = null;
+    error.value = '';
+    busy.value = true;
+    try {
+      invitation.value = await api('/invitations/link/' + route.params.token);
+    } catch (e: any) {
+      error.value = e.message;
+    } finally {
+      busy.value = false;
+    }
+  },
+  { immediate: true },
+);
 async function respond(accept: boolean) {
+  if (busy.value) return;
+  error.value = '';
   busy.value = true;
   try {
     const r = await api(
@@ -36,12 +47,25 @@ async function respond(accept: boolean) {
     <p v-if="error" class="form-error" role="alert">{{ error }}</p>
     <template v-if="invitation">
       <h2>{{ invitation.title }}</h2>
-      <p>수락하면 동행자와 일정·메모·예산을 함께 수정하고 여행 채팅에 참여할 수 있어요.</p>
-      <button class="button dark" :disabled="busy" @click="respond(true)">
-        초대 수락하고 여행 보기
-      </button>
-      <button class="button subtle" :disabled="busy" @click="respond(false)">거절</button>
+      <template v-if="invitation.alreadyMember">
+        <p>
+          {{
+            invitation.isOwner
+              ? '내가 만든 여행의 초대장이에요. 함께 갈 사람에게 링크를 공유해주세요.'
+              : '이미 참여 중인 여행이에요. 바로 여행을 열 수 있어요.'
+          }}
+        </p>
+        <RouterLink class="button dark" :to="'/trips/' + invitation.tripId">여행 보기</RouterLink>
+      </template>
+      <template v-else>
+        <p>수락하면 동행자와 일정·메모·예산을 함께 수정하고 여행 채팅에 참여할 수 있어요.</p>
+        <button class="button dark" :disabled="busy" @click="respond(true)">
+          초대 수락하고 여행 보기
+        </button>
+        <button class="button subtle" :disabled="busy" @click="respond(false)">거절</button>
+      </template>
     </template>
+    <p v-else-if="busy" role="status">초대장을 확인하고 있어요…</p>
     <RouterLink v-else to="/trips">나의 여행으로</RouterLink>
   </main>
 </template>
