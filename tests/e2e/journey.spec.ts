@@ -58,7 +58,7 @@ test('실제 UI: 가입 → 여행 생성 → 탐색 → 장소 담기 → 날�
   await expect(page.getByRole('dialog', { name: '장소 추가 완료' })).toBeVisible();
   await page.getByRole('link', { name: '여행 일정으로 이동하기', exact: true }).click();
   await expect(page.locator('.itinerary-stop')).toHaveCount(2);
-  await expect(page.locator('.route-between')).toContainText('km', { timeout: 25000 });
+  await expect(page.locator('.route-default-summary')).toContainText('km', { timeout: 25000 });
   const before = await page.locator('.stop-name').allTextContents();
   await page
     .getByRole('button', { name: /위로 이동/ })

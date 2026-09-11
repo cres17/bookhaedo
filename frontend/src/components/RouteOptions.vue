@@ -64,9 +64,17 @@ function money(value: any) {
 </script>
 <template>
   <div class="route-options">
-    <button class="text-button" :disabled="busy" @click="open ? (open = false) : load()">
-      {{ busy ? '이동방법 확인 중…' : open ? '이동방법 접기' : '이동방법 비교' }}
-    </button>
+    <div class="route-summary-row">
+      <div class="route-default-summary"><slot name="summary" /></div>
+      <button
+        class="text-button route-compare-toggle"
+        :aria-expanded="open"
+        :disabled="busy"
+        @click="open ? (open = false) : load()"
+      >
+        {{ busy ? '이동방법 확인 중…' : open ? '이동방법 접기' : '이동방법 비교' }}
+      </button>
+    </div>
     <section v-if="open">
       <p>조회일 {{ date }} · 일본 시간</p>
       <label>
@@ -122,3 +130,42 @@ function money(value: any) {
     </section>
   </div>
 </template>
+
+<style scoped>
+.route-options {
+  margin: 0 0 0 12px;
+  padding: 7px 0 7px 12px;
+  border-left: 1px dashed #c6cfdd;
+}
+.route-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.route-default-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+  min-width: 0;
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #596178;
+}
+.route-default-summary :deep(.route-default-mode) {
+  font-weight: 600;
+  color: #3b4260;
+}
+.route-compare-toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 9px 0 9px 4px;
+}
+.route-options > section {
+  margin-bottom: 5px;
+}
+</style>
