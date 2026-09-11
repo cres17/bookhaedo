@@ -2,9 +2,9 @@
 
 ## 배포 전제
 
-Node.js 22.13 이상인 22.x 또는 24.x/26.x 이상, PostgreSQL/PostGIS, HTTPS 리버스 프록시, 별도 Google 서버 키, 자체 운영 또는 계약된 Valhalla 엔드포인트가 필요합니다. Vue 빌드 결과와 API는 동일 출처에서 제공합니다.
+Node.js 22.13 이상인 22.x 또는 24.x/26.x 이상, PostgreSQL/PostGIS, HTTPS 리버스 프록시가 필요합니다. Google 상세·리뷰·서버 경로 조회를 사용하려면 브라우저 키와 분리한 Google 서버 키가 필요하고, 자동차·택시·도보·자전거의 실제 경로를 사용하려면 자체 운영 또는 계약된 Valhalla 엔드포인트가 필요합니다. Vue 빌드 결과와 API는 동일 출처에서 제공합니다.
 
-production 시작 시 DATABASE_URL, HTTPS APP_ORIGINS, 프론트와 구분한 서버 키, 개발 데모가 아닌 라우터 주소를 검사합니다. API_HOST는 인그레스 뒤에서 0.0.0.0으로 설정합니다. 클라이언트 IP 신뢰 범위는 실제 프록시 구성을 확인한 뒤 설정해야 합니다.
+production 시작 시 DATABASE_URL과 HTTPS APP_ORIGINS를 검사합니다. Google 서버 키를 설정하면 프론트 키와 다른지 검사하고, Valhalla 주소를 설정하면 공개 개발 데모 주소가 아닌지 검사합니다. 두 선택적 제공자를 설정하지 않으면 공통 장소와 일정 저장은 유지되며, Google 상세 기능은 사용할 수 없고 실제 경로 대신 직선거리와 null 이동시간을 표시합니다. API_HOST는 인그레스 뒤에서 0.0.0.0으로 설정합니다. 클라이언트 IP 신뢰 범위는 실제 프록시 구성을 확인한 뒤 설정해야 합니다.
 
 ## 실행과 마이그레이션
 
