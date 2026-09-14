@@ -4,6 +4,7 @@ import DayAlternatives from '../components/DayAlternatives.vue';
 import TripTools from '../components/TripTools.vue';
 import TripMenu from '../components/TripMenu.vue';
 import RouteOptions from '../components/RouteOptions.vue';
+import { transitLink } from '../transit-link';
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api, json } from '../api';
@@ -148,7 +149,11 @@ async function loadRoutes() {
   segments.value = [];
   weather.value = null;
   routing.value = true;
-  const paths = api(`/trips/${route.params.id}/days/${date}/routes`, { signal })
+  const paths = (
+    trip.value?.transportMode === 'TRANSIT'
+      ? Promise.resolve({ segments: [] })
+      : api(`/trips/${route.params.id}/days/${date}/routes`, { signal })
+  )
     .then((d) => {
       if (g === generation) segments.value = d.segments;
     })
@@ -433,10 +438,20 @@ const duration = (seconds: number) => {
               :date="active"
               :from="current.items[i - 1]!.id"
               :to="p.id"
+              :transit-url="transitLink(current.items[i - 1]!, p)"
             >
               <template #summary>
                 <span class="route-default-mode">{{ transportName(trip.transportMode) }}</span>
-                <span v-if="routing">계산 중…</span>
+                <a
+                  v-if="trip.transportMode === 'TRANSIT'"
+                  :href="transitLink(current.items[i - 1]!, p)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Google 지도에서 대중교통 길찾기 (새 창)"
+                >
+                  Google 지도에서 길찾기 ↗
+                </a>
+                <span v-else-if="routing">계산 중…</span>
                 <template v-else-if="segments[i - 1]">
                   <span>
                     {{ segments[i - 1]!.source === 'straight-line' ? '직선 ' : ''
