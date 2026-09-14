@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { api } from '../api';
-const props = defineProps<{ tripId: string; date: string; from: string; to: string }>(),
+const props = defineProps<{
+    tripId: string;
+    date: string;
+    from: string;
+    to: string;
+    transitUrl: string;
+  }>(),
   open = ref(false),
   busy = ref(false),
   error = ref(''),
@@ -33,7 +39,7 @@ async function load(google = false) {
       from: props.from,
       to: props.to,
       departure: departure.value,
-      google: String(google),
+      google: google ? 'drive' : 'false',
     });
     const d = await api('/trips/' + props.tripId + '/days/' + props.date + '/route-options?' + q);
     if (identity !== [props.date, props.from, props.to].join('|')) return;
@@ -76,7 +82,17 @@ function money(value: any) {
       </button>
     </div>
     <section v-if="open">
-      <p>조회일 {{ date }} · 일본 시간</p>
+      <article class="transit-external">
+        <strong>🚆 대중교통</strong>
+        <a class="text-button" :href="transitUrl" target="_blank" rel="noopener noreferrer">
+          Google 지도에서 길찾기 ↗
+        </a>
+        <small>
+          새 창에서 출발·도착지가 입력된 길찾기가 열립니다. 여행 날짜와 출발 시각은 Google 지도에서
+          선택해주세요.
+        </small>
+      </article>
+      <p>자동차 경로 조회일 {{ date }} · 일본 시간</p>
       <label>
         Google 경로 출발 시각
         <input
@@ -87,7 +103,7 @@ function money(value: any) {
         />
       </label>
       <button class="button subtle small" :disabled="busy" @click="load(true)">
-        대중교통·통행료 조회 (Google)
+        자동차·통행료 조회 (Google)
       </button>
       <p v-if="error" role="alert">{{ error }}</p>
       <article v-for="o in options" :key="o.mode">
@@ -164,6 +180,14 @@ function money(value: any) {
   white-space: nowrap;
   font-size: 12px;
   padding: 9px 0 9px 4px;
+}
+.transit-external {
+  display: grid;
+  gap: 4px;
+}
+.route-default-summary :deep(a) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .route-options > section {
   margin-bottom: 5px;
