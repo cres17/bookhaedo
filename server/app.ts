@@ -849,7 +849,7 @@ app.get(
             .string()
             .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
             .default('09:00'),
-          google: z.enum(['true', 'false']).default('false'),
+          google: z.enum(['true', 'false', 'drive']).default('false'),
         })
         .parse(req.query);
     const q = await pool.query(
@@ -863,8 +863,8 @@ app.get(
       b = q.rows[index + 1],
       departureTime = new Date(date + 'T' + i.departure + ':00+09:00').toISOString(),
       options: any[] = [];
-    if (i.google === 'true') {
-      for (const mode of ['TRANSIT', 'DRIVE']) {
+    if (i.google !== 'false') {
+      for (const mode of i.google === 'drive' ? ['DRIVE'] : ['TRANSIT', 'DRIVE']) {
         const r = await computeSegment(a, b, mode, fetch, departureTime);
         options.push({
           ...r,

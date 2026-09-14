@@ -2590,13 +2590,14 @@
               "type": "string",
               "enum": [
                 "true",
-                "false"
+                "false",
+                "drive"
               ],
               "default": "false"
             }
           }
         ],
-        "description": "false: Valhalla DRIVE/WALK/BICYCLE. true: Google TRANSIT/GOOGLE_DRIVE, 운임/통행료 및 사용자 기준 연료비·택시 추정. departure는 여행일 JST 시각. 경로 DB 저장 없음. 요금 null은 무료가 아님.",
+        "description": "false: Valhalla DRIVE/WALK/BICYCLE. drive: Google GOOGLE_DRIVE만 조회. 대중교통 UI는 Google 지도 외부 링크 사용. true: Google TRANSIT/GOOGLE_DRIVE, 운임/통행료 및 사용자 기준 연료비·택시 추정. departure는 여행일 JST 시각. 경로 DB 저장 없음. 요금 null은 무료가 아님.",
         "tags": [
           "경로"
         ],

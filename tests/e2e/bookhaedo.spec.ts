@@ -35,7 +35,9 @@ test('Book해도 브랜딩·메모·이동 비교·여행 삭제를 실제 REST�
     await page.locator('.stop-note summary').first().click();
     await expect(page.locator('textarea').first()).toHaveValue('14시 예약 · 창가 자리');
     await page.getByRole('button', { name: '이동방법 비교', exact: true }).click();
-    await expect(page.locator('.route-options article')).toHaveCount(3, { timeout: 40000 });
+    await expect(page.locator('.route-options article:not(.transit-external)')).toHaveCount(3, {
+      timeout: 40000,
+    });
     await expect(page.locator('.route-options')).toContainText('도보');
     await expect(page.locator('.route-options')).toContainText('자전거');
     await page.screenshot({ path: 'docs/screenshots/bookhaedo-planner.png', fullPage: true });

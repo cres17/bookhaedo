@@ -44,7 +44,6 @@ test('저장된 이동수단 결과와 비교 버튼을 같은 줄에 표시한�
       ['DRIVE', '렌터카'],
       ['BICYCLE', '자전거'],
       ['TAXI', '택시'],
-      ['TRANSIT', '대중교통'],
     ]) {
       await page.request.patch('/api/trips/' + id, {
         data: { title: '이동수단 기본 표시', transportMode: mode },
@@ -71,26 +70,25 @@ test('저장된 이동수단 결과와 비교 버튼을 같은 줄에 표시한�
         fullPage: true,
       });
     }
-    await page.route('**/days/*/routes', (r) =>
-      r.fulfill({
-        json: {
-          segments: [
-            {
-              from: places[0],
-              to: places[1],
-              source: 'straight-line',
-              distanceMeters: 2800,
-              durationSeconds: null,
-            },
-          ],
-        },
-      }),
-    );
+    await page.request.patch('/api/trips/' + id, {
+      data: { title: '이동수단 기본 표시', transportMode: 'TRANSIT' },
+    });
+    let routeRequests = 0;
+    page.on('request', (request) => {
+      if (/\/days\/[^/]+\/routes$/.test(request.url())) routeRequests++;
+    });
     await page.reload();
-    await expect(page.locator('.route-default-summary')).toContainText('대중교통');
-    await expect(page.locator('.route-default-summary')).toContainText(
-      '직선 2.8 km · 시간 정보 없음',
-    );
+    const link = page
+      .locator('.route-default-summary')
+      .getByRole('link', { name: 'Google 지도에서 길찾기' });
+    await expect(link).toBeVisible();
+    const url = new URL((await link.getAttribute('href'))!);
+    expect(url.origin).toBe('https://www.google.com');
+    expect(url.searchParams.get('travelmode')).toBe('transit');
+    expect(url.searchParams.get('origin')).toMatch(/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/);
+    expect(url.searchParams.get('destination')).not.toBe(url.searchParams.get('origin'));
+    expect(routeRequests).toBe(0);
+    await expect(page.locator('.route-default-summary')).not.toContainText('시간 정보 없음');
   } finally {
     await page.request.delete('/api/auth/me', { data: { password } });
   }
