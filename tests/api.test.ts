@@ -209,6 +209,15 @@ describe('블랙박스: REST API와 실제 PostgreSQL', () => {
       ).status,
     ).toBe(404);
   });
+  it('Google 자동차 전용 비교는 대중교통 옵션을 요청하지 않는다', async () => {
+    const trip = (await user.get('/api/trips/' + tripId)).body.data;
+    const day = trip.days.find((d: any) => d.date === '2026-09-30');
+    const result = await user
+      .get(`/api/trips/${tripId}/days/${day.date}/route-options`)
+      .query({ from: day.items[0].id, to: day.items[1].id, google: 'drive' });
+    expect(result.status).toBe(200);
+    expect(result.body.options.map((o: any) => o.mode)).toEqual(['GOOGLE_DRIVE']);
+  });
   it('트렌드는 미수집 상태를 명시하고 폐기한 동선 추천을 거절한다', async () => {
     const r = await request(app).get('/api/places/' + placeIds[0] + '/trend');
     expect(r.status).toBe(200);
