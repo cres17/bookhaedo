@@ -25,10 +25,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run format:check
       - run: npm run db:init
+      - run: npx tsx scripts/verify-fresh-migrations.ts
       - run: npm run test:ci
+      - run: npm run test:load:ci
       - run: npm run spec:check
       - run: npm run build

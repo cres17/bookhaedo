@@ -1,4 +1,5 @@
 import { straightDistance, dateOnly } from './domain.js';
+import { providerCaches, providerKey } from './provider-cache.js';
 type Point = { id: string; latitude: number; longitude: number };
 export type Segment = {
   from: string;
@@ -23,6 +24,30 @@ export async function computeSegment(
   b: Point,
   mode: string,
   request: typeof fetch = fetch,
+  departureTime?: string,
+): Promise<Segment> {
+  const key = providerKey(request, [
+    getGoogleKey(),
+    a.id,
+    a.latitude,
+    a.longitude,
+    b.id,
+    b.latitude,
+    b.longitude,
+    mode,
+    departureTime,
+  ]);
+  return providerCaches.google_routes.get(
+    key,
+    () => fetchSegment(a, b, mode, request, departureTime),
+    (result) => result.source === 'google',
+  );
+}
+async function fetchSegment(
+  a: Point,
+  b: Point,
+  mode: string,
+  request: typeof fetch,
   departureTime?: string,
 ): Promise<Segment> {
   const base = { from: a.id, to: b.id };
@@ -107,11 +132,30 @@ export async function forecast(
       timezone: 'Asia/Tokyo',
       forecast_days: '10',
     });
-    const response = await request(`https://api.open-meteo.com/v1/forecast?${query}`, {
-      signal: AbortSignal.timeout(9000),
-    });
-    if (!response.ok) throw new Error('UNAVAILABLE');
-    const body = await response.json();
+    const body = await providerCaches.weather.get(
+      providerKey(request, [today, query.toString()]),
+      async () => {
+        const response = await request(`https://api.open-meteo.com/v1/forecast?${query}`, {
+          signal: AbortSignal.timeout(9000),
+        });
+        if (!response.ok) throw new Error('UNAVAILABLE');
+        const data = await response.json();
+        return data;
+      },
+      (data) => {
+        const daily = data.daily;
+        return (
+          Array.isArray(daily?.time) &&
+          daily.time.length === 10 &&
+          daily.time.every(
+            (day: string, i: number) =>
+              day === new Date(Date.parse(today) + i * 86400000).toISOString().slice(0, 10) &&
+              Number.isFinite(daily.temperature_2m_max?.[i]) &&
+              Number.isFinite(daily.temperature_2m_min?.[i]),
+          )
+        );
+      },
+    );
     const daily = body.daily,
       index = daily?.time?.indexOf(date) ?? -1;
     const high = daily?.temperature_2m_max?.[index],

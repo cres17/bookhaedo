@@ -11,8 +11,8 @@ production 시작 시 DATABASE_URL과 HTTPS APP_ORIGINS를 검사합니다. Goog
 1. 배포 DB 스냅샷을 확보하고 복구 가능 여부를 확인합니다.
 2. `npm ci`로 lockfile에 고정된 의존성을 설치합니다.
 3. 신규 DB에는 `npm run db:init`로 스키마를 준비합니다. 카탈로그 데이터 적재는 별도입니다.
-4. `npm run build` 실행 후, 운영 환경 변수를 주입하고 `npm start`로 기동합니다.
-5. `/api/health`의 DB 연결과 장소 수를 확인하고 테스트 계정으로 추가·재정렬·메모·충돌 처리를 점검합니다.
+4. 기존 DB는 `npm run db:migrate`로 버전 SQL을 적용합니다. 이후 `npm run build` 실행 후, 운영 환경 변수를 주입하고 `npm start`로 기동합니다.
+5. `/api/health/live`와 `/api/health/ready`를 확인하고, `/api/health`로 장소 수를 별도로 확인합니다. 테스트 계정으로 추가·재정렬·메모·충돌 처리를 점검합니다.
 
 ## Valhalla 자체 운영
 
@@ -41,16 +41,55 @@ API 응답의 X-Request-ID를 서버의 API_ERROR 로그와 연결합니다. 일
 
 Google/Valhalla/Open-Meteo 오류는 기본 장소와 저장 기능을 없애지 않습니다. 실제 경로를 얻지 못한 구간은 직선거리와 null 이동시간으로 표시합니다. 날씨는 경로 조회와 별개로 로드합니다.
 
-날씨·경로·대안 외부 조회는 인증 사용자별 분당 30회로 제한하며 Retry-After를 반환합니다. 외부 호출 없이 DB만 변경하는 대안 확정은 이 조회 한도에서 제외하고, 전체 API의 기본 IP 요청 제한과 인증·소유권·일정 버전 검사는 계속 적용합니다.
+날씨·경로·대안 외부 조회는 인증 사용자별 분당 30회로 제한하며 Retry-After를 반환합니다. 외부 호출 없이 DB만 변경하는 대안 확정은 이 조회 한도에서 제외하고, 전체 API의 기본 요청 제한과 인증·소유권·일정 버전 검사는 계속 적용합니다. 전체 한도는 정상 형식의 세션 쿠키가 있으면 세션별, 로그인 전에는 IP별로 적용해 NAT 뒤 사용자를 불필요하게 묶지 않습니다. 로그인 시도는 별도 IP 한도를 적용합니다. 카운터는 `planner.rate_limit_bucket`에 원자적으로 저장하므로 여러 API 인스턴스가 같은 한도를 적용합니다. 키는 정책명과 원문 식별자의 SHA-256이며 원문 IP·세션·사용자 ID는 저장하지 않습니다. 만료 후 하루가 지난 버킷은 정기 유지보수에서 삭제합니다.
+
+## 관측과 경보
+
+모든 API 응답은 요청 ID를 가지며 구조화 로그는 timestamp, level, event, method, 정규화된 route, status, durationMs만 기록합니다. 본문·쿠키·query 값은 기록하지 않습니다. 5xx와 1초 이상 요청은 항상 기록하고 정상 요청은 `HTTP_LOG_SAMPLE_RATE` 비율로 표본화합니다.
+
+Prometheus는 bearer token으로 `/internal/metrics`를 수집합니다. production은 32자 이상의 `METRICS_TOKEN` 없이는 기동하지 않습니다. `ops/prometheus/prometheus.yml.example`과 `alerts.yml`은 수집·API 중단·5xx 2%·p95 1초·DB 풀 대기 경보의 시작점입니다. 실제 Alertmanager 수신자와 dashboard는 배포 환경에서 연결합니다. 고유 ID·날짜·숫자 path는 route template으로 정규화하고 미매칭 path는 하나의 label로 합쳐 cardinality를 제한합니다.
+
+## 백업과 복원 훈련
+
+`pg_dump`·`pg_restore`는 서버와 같은 PostgreSQL 17 버전을 PATH에서 선택합니다. 이전 major 버전의 `pg_dump`는 서버 버전 불일치로 중단됩니다. macOS에 여러 버전이 있으면 실행 전에 `pg_dump --version`을 확인합니다.
+
+```bash
+npm run db:backup -- --output /암호화된-보관소/bookhaedo-YYYYMMDD.dump
+npm run db:restore:drill -- --archive /암호화된-보관소/bookhaedo-YYYYMMDD.dump
+```
+
+백업은 PostgreSQL custom format, no-owner/no-ACL로 생성하고 SHA-256과 핵심 테이블 행 수·마이그레이션 이력 metadata를 함께 저장합니다. 복원 훈련은 원본 DB를 변경하지 않고 고유 이름의 임시 DB를 만든 뒤 체크섬, 행 수, 마이그레이션 이력을 대조하고 성공·실패와 관계없이 임시 DB를 제거합니다. 계정 데이터가 포함되므로 archive·metadata는 저장소 밖의 암호화된 보관소에 두고 최소 권한과 수명 주기를 적용해야 합니다.
+
+주간 `operations-drill` workflow는 PostgreSQL 17 client로 빈 CI DB의 백업·복원과 부하 기준을 반복합니다. 운영에서는 일일 백업, 보관 주기, 리전 외 복제, RPO/RTO를 정하고 실제 관리형 DB snapshot도 별도로 훈련합니다.
+
+## 부하 기준
+
+`npm run test:load:ci`는 20개 동시 요청으로 5초 동안 중앙 제한 카운터와 실제 지역 카탈로그 집계를 함께 통과시킵니다. 기준은 오류율 0%, p95 250ms 이하입니다. 원격 환경은 오작동 방지를 위해 `ALLOW_REMOTE_LOAD_TEST=true`를 명시해야 합니다.
+
+```bash
+ALLOW_REMOTE_LOAD_TEST=true npm run test:load -- --url https://staging.example/api/regions --duration 60 --concurrency 50 --p95 500 --error-rate 0.01
+```
+
+로컬 단기 기준은 회귀 gate다. 배포 승인은 staging에서 예상 데이터량·인스턴스 수로 soak test를 수행하고 CPU, 메모리, DB pool, 외부 제공자 할당량을 함께 확인한다.
 
 ## 운영 규모 확대 시 남은 작업
 
 현재 CI·회귀 검증은 기능 정확성 검증이며 부하·침투·재해복구 검증을 대신하지 않습니다. 실제 운영 전에는 다음을 수행해야 합니다.
 
-- RDS/PostGIS 백업·복원 연습과 DB 최소 권한·TLS·비밀 관리 설정
-- 로그 수집·지표·알람, 응답시간/오류율 목표 및 부하 시험
-- 여러 API 인스턴스에 공통 적용할 요청 제한 저장소(현재 제한은 프로세스 메모리 기준)
+- 실제 RDS/PostGIS의 다중 AZ·리전 외 백업 복원과 DB 최소 권한·TLS·비밀 회전 검증
+- 중앙 로그·Prometheus·Alertmanager 수신자 연결과 staging 장시간 soak test
 - 관리자 MFA/SSO, 세션 정책과 개인정보 보존·삭제 정책의 운영 조직 승인
 - 자체 라우팅 운영, 외부 API 예산·할당량·이용조건 확인
 
 리뷰 점수는 Google 전체 평점의 리뷰 수 보정값입니다. 일본어 원문은 최대 5개 제공 표본의 언어이며 현지인·국적·숨은 명소의 증거가 아닙니다. 장소 영업시간·휴무·이동 안전을 보장하는 자동 판단으로 사용하지 않습니다.
+
+
+## 버전 마이그레이션 운영 계약
+
+- 개발 시작은 자동 적용, production 시작은 이력과 체크섬만 검증합니다. 운영 DB 계정은 이력 SELECT를 포함한 앱 DML 권한, 배포 계정은 DDL 권한을 별도로 설정해야 합니다. 실제 역할 분리 검증은 배포 환경의 책임입니다.
+- `001_baseline.sql`은 전환 시점 고정 SQL, `002_integrity.sql`은 인덱스·정산 제약, `003_balance_trigger.sql`은 테이블별 트리거 레코드 접근을 정리합니다. 초기 전환은 기존 테이블에 멱등 SQL을 실행하므로 잠금 시간을 점검할 유지보수 시간이 필요합니다.
+- 모든 미적용 버전과 이력은 한 트랜잭션으로 적용합니다. 실패하면 rollback되며 적용 이력을 임의로 삭제하거나 checksum을 덮어쓰지 않습니다. 이미 적용한 파일의 수정·누락·순서 변경은 오류입니다.
+- 기존 지출의 분담 합계가 잘못되어 있으면 전환이 중단됩니다. 원인을 확인하고 승인된 데이터 정정 후 재실행하며 자동으로 금액을 맞추지 않습니다.
+- 되돌리기 SQL은 자동 제공하지 않습니다. 호환 가능한 이전 앱 배포 또는 검증한 백업 복원·후속 수정 마이그레이션을 사용합니다. 신규 migration 후 이전 앱은 엄격한 이력 검사로 기동하지 않을 수 있으므로 배포 전 복구 절차를 시험해야 합니다.
+- `npx tsx scripts/verify-fresh-migrations.ts`는 고유 임시 DB를 생성해 신규 적용·재실행을 검사하고 삭제합니다. 테스트 계정에 CREATEDB 권한이 필요하며 운영 앱 계정으로 실행하지 않습니다.
+- 지출 분담 합계는 지연 constraint trigger가 COMMIT 시 검사합니다. 직접 SQL 변경도 지출과 모든 분담금을 한 트랜잭션으로 수정해야 합니다. 탈퇴 후 공동 정산의 payer/participant UUID는 FK 없이 보존하며 개인 지출은 계정 삭제 시 제거합니다.

@@ -1,3 +1,4 @@
+import { rollback, release } from './transactions.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
@@ -45,12 +46,12 @@ admin.patch('/users/:id', async (req, res) => {
       res.locals.user.id,
     ]);
     if (actor.rows[0]?.role !== 'ADMIN' || actor.rows[0]?.status !== 'ACTIVE') {
-      await db.query('ROLLBACK');
+      await rollback(db);
       return res.status(403).json({ error: '관리자 권한이 변경되었습니다.' });
     }
     const target = await db.query('SELECT role,status FROM planner.app_user WHERE id=$1', [id]);
     if (!target.rowCount) {
-      await db.query('ROLLBACK');
+      await rollback(db);
       return res.status(404).json({ error: '회원을 찾을 수 없습니다.' });
     }
     await db.query('UPDATE planner.app_user SET role=$1,status=$2 WHERE id=$3', [
@@ -66,10 +67,10 @@ admin.patch('/users/:id', async (req, res) => {
     await db.query('COMMIT');
     res.json({ saved: true });
   } catch (e) {
-    await db.query('ROLLBACK');
+    await rollback(db);
     throw e;
   } finally {
-    db.release();
+    release(db);
   }
 });
 admin.get('/audit', async (_req, res) => {

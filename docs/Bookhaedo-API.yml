@@ -18,6 +18,64 @@ servers:
   - url: /api
     description: 동일 출처 API
 paths:
+  /health/live:
+    get:
+      summary: 프로세스 생존 확인 (DB 조회 없음)
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+        '400':
+          description: 잘못된 입력
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 요청 제한. Retry-After 후 재시도
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - 시스템
+      operationId: get__health_live
+  /health/ready:
+    get:
+      summary: 경량 DB 연결 준비 상태
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  database:
+                    type: string
+        '429':
+          description: 요청 제한. Retry-After 후 재시도
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DB 연결 불가
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - 시스템
+      operationId: get__health_ready
   /health:
     get:
       summary: PostgreSQL 연결 및 장소 건수
@@ -943,6 +1001,13 @@ paths:
                 placeId:
                   type: string
                   format: uuid
+                placement:
+                  type: string
+                  enum:
+                    - APPEND
+                    - NEARBY
+                  default: APPEND
+                  description: NEARBY는 첫 장소·기존 상대 순서를 유지하고 직선거리 증가가 적은 위치에 삽입. 도로 최적 경로 보장 없음.
       description: 날짜 행 잠금 아래 현재 목록 끝에 추가한다. 클라이언트의 이전 장소 목록을 보내지 않으며 다른 탭의 추가를 덮어쓰지 않는다.
       tags:
         - 여행
@@ -3232,6 +3297,32 @@ paths:
                           format: uuid
                         amount:
                           type: integer
+                  personalTotal:
+                    type: integer
+                  mySharedTotal:
+                    type: integer
+                  budgets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        placeId:
+                          type: string
+                        visitDate:
+                          type: string
+                          format: date
+                        name:
+                          type: string
+                        estimatedCost:
+                          type: integer
+                        sharedActual:
+                          type: integer
+                        personalActual:
+                          type: integer
+                        sharedCount:
+                          type: integer
+                        personalCount:
+                          type: integer
         '400':
           description: 잘못된 입력
           content:
@@ -3268,6 +3359,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+      description: >-
+        공동 지출과 요청자 자신의 개인 지출만 반환. total·transfers는 공동 지출만, personalTotal은 본인 개인 지출, mySharedTotal은 본인 공동 분담액. budgets는
+        현재 일정의 예상 비용과 날짜·장소별 공동/본인 개인 실제 합계. 다른 사람의 개인 기록과 금액은 반환하지 않는다.
       tags:
         - 여행
       operationId: get__trips_id_expenses
@@ -3327,6 +3421,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - label
+                - amount
               properties:
                 label:
                   type: string
@@ -3336,6 +3433,12 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100000000
+                scope:
+                  type: string
+                  enum:
+                    - SHARED
+                    - PERSONAL
+                  default: SHARED
                 payerId:
                   type: string
                   format: uuid
@@ -3346,12 +3449,18 @@ paths:
                     format: uuid
                   minItems: 1
                   maxItems: 100
-              required:
-                - label
-                - amount
-                - payerId
-                - participantIds
-      description: 현재 여행 참여자 검증. 엔 정수 단위로 나머지도 분배하고 지출·분담을 원자적 저장. 송금 실행 기능은 아님.
+                placeId:
+                  type:
+                    - string
+                    - 'null'
+                visitDate:
+                  type:
+                    - string
+                    - 'null'
+                  format: date
+      description: >-
+        SHARED(기본)는 payerId와 participantIds 필수. PERSONAL은 결제자·분담자를 서버에서 요청자 자신으로 고정한다. placeId/visitDate는 함께 지정하며 해당 여행
+        일정의 실제 장소인지 검증한다. 장소명·예상 비용 스냅샷 보존. 개인 지출은 본인만 접근하며 공동 정산에서 제외.
       tags:
         - 여행
       operationId: post__trips_id_expenses
@@ -3412,9 +3521,110 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+      description: 공동 지출은 여행 참여자만, 개인 지출은 작성자만 삭제. 다른 사람의 개인 지출 ID는 404.
       tags:
         - 여행
       operationId: delete__trips_id_expenses_expenseId_
+    patch:
+      summary: 실제 지출 수정
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved:
+                    type: boolean
+                  id:
+                    type: string
+                    format: uuid
+        '400':
+          description: 잘못된 입력
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 로그인 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 소유자 권한 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 접근 가능한 리소스 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 중복 초대 또는 일정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 요청 제한. Retry-After 후 재시도
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+                - amount
+              properties:
+                label:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                amount:
+                  type: integer
+                  minimum: 1
+                  maximum: 100000000
+                scope:
+                  type: string
+                  enum:
+                    - SHARED
+                    - PERSONAL
+                  default: SHARED
+                payerId:
+                  type: string
+                  format: uuid
+                participantIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+                  maxItems: 100
+                placeId:
+                  type:
+                    - string
+                    - 'null'
+                visitDate:
+                  type:
+                    - string
+                    - 'null'
+                  format: date
+      description: 현재 여행 참여자만 공동 지출을 수정. 개인 지출은 작성자만 수정. 지출 구분 변경 불가. 금액·내용·결제자·분담자·연결 장소 수정 후 분담액 재계산.
+      tags:
+        - 여행
+      operationId: patch__trips_id_expenses_expenseId_
   /trips/{id}/days/{date}/items/{placeId}/budget:
     parameters:
       - name: id
@@ -3518,6 +3728,192 @@ paths:
       tags:
         - 여행
       operationId: patch__trips_id_days_date_items_placeId_budget
+  /trips/{id}/days/{date}/items/{placeId}/schedule:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: date
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: placeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      summary: 방문 시작·종료 시간 저장 또는 자동 배치로 복원
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved:
+                    type: boolean
+                  revision:
+                    type: integer
+                    minimum: 0
+                    description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
+        '400':
+          description: 잘못된 입력
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 로그인 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 소유자 권한 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 접근 가능한 리소스 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 일정 버전 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '428':
+          description: expectedRevision 누락
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 요청 제한. Retry-After 후 재시도
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startMinute:
+                  type:
+                    - integer
+                    - 'null'
+                  minimum: 0
+                  maximum: 1439
+                endMinute:
+                  type:
+                    - integer
+                    - 'null'
+                  minimum: 1
+                  maximum: 1440
+                expectedRevision:
+                  type: integer
+                  minimum: 0
+                  description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
+              required:
+                - startMinute
+                - endMinute
+                - expectedRevision
+      description: >-
+        소유자 또는 수락한 동행자만 접근. 날짜 잠금과 revision 검사. 두 값 모두 null이면 자동 제안, 고정 시간은 endMinute > startMinute. 중복 시간은 허용하고 화면에서
+        표시. 순서 변경·추천 코스에 남는 장소의 시간은 유지.
+      tags:
+        - 여행
+      operationId: patch__trips_id_days_date_items_placeId_schedule
+  /trips/{id}/expenses/export.xlsx:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: 정산 엑셀 다운로드
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Excel OOXML 통합 문서
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: 잘못된 입력
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 로그인 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 소유자 권한 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 접근 가능한 리소스 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 중복 초대 또는 일정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 요청 제한. Retry-After 후 재시도
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - SHARED
+              - PERSONAL
+              - ALL
+            default: SHARED
+      description: >-
+        소유자·수락한 동행자만 다운로드. ALL도 공동 지출과 요청자 자신의 개인 지출만 포함. 지출 내역, 현재 예상 비용과 공동 실제 비교, 송금 안내. PERSONAL은 개인 내역 시트만 포함. 수식
+        실행 없는 문자열 셀.
+      tags:
+        - 여행
+      operationId: get__trips_id_expenses_export_xlsx
 components:
   securitySchemes:
     cookieAuth:
@@ -3530,6 +3926,10 @@ components:
       properties:
         error:
           type: string
+        code:
+          type: string
+        requestId:
+          type: string
         details:
           type: array
           items:
@@ -3541,10 +3941,6 @@ components:
                   type: string
               message:
                 type: string
-        code:
-          type: string
-        requestId:
-          type: string
         currentRevision:
           type: integer
           minimum: 0
@@ -3692,6 +4088,18 @@ components:
           minimum: 0
           maximum: 100000000
           description: 사용자가 입력한 장소 예상 총액 (JPY). null은 미입력.
+        startMinute:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+          maximum: 1439
+        endMinute:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+          maximum: 1440
     TripSummary:
       type: object
       properties:
@@ -4093,6 +4501,34 @@ components:
                 format: uuid
               amount:
                 type: integer
+        scope:
+          type: string
+          enum:
+            - SHARED
+            - PERSONAL
+          default: SHARED
+        placeId:
+          type:
+            - string
+            - 'null'
+        visitDate:
+          type:
+            - string
+            - 'null'
+          format: date
+        placeName:
+          type:
+            - string
+            - 'null'
+        estimatedCost:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+          maximum: 100000000
+        createdAt:
+          type: string
+          format: date-time
     Invitation:
       type: object
       properties:

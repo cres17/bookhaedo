@@ -107,6 +107,7 @@ async function openPicker() {
     error.value = e.message;
   }
 }
+const nearbyPlacement = ref(true);
 async function add() {
   if (
     busy.value ||
@@ -122,7 +123,13 @@ async function add() {
   busy.value = true;
   error.value = '';
   try {
-    await api(`/trips/${id}/days/${date}/items`, json('POST', { placeId: place.value.id }));
+    await api(
+      `/trips/${id}/days/${date}/items`,
+      json('POST', {
+        placeId: place.value.id,
+        placement: nearbyPlacement.value ? 'NEARBY' : 'APPEND',
+      }),
+    );
     selectTrip(id, date);
     picker.value = false;
     added.value = true;
@@ -130,7 +137,8 @@ async function add() {
     routePending.value = true;
     void api(`/trips/${id}/days/${date}/routes`)
       .then((result) => {
-        addedSegment.value = result.segments.at(-1) || null;
+        addedSegment.value =
+          result.segments.find((segment: any) => segment.to === place.value?.id) || null;
       })
       .catch(() => notify('장소는 저장됐지만 경로는 다시 확인해야 해요.'))
       .finally(() => (routePending.value = false));
@@ -394,6 +402,14 @@ async function add() {
               </option>
             </select>
           </label>
+          <label style="display: flex; align-items: center; gap: 10px">
+            <input type="checkbox" v-model="nearbyPlacement" :disabled="busy" style="width: auto" />
+            가까운 장소 사이에 자동 배치
+          </label>
+          <p style="font-size: 12px">
+            첫 장소와 기존 방문 순서는 유지하고, 직선거리 증가가 적은 위치에 넣어요. 시간표에서는 빈
+            시간에 방문 시간을 제안해요.
+          </p>
           <p v-if="error" role="alert" class="form-error">{{ error }}</p>
           <button class="button dark wide" :disabled="busy || loadingTrip || !trip">
             {{ loadingTrip ? '여행을 불러오는 중…' : busy ? '저장하는 중…' : '이 날짜에 담기' }}

@@ -44,3 +44,16 @@ CREATE TABLE IF NOT EXISTS planner.expense_share (
 );
 -- Participant IDs remain as settlement evidence after account deletion; no profile data stored.
 ALTER TABLE planner.itinerary_item ADD COLUMN IF NOT EXISTS estimated_cost integer CHECK(estimated_cost>=0 AND estimated_cost<=100000000);
+
+-- Personal spending is visible only to its author and is excluded from shared settlement.
+ALTER TABLE planner.expense ADD COLUMN IF NOT EXISTS scope text NOT NULL DEFAULT 'SHARED' CHECK(scope IN ('SHARED','PERSONAL'));
+ALTER TABLE planner.expense ADD COLUMN IF NOT EXISTS personal_owner_id uuid REFERENCES planner.app_user(id) ON DELETE CASCADE;
+ALTER TABLE planner.expense ADD COLUMN IF NOT EXISTS place_id text;
+ALTER TABLE planner.expense ADD COLUMN IF NOT EXISTS visit_date date;
+ALTER TABLE planner.expense ADD COLUMN IF NOT EXISTS place_name text;
+ALTER TABLE planner.expense ADD COLUMN IF NOT EXISTS estimated_cost integer CHECK(estimated_cost BETWEEN 0 AND 100000000);
+DO $$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='expense_scope_owner' AND conrelid='planner.expense'::regclass) THEN
+  ALTER TABLE planner.expense ADD CONSTRAINT expense_scope_owner CHECK((scope='SHARED' AND personal_owner_id IS NULL) OR (scope='PERSONAL' AND personal_owner_id IS NOT NULL AND payer_id=personal_owner_id));
+ END IF;
+END $$;

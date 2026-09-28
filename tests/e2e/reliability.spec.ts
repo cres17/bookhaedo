@@ -45,6 +45,12 @@ async function mocks(
         json: { user: { id: 'test', name: '검토', role: 'MEMBER', status: 'ACTIVE' } },
       });
     if (u.pathname === '/api/regions') return r.fulfill({ json: { data: [] } });
+    if (u.pathname === '/api/notifications')
+      return r.fulfill({ json: { invitations: [], notifications: [] } });
+    if (u.pathname.endsWith('/expenses'))
+      return r.fulfill({ json: { data: [], budgets: [], transfers: [], total: 0 } });
+    if (u.pathname.endsWith('/members') || u.pathname.endsWith('/checklist'))
+      return r.fulfill({ json: { data: [] } });
     if (u.pathname === '/api/weather') return r.fulfill({ json: weather });
     if (u.pathname.endsWith('/routes')) {
       if (delayRoutes) return;
@@ -133,7 +139,7 @@ test('여행 변경 조회 중 담기를 막고 단일 장소만 새 여행에 �
     {
       method: 'POST',
       path: `/api/trips/${tid2}/days/${dates[0]}/items`,
-      body: { placeId: next[0].id },
+      body: { placeId: next[0].id, placement: 'NEARBY' },
     },
   ]);
 });

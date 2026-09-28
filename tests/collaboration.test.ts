@@ -32,6 +32,15 @@ afterAll(async () => {
   await pool.query('DELETE FROM planner.app_user WHERE email=ANY($1::text[])', [emails]);
   await pool.end();
 });
+it('잘못된 지출 ID 반복 요청이 DB 연결을 소진하지 않는다', async () => {
+  for (let i = 0; i < 12; i++) {
+    const response = await agents[0]!
+      .patch(`/api/trips/${trip}/expenses/not-a-uuid`)
+      .send({ label: 'test', amount: 10, payerId: users[0], participantIds: [users[0]] });
+    expect(response.status).toBe(400);
+  }
+  expect((await agents[0]!.get(`/api/trips/${trip}/expenses`)).status).toBe(200);
+});
 it('엔 단위 정산은 나머지를 보존하고 모든 잔액을 상계한다', () => {
   expect(splitYen(100, ['b', 'a', 'c']).reduce((n, s) => n + s.amount, 0)).toBe(100);
   expect(splitYen(1, ['a', 'b'])).toEqual([
@@ -228,6 +237,111 @@ it('같은 시각의 채팅 105개도 페이지 이동 시 누락하거나 중�
     expect(new Set([...first.data, ...next.data].map((m) => m.id)).size).toBe(105);
   } finally {
     await agents[0]!.delete('/api/trips/' + id);
+  }
+});
+it('예상 비용 연결·개인 지출 보호·수정·다운로드를 검증한다', async () => {
+  const r = await agents[0]!
+    .post('/api/trips')
+    .send({ title: '정산 연결 검증', startDate: date, days: 1 });
+  const tid = r.body.data.id,
+    base = `/api/trips/${tid}`;
+  try {
+    await pool.query('INSERT INTO planner.trip_member(trip_id,user_id) VALUES($1,$2)', [
+      tid,
+      users[1],
+    ]);
+    const place = (await pool.query('SELECT id FROM geo_data.place LIMIT 1')).rows[0];
+    await agents[0]!.post(`${base}/days/${date}/items`).send({ placeId: place.id });
+    expect(
+      (
+        await agents[0]!
+          .patch(`${base}/days/${date}/items/${place.id}/budget`)
+          .send({ estimatedCost: 2400, expectedRevision: 1 })
+      ).status,
+    ).toBe(200);
+    const shared = {
+      label: '장소 실제 결제',
+      amount: 3000,
+      payerId: users[0],
+      participantIds: users.slice(0, 2),
+      placeId: place.id,
+      visitDate: date,
+    };
+    expect((await agents[0]!.post(base + '/expenses').send(shared)).status).toBe(201);
+    const personal = await agents[1]!.post(base + '/expenses').send({
+      label: '친구의 비공개 선물',
+      amount: 700,
+      scope: 'PERSONAL',
+      payerId: users[0],
+      participantIds: [users[0]],
+      placeId: place.id,
+      visitDate: date,
+    });
+    expect(personal.status).toBe(201);
+    const own = await agents[1]!.get(base + '/expenses');
+    expect(own.body.personalTotal).toBe(700);
+    expect(own.body.mySharedTotal).toBe(1500);
+    expect(own.body.total).toBe(3000);
+    expect(own.body.data.find((e: any) => e.scope === 'PERSONAL').payerId).toBe(users[1]);
+    expect(own.body.budgets[0]).toMatchObject({
+      estimatedCost: 2400,
+      sharedActual: 3000,
+      personalActual: 700,
+    });
+    const owner = await agents[0]!.get(base + '/expenses');
+    expect(JSON.stringify(owner.body)).not.toContain('친구의 비공개 선물');
+    expect(owner.body.personalTotal).toBe(0);
+    expect(owner.body.budgets[0].personalActual).toBe(0);
+    expect((await agents[0]!.delete(base + '/expenses/' + personal.body.id)).status).toBe(404);
+    expect(
+      (
+        await agents[0]!
+          .patch(base + '/expenses/' + personal.body.id)
+          .send({ label: '위조', scope: 'PERSONAL', amount: 1 })
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await agents[1]!.patch(base + '/expenses/' + personal.body.id).send({
+          label: '친구의 비공개 선물',
+          scope: 'PERSONAL',
+          amount: 900,
+          placeId: place.id,
+          visitDate: date,
+        })
+      ).status,
+    ).toBe(200);
+    expect((await agents[1]!.get(base + '/expenses')).body.personalTotal).toBe(900);
+    const download = await agents[0]!.get(base + '/expenses/export.xlsx?scope=ALL');
+    expect(download.status).toBe(200);
+    expect(download.headers['content-type']).toContain('spreadsheetml');
+    expect(download.body.toString()).not.toContain('친구의 비공개 선물');
+    expect((await agents[2]!.get(base + '/expenses/export.xlsx')).status).toBe(404);
+    expect(
+      (await agents[0]!.post(base + '/expenses').send({ ...shared, visitDate: '2026-01-01' }))
+        .status,
+    ).toBe(400);
+    const day = (await agents[0]!.get(base)).body.data.days[0];
+    await agents[0]!
+      .put(`${base}/days/${date}/items`)
+      .send({ placeIds: [], expectedRevision: day.revision });
+    expect(
+      (
+        await agents[1]!.patch(base + '/expenses/' + personal.body.id).send({
+          label: '보존된 지출',
+          scope: 'PERSONAL',
+          amount: 1000,
+          placeId: place.id,
+          visitDate: date,
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (await agents[1]!.get(base + '/expenses')).body.data.find((e: any) => e.scope === 'PERSONAL')
+        .estimatedCost,
+    ).toBe(2400);
+  } finally {
+    await agents[0]!.delete(base);
   }
 });
 it('비밀번호를 검증한 탈퇴는 세션을 폐기하고 공유 여행과 기록을 보존한다', async () => {

@@ -1,6 +1,8 @@
 import { computeSegment } from './providers.js';
 import { straightDistance } from './domain.js';
+import { providerCaches, providerKey } from './provider-cache.js';
 type Point = { id: string; latitude: number; longitude: number };
+export type ValhallaSegment = Awaited<ReturnType<typeof fetchRouteSegment>>;
 let queue = Promise.resolve(),
   last = 0;
 async function throttle() {
@@ -44,6 +46,26 @@ export async function routeSegment(
   departureTime?: string,
 ) {
   if (mode === 'TRANSIT') return computeSegment(a, b, mode, request, departureTime);
+  const key = providerKey(request, [
+    process.env.NODE_ENV,
+    process.env.VALHALLA_BASE_URL,
+    a.id,
+    a.latitude,
+    a.longitude,
+    b.id,
+    b.latitude,
+    b.longitude,
+    mode,
+    departureTime,
+  ]);
+  return providerCaches.valhalla.get(
+    key,
+    () => fetchRouteSegment(a, b, mode, request),
+    (result) => result.source === 'valhalla',
+  );
+}
+
+async function fetchRouteSegment(a: Point, b: Point, mode: string, request: typeof fetch) {
   const costing = (
     { DRIVE: 'auto', TAXI: 'auto', WALK: 'pedestrian', BICYCLE: 'bicycle' } as Record<
       string,

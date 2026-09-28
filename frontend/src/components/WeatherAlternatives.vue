@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PanelHeader from './PanelHeader.vue';
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import type { Place } from '../types';
 import { api, json } from '../api';
@@ -144,15 +145,12 @@ const minutes = (s: number) => Math.round(s / 60) + '분';
       :aria-busy="busy || saving"
       @keydown.esc.stop="close"
     >
-      <header>
-        <div>
-          <small>WEATHER ALTERNATIVES</small>
-          <h2>날씨가 달라도, 나의 여행.</h2>
-        </div>
-        <button class="icon-button" aria-label="대안 추천 닫기" :disabled="saving" @click="close">
-          ×
-        </button>
-      </header>
+      <PanelHeader
+        title="날씨가 달라도, 나의 여행."
+        close-label="대안 추천 닫기"
+        :disabled="saving"
+        @close="close"
+      />
       <p>일정을 바꾸기 전에 가까운 실내 장소를 비교해 보세요.</p>
       <label>
         대체할 야외 장소
@@ -261,6 +259,12 @@ const minutes = (s: number) => Math.round(s / 60) + '분';
   align-items: flex-start;
   gap: 10px;
   flex-wrap: wrap;
+}
+.weather-alternative-entry > .button {
+  max-width: 100%;
+  white-space: normal;
+  min-height: 44px;
+  line-height: 1.4;
 }
 .weather-alternative-entry strong {
   font-size: 14px;
