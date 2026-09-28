@@ -88,3 +88,12 @@ CREATE TABLE IF NOT EXISTS planner.place_review_trend (
  quality jsonb NOT NULL,
  calculated_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Optional fixed visit times; NULL uses the calendar's suggested placement.
+ALTER TABLE planner.itinerary_item ADD COLUMN IF NOT EXISTS start_minute integer CHECK (start_minute BETWEEN 0 AND 1439);
+ALTER TABLE planner.itinerary_item ADD COLUMN IF NOT EXISTS end_minute integer CHECK (end_minute BETWEEN 1 AND 1440);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='itinerary_time_range' AND conrelid='planner.itinerary_item'::regclass) THEN
+    ALTER TABLE planner.itinerary_item ADD CONSTRAINT itinerary_time_range CHECK ((start_minute IS NULL AND end_minute IS NULL) OR (start_minute IS NOT NULL AND end_minute IS NOT NULL AND end_minute > start_minute));
+  END IF;
+END $$;

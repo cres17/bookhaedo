@@ -27,7 +27,9 @@ Table planner.session {
  user_id uuid [not null]
  expires_at timestamptz [not null]
  created_at timestamptz [not null, default: `now()`]
- indexes { user_id }
+ indexes {
+ expires_at
+ user_id }
 }
 Table planner.trip {
  id uuid [pk]
@@ -47,6 +49,8 @@ Table planner.trip_day {
  indexes { (trip_id, visit_date) [unique] }
 }
 Table planner.itinerary_item {
+ start_minute integer [note: 'NULL=자동 제안, 0..1439; 종료와 함께 입력']
+ end_minute integer [note: 'NULL=자동 제안, 1..1440; 시작보다 늦어야 함']
  estimated_cost integer [note: 'JPY 예상 총액. NULL=미입력, 0..100000000']
  id uuid [pk]
  day_id uuid [not null]
@@ -54,6 +58,8 @@ Table planner.itinerary_item {
  position integer [not null, note: '0부터 시작하는 방문 순서']
  note text [not null, default: '']
  indexes {
+ place_id
+
   (day_id, position) [unique]
   (day_id, place_id) [unique]
  }
@@ -198,7 +204,10 @@ Table planner.trip_member {
  trip_id uuid [not null, ref: > planner.trip.id]
  user_id uuid [not null, ref: > planner.app_user.id]
  joined_at timestamptz [not null, default: `now()`]
- indexes { (trip_id,user_id) [pk] }
+ indexes {
+ (trip_id,user_id) [pk]
+ user_id
+ }
 }
 Table planner.trip_invitation {
  id uuid [pk]
@@ -225,6 +234,9 @@ Table planner.checklist_item {
  label text [not null]
  done boolean [not null, default: false]
  created_at timestamptz [not null, default: `now()`]
+ indexes {
+ trip_id
+ }
 }
 Table planner.trip_message {
  id uuid [pk]
@@ -234,16 +246,44 @@ Table planner.trip_message {
  created_at timestamptz [not null, default: `now()`]
 }
 Table planner.expense {
+ scope text [not null, default: 'SHARED', note: 'SHARED / PERSONAL. 개인 지출은 공동 정산 제외']
+ personal_owner_id uuid [ref: > planner.app_user.id, note: 'PERSONAL 전용. 본인만 읽기·수정·삭제. 계정 탈퇴 시 cascade']
+ place_id text [note: '연결 당시 장소 ID. 일정 삭제 후에도 지출 보존']
+ visit_date date
+ place_name text [note: '연결 당시 장소명']
+ estimated_cost integer [note: '기록 시점 예상 비용. NULL=미입력']
  id uuid [pk]
  trip_id uuid [not null, ref: > planner.trip.id]
  label text [not null]
  amount integer [not null, note: 'JPY 정수 1..100000000']
  payer_id uuid [not null, note: '입력 시 참여자 검증. 탈퇴 후 정산 보존용 ID 유지']
  created_at timestamptz [not null, default: `now()`]
+ indexes {
+ trip_id
+ personal_owner_id
+ }
 }
 Table planner.expense_share {
+ Note: '지연 constraint trigger로 COMMIT 시 분담 합계=지출 금액 검증. PERSONAL의 모든 분담자는 personal_owner_id. parent 변경 불가. 삭제 cascade 허용.'
  expense_id uuid [not null, ref: > planner.expense.id]
  participant_id uuid [not null, note: '입력 시 참여자 검증. 탈퇴 후 정산 보존용 ID 유지']
  amount integer [not null, note: '엔 단위 균등분담. 나머지는 ID순으로 1엔 배분']
  indexes { (expense_id,participant_id) [pk] }
+}
+
+Table planner.schema_migration {
+ name text [pk, note: '정렬된 버전 파일명. 적용 순서는 prefix로 검증']
+ checksum text [not null, note: 'SQL 원문의 SHA-256']
+ applied_at timestamptz [not null, default: `now()`]
+}
+
+Table planner.rate_limit_bucket {
+ namespace text [not null, note: 'api/auth/provider 등 정책 이름']
+ key_hash text [not null, note: '원문 IP·사용자 ID를 저장하지 않는 SHA-256']
+ hits integer [not null]
+ reset_at timestamptz [not null]
+ indexes {
+  (namespace,key_hash) [pk]
+  reset_at
+ }
 }

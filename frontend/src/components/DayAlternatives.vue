@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PanelHeader from './PanelHeader.vue';
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import type { Place } from '../types';
 import { api, json } from '../api';
@@ -11,7 +12,7 @@ const props = defineProps<{
   weather: any;
   disabled: boolean;
 }>();
-const emit = defineEmits<{ saved: []; preview: [value: any] }>();
+const emit = defineEmits<{ saved: []; preview: [value: any]; dismiss: [] }>();
 const opened = ref(false),
   result = ref<any>(null),
   busy = ref(false),
@@ -121,8 +122,13 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
 </script>
 <template>
   <section class="day-plan-entry">
-    <div>
-      <strong>하루 코스를 통째로 다시 짜볼까요?</strong>
+    <div class="day-entry-copy">
+      <PanelHeader
+        title="하루 코스를 통째로 다시 짜볼까요?"
+        compact
+        close-label="일정 추천 숨기기"
+        @close="emit('dismiss')"
+      />
       <p>{{ weatherCopy }} 실내 중심과 가까운 곳 중심 코스를 함께 비교해보세요.</p>
     </div>
     <button class="button dark small" :disabled="disabled || !items.length" @click="open">
@@ -138,20 +144,12 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
       tabindex="-1"
       @keydown.esc.stop="close"
     >
-      <header>
-        <div>
-          <small>FULL DAY REPLAN</small>
-          <h2>하루를 새로 구성해요.</h2>
-        </div>
-        <button
-          class="icon-button"
-          aria-label="하루 코스 추천 닫기"
-          :disabled="saving"
-          @click="close"
-        >
-          ×
-        </button>
-      </header>
+      <PanelHeader
+        title="하루를 새로 구성해요."
+        close-label="하루 코스 추천 닫기"
+        :disabled="saving"
+        @close="close"
+      />
       <p>
         현재 일정의 중심과 선택 날짜의 예보를 기준으로 코스를 만듭니다. 확정 전에는 저장되지 않아요.
       </p>
@@ -360,6 +358,52 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
 }
 .button.small {
   white-space: nowrap;
+}
+
+/* This lives in a narrow sidebar even on a wide screen. */
+.day-plan-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px 20px 20px;
+  align-items: start;
+}
+.day-plan-entry > div {
+  min-width: 0;
+}
+.day-plan-entry strong {
+  font-size: 16px;
+  line-height: 1.5;
+  display: block;
+  overflow-wrap: anywhere;
+}
+.day-plan-entry p {
+  font-size: 14px;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.day-plan-entry > .button {
+  justify-self: start;
+  max-width: 100%;
+  font-size: 14px;
+  min-height: 44px;
+  padding: 12px 18px;
+  white-space: normal;
+  line-height: 1.4;
+}
+.day-plan-panel {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.day-plan-card li {
+  align-items: flex-start;
+}
+.day-plan-card li strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.day-plan-card li span {
+  flex-shrink: 0;
 }
 @media (max-width: 760px) {
   .day-plan-entry {

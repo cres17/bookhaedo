@@ -1,3 +1,4 @@
+import { rollback, release } from './transactions.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { pool } from './db.js';
@@ -157,11 +158,11 @@ alternatives.patch(
         [req.params.id, date],
       );
       if (!day.rowCount) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
       }
       if (!requireRevision(req.body, day.rows[0].revision, res)) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return;
       }
       const rows = await db.query(
@@ -173,7 +174,7 @@ alternatives.patch(
         !input.placeIds.includes(input.targetId) ||
         input.placeIds.includes(input.replacementId)
       ) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res
           .status(409)
           .json({ error: '일정이 변경됐거나 이미 포함된 장소예요. 일정을 새로 확인해주세요.' });
@@ -191,7 +192,7 @@ alternatives.patch(
         !indoorEvidence(replacement) ||
         straightDistance(target, replacement) > 20000
       ) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res.status(400).json({ error: '주변 실내 대체 장소를 선택해주세요.' });
       }
       await db.query(
@@ -205,12 +206,12 @@ alternatives.patch(
       await db.query('COMMIT');
       res.json({ saved: true, revision: day.rows[0].revision + 1 });
     } catch (e: any) {
-      await db.query('ROLLBACK');
+      await rollback(db);
       if (e.code === '23505')
         return res.status(409).json({ error: '이미 일정에 포함된 장소예요.' });
       throw e;
     } finally {
-      db.release();
+      release(db);
     }
   }),
 );

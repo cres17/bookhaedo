@@ -1,0 +1,32 @@
+groups:
+  - name: bookhaedo-api
+    rules:
+      - alert: BookhaedoApiDown
+        expr: up{job="bookhaedo-api"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: Book해도 API 지표 수집이 중단되었습니다.
+      - alert: BookhaedoHighErrorRate
+        expr: |
+          sum(rate(bookhaedo_http_requests_total{status=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(bookhaedo_http_requests_total[5m])), 0.001) > 0.02
+        for: 10m
+        labels: { severity: critical }
+        annotations:
+          summary: Book해도 API 5xx 비율이 2%를 초과했습니다.
+      - alert: BookhaedoSlowRequests
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(bookhaedo_http_request_duration_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: Book해도 API p95 응답시간이 1초를 초과했습니다.
+      - alert: BookhaedoDatabasePoolWaiting
+        expr: bookhaedo_db_pool_waiting > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Book해도 DB 연결 풀이 5분 이상 대기 중입니다.

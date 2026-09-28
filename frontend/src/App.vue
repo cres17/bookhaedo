@@ -30,9 +30,14 @@ async function logout() {
         </span>
       </RouterLink>
       <nav class="primary-nav" aria-label="주요 메뉴">
+        <RouterLink to="/regions" :class="{ current: route.path.startsWith('/regions') }">
+          홋카이도 안내
+        </RouterLink>
         <RouterLink
           to="/explore"
-          :class="{ current: route.path.includes('explore') || route.path.includes('places') }"
+          :class="{
+            current: route.path.includes('explore') || route.path.includes('places'),
+          }"
         >
           발견하기
         </RouterLink>
@@ -67,6 +72,10 @@ async function logout() {
       </Transition>
     </RouterView>
     <nav v-if="state.user" class="mobile-nav" aria-label="모바일 메뉴">
+      <RouterLink to="/regions">
+        <Icon name="pin" />
+        홋카이도 안내
+      </RouterLink>
       <RouterLink to="/explore">
         <Icon name="map" />
         발견하기

@@ -16,8 +16,10 @@ const route = useRoute(),
   size = 12;
 const requested = String(route.query.region ?? state.searchRegion ?? ''),
   saved =
-    exploreMemory.value?.region === requested && !route.query.city ? exploreMemory.value : null;
-const search = ref(saved?.search || ''),
+    exploreMemory.value?.region === requested && !route.query.city && !route.query.q
+      ? exploreMemory.value
+      : null;
+const search = ref(String(route.query.q || saved?.search || '')),
   region = ref(requested),
   category = ref(saved?.category || ''),
   theme = ref(saved?.theme || ''),
@@ -258,6 +260,7 @@ onMounted(async () => {
   await load(!saved);
   await nextTick();
   if (saved && panel.value) panel.value.scrollTop = saved.scroll;
+  else if (route.query.q) scrollTo(results.value);
 });
 onBeforeUnmount(() => {
   remember();
@@ -339,6 +342,16 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </Transition>
+            <RouterLink
+              class="story-detail-link"
+              :to="{
+                path: region ? `/regions/${region}` : '/regions',
+                query: { date: travelDate },
+              }"
+            >
+              {{ selectedRegion ? '지역·계절별 매력 자세히보기' : '12개 지역 자세히보기' }}
+              <span>↗</span>
+            </RouterLink>
             <div class="story-controls">
               <button class="icon-button" aria-label="이전 지역" @click="stepRegion(-1)">←</button>
               <span>다음 여행 장면을 넘겨보세요</span>

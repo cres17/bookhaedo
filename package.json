@@ -16,15 +16,25 @@
     "spec:generate": "node scripts/write-api-spec.mjs",
     "spec:check": "node scripts/write-api-spec.mjs --check && node scripts/check-dbml.mjs",
     "db:init": "tsx scripts/init-db.ts",
-    "test:ci": "vitest run --config vitest.config.ts tests/domain.test.ts tests/bookhaedo.test.ts tests/improvements.test.ts tests/map-focus.test.ts tests/place-dedupe.test.ts tests/website-check.test.ts tests/reliability.test.ts tests/concurrency.test.ts tests/search-assist.test.ts",
+    "test:ci": "vitest run --config vitest.config.ts tests/domain.test.ts tests/bookhaedo.test.ts tests/improvements.test.ts tests/map-focus.test.ts tests/place-dedupe.test.ts tests/website-check.test.ts tests/reliability.test.ts tests/concurrency.test.ts tests/search-assist.test.ts tests/platform.test.ts tests/migrations.test.ts tests/api-contract.test.ts tests/expense-export.test.ts tests/schedule.test.ts tests/rate-limit.test.ts tests/observability.test.ts tests/security.test.ts tests/provider-performance.test.ts tests/boot-performance.test.ts",
     "test": "vitest run --config vitest.config.ts",
+    "benchmark:providers": "node --import tsx scripts/benchmark-providers.ts",
+    "benchmark:providers:live": "node --import tsx scripts/benchmark-providers-live.ts",
+    "benchmark:browser": "node --import tsx scripts/benchmark-browser.ts",
     "test:e2e": "playwright test",
     "data:setup": "python3 -m venv .venv-data && .venv-data/bin/python -m pip install -r requirements-data.txt",
     "data:prepare": ".venv-data/bin/python scripts/prepare_hokkaido_data.py",
     "db:up": "docker compose up -d db",
-    "data:load": ".venv-data/bin/python scripts/load_postgis.py"
+    "data:load": ".venv-data/bin/python scripts/load_postgis.py",
+    "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:backup": "tsx scripts/backup-db.ts",
+    "db:restore:drill": "tsx scripts/restore-drill.ts",
+    "test:load": "tsx scripts/load-test.ts",
+    "test:load:ci": "tsx scripts/load-test-ci.ts"
   },
-  "engines": {"node": "^22.13.0 || ^24.0.0 || >=26.0.0"},
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0 || >=26.0.0"
+  },
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
