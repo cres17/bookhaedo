@@ -1,0 +1,5 @@
+body { margin: 0; background: #f6f7fb; }
+.topbar { display: none; }
+.swagger-ui .info { margin: 38px 0 28px; }
+.swagger-ui .info .title, .swagger-ui .opblock-tag { color: #303252; }
+.swagger-ui .scheme-container { box-shadow: none; border-radius: 14px; }

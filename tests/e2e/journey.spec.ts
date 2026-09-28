@@ -65,7 +65,7 @@ test('실제 UI: 가입 → 여행 생성 → 탐색 → 장소 담기 → 날�
     .nth(1)
     .click();
   await expect(page.locator('.stop-name').first()).toHaveText(before[1]!);
-  await expect(page.locator('.saved-note')).toContainText('일정 변경 자동 저장');
+  await expect(page.getByRole('status')).toContainText('변경한 일정을 저장했어요.');
   await expect(page.locator('.map-loading')).toBeHidden();
   await page.screenshot({ path: 'docs/screenshots/planner-desktop.png', fullPage: true });
   await page.reload();

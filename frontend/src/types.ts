@@ -37,6 +37,8 @@ export type Place = {
   recommended?: boolean;
   position?: number;
   note?: string;
+  startMinute?: number | null;
+  endMinute?: number | null;
   estimatedCost?: number | null;
   trendBadge?: string | null;
 };

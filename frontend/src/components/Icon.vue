@@ -1,6 +1,8 @@
 <script setup lang="ts">
 withDefaults(defineProps<{ name: string; size?: number }>(), { size: 20 });
 const paths: Record<string, string> = {
+  wallet: 'M3 6h17v14H3z M3 6V3h14v3 M15 11h5v5h-5z',
+  chat: 'M4 4h16v12H9l-5 4z M8 8h8 M8 12h5',
   search: 'M21 21l-5-5 M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0',
   arrow: 'M4 12h16 M14 6l6 6-6 6',
   back: 'M20 12H4 M10 6l-6 6 6 6',

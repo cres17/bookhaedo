@@ -64,6 +64,7 @@ it('production은 선택적 외부 제공자를 허용하되 키 공유와 공�
     NODE_ENV: 'production',
     DATABASE_URL: 'postgresql://db/app',
     APP_ORIGINS: 'https://travel.example',
+    METRICS_TOKEN: 'a'.repeat(32),
     GOOGLE_MAPS_SERVER_API_KEY: 'server',
     VITE_GOOGLE_MAPS_API_KEY: 'browser',
     VALHALLA_BASE_URL: 'http://routing.internal',
@@ -74,6 +75,7 @@ it('production은 선택적 외부 제공자를 허용하되 키 공유와 공�
       NODE_ENV: 'production',
       DATABASE_URL: env.DATABASE_URL,
       APP_ORIGINS: env.APP_ORIGINS,
+      METRICS_TOKEN: env.METRICS_TOKEN,
       VITE_GOOGLE_MAPS_API_KEY: env.VITE_GOOGLE_MAPS_API_KEY,
     }),
   ).not.toThrow();
@@ -83,4 +85,8 @@ it('production은 선택적 외부 제공자를 허용하되 키 공유와 공�
   expect(() =>
     validateProduction({ ...env, VALHALLA_BASE_URL: 'https://valhalla1.openstreetmap.de' }),
   ).toThrow('Valhalla');
+  expect(() => validateProduction({ ...env, TRUST_PROXY_HOPS: 'all' })).toThrow('TRUST_PROXY_HOPS');
+  expect(() => validateProduction({ ...env, HTTP_LOG_SAMPLE_RATE: '2' })).toThrow(
+    'HTTP_LOG_SAMPLE_RATE',
+  );
 });

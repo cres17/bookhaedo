@@ -41,3 +41,12 @@ __pycache__/
 *.pptx
 *.pdf
 *.zip
+
+# Private recovery archives and local execution logs
+*.dump
+*.dump.*
+*.sql.gz
+*.log
+
+# Personal experience-writing draft
+/docs/e04-bookhaedo-base-supplement.md

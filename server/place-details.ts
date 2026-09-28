@@ -2,6 +2,7 @@ import { checkedWebsite } from './website-check.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getGoogleKey } from './providers.js';
 import { straightDistance } from './domain.js';
+import { providerCaches, providerKey } from './provider-cache.js';
 type LocalPlace = { nameJa: string; latitude: number; longitude: number };
 function sign(s: string) {
   return createHmac('sha256', getGoogleKey()).update(s).digest('base64url');
@@ -63,40 +64,46 @@ export async function placeDetails(
   try {
     const key = getGoogleKey();
     if (!key) return { available: false, notice: 'Google Places 키가 설정되지 않았어요.' };
+    options.signal?.throwIfAborted();
     const signal = () =>
       options.signal
         ? AbortSignal.any([options.signal, AbortSignal.timeout(9000)])
         : AbortSignal.timeout(9000);
-    const search = await request('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      signal: signal(),
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.location',
-      },
-      body: JSON.stringify({
-        textQuery: local.nameJa + ' 北海道',
-        languageCode: 'ja',
-        regionCode: 'JP',
-        pageSize: 3,
-        locationBias: {
-          circle: {
-            center: { latitude: local.latitude, longitude: local.longitude },
-            radius: 1500,
+    const cacheKey = providerKey(request, [key, local.nameJa, local.latitude, local.longitude]);
+    const placeId = await providerCaches.google_place_id.get(
+      cacheKey,
+      async () => {
+        const search = await request('https://places.googleapis.com/v1/places:searchText', {
+          method: 'POST',
+          signal: signal(),
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': key,
+            'X-Goog-FieldMask': 'places.id,places.displayName,places.location',
           },
-        },
-      }),
-    });
-    if (!search.ok)
-      return {
-        available: false,
-        notice:
-          'Google Places 상세정보를 불러오지 못했어요. API 사용 설정과 키 제한을 확인해주세요.',
-      };
-    const candidates = (await search.json()).places || [],
-      matched = candidates.find((p: any) => matchingPlace(local, p));
-    if (!matched)
+          body: JSON.stringify({
+            textQuery: local.nameJa + ' 北海道',
+            languageCode: 'ja',
+            regionCode: 'JP',
+            pageSize: 3,
+            locationBias: {
+              circle: {
+                center: { latitude: local.latitude, longitude: local.longitude },
+                radius: 1500,
+              },
+            },
+          }),
+        });
+        if (!search.ok) throw new Error('PLACE_SEARCH_UNAVAILABLE');
+        const candidates = (await search.json()).places || [],
+          matched = candidates.find((p: any) => matchingPlace(local, p));
+        return typeof matched?.id === 'string' && matched.id ? matched.id : null;
+      },
+      (id) => Boolean(id),
+      !options.signal,
+    );
+    options.signal?.throwIfAborted();
+    if (!placeId)
       return {
         available: false,
         notice:
@@ -104,7 +111,7 @@ export async function placeDetails(
       };
     const detail = await request(
       'https://places.googleapis.com/v1/places/' +
-        encodeURIComponent(matched.id) +
+        encodeURIComponent(placeId) +
         '?languageCode=ko&regionCode=JP',
       {
         signal: signal(),
@@ -116,11 +123,13 @@ export async function placeDetails(
         },
       },
     );
-    if (!detail.ok)
+    if (!detail.ok) {
+      if (detail.status === 404) providerCaches.google_place_id.delete(cacheKey);
       return {
         available: false,
         notice: 'Google 상세정보 조회가 제한됐어요. 기본 장소 정보는 계속 볼 수 있어요.',
       };
+    }
     const d = await detail.json(),
       photo = d.photos?.[0];
     if (options.reviewOnly)
@@ -133,7 +142,7 @@ export async function placeDetails(
       };
     return {
       available: true,
-      googlePlaceId: d.id || matched.id,
+      googlePlaceId: d.id || placeId,
       nameKo: /[가-힣]/.test(d.displayName?.text || '') ? d.displayName.text : null,
       nameOriginal: local.nameJa,
       address: d.formattedAddress || null,

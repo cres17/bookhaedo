@@ -125,3 +125,71 @@ it('조회 제한은 회원별로 적용하고 외부 호출 없는 확정을 �
   expect(save.status).toBe(409);
   expect(save.body.code).toBe('STALE_ITINERARY');
 });
+it('방문 시간 저장은 권한·범위·버전을 확인하고 순서 변경 후에도 유지한다', async () => {
+  let day = (await user.get('/api/trips/' + trip)).body.data.days[0];
+  const placeId = day.items[0]?.id;
+  expect(placeId).toBeTruthy();
+  const schedule = path + '/' + placeId + '/schedule';
+  expect(
+    (
+      await other
+        .patch(schedule)
+        .send({ startMinute: 600, endMinute: 660, expectedRevision: day.revision })
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await user
+        .patch(schedule)
+        .send({ startMinute: 600, endMinute: 590, expectedRevision: day.revision })
+    ).status,
+  ).toBe(400);
+  expect((await user.patch(schedule).send({ startMinute: 600, endMinute: 660 })).status).toBe(428);
+  expect(
+    (
+      await user
+        .patch(schedule)
+        .send({ startMinute: 600, endMinute: 660, expectedRevision: day.revision })
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await user
+        .patch(schedule)
+        .send({ startMinute: null, endMinute: null, expectedRevision: day.revision })
+    ).status,
+  ).toBe(409);
+  day = (await user.get('/api/trips/' + trip)).body.data.days[0];
+  expect(
+    (
+      await user.put(path).send({
+        placeIds: day.items.map((p: any) => p.id).reverse(),
+        expectedRevision: day.revision,
+      })
+    ).status,
+  ).toBe(200);
+  day = (await user.get('/api/trips/' + trip)).body.data.days[0];
+  expect(day.items.find((p: any) => p.id === placeId)).toMatchObject({
+    startMinute: 600,
+    endMinute: 660,
+  });
+});
+it('가까운 위치에 추가해도 기존 장소와 예약 시간이 유지된다', async () => {
+  let day = (await user.get('/api/trips/' + trip)).body.data.days[0];
+  expect(
+    (await user.put(path).send({ placeIds: [ids[0], ids[2]], expectedRevision: day.revision }))
+      .status,
+  ).toBe(200);
+  day = (await user.get('/api/trips/' + trip)).body.data.days[0];
+  expect(
+    (
+      await user
+        .patch(path + '/' + ids[0] + '/schedule')
+        .send({ startMinute: 480, endMinute: 540, expectedRevision: day.revision })
+    ).status,
+  ).toBe(200);
+  expect((await user.post(path).send({ placeId: ids[1], placement: 'NEARBY' })).status).toBe(201);
+  day = (await user.get('/api/trips/' + trip)).body.data.days[0];
+  expect(day.items.map((p: any) => p.id)).toEqual(ids);
+  expect(day.items[0]).toMatchObject({ startMinute: 480, endMinute: 540 });
+});

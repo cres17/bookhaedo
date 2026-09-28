@@ -5,3 +5,5 @@
 @media(prefers-reduced-motion:reduce){.chapter-enter-active,.chapter-leave-active,.place-page-enter-active,.place-page-leave-active,.theme-grid button,.explore-journey .place-card{transition:none!important;transform:none!important}}
 .place-page-leave-active{pointer-events:none}
 .journey-map .map-data-caption{top:52px;bottom:auto;left:12px;font-size:10px;max-width:calc(100% - 24px)}
+
+.region-story .story-detail-link{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin:12px 24px 18px;padding:10px 16px;border:1px solid #b9aaca;border-radius:12px;background:#ffffffd9;color:#514267;text-decoration:none;font-size:15px;font-weight:600;touch-action:manipulation}.region-story .story-detail-link:hover{background:#fff}.region-story .story-detail-link:focus-visible{outline:3px solid #75618c;outline-offset:3px}

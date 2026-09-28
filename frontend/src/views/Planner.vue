@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import PanelHeader from '../components/PanelHeader.vue';
 import WeatherAlternatives from '../components/WeatherAlternatives.vue';
 import DayAlternatives from '../components/DayAlternatives.vue';
+import TripCalendar from '../components/TripCalendar.vue';
+import { clockTime } from '../schedule';
 import TripTools from '../components/TripTools.vue';
 import TripMenu from '../components/TripMenu.vue';
 import RouteOptions from '../components/RouteOptions.vue';
@@ -9,10 +12,11 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { api, json } from '../api';
 import { state, selectTrip, notify, categoryName } from '../store';
-import type { Trip, Segment } from '../types';
+import type { Trip, Segment, Day, Place } from '../types';
 import TravelMap from '../components/TravelMap.vue';
 import Icon from '../components/Icon.vue';
 import Crystal from '../components/Crystal.vue';
+import { useTripSynchronization } from '../composables/useTripSynchronization';
 const route = useRoute(),
   router = useRouter(),
   trip = ref<Trip | null>(null),
@@ -36,23 +40,12 @@ function toggleRecommendations() {
   dayPreview.value = null;
   alternativePreview.value = null;
 }
-const remoteChanged = ref(false);
-let syncTimer: ReturnType<typeof setInterval>,
-  checking = false;
-const signature = (t: Trip) =>
-  JSON.stringify([t.title, t.transportMode, t.days.map((d) => [d.id, d.revision])]);
-async function checkChanges() {
-  if (checking || saving.value || document.hidden || !trip.value) return;
-  checking = true;
-  try {
-    const r = await api<{ data: Trip }>('/trips/' + route.params.id);
-    remoteChanged.value = signature(r.data) !== signature(trip.value);
-  } catch (e: any) {
-    if (e.status === 404 || e.status === 401) error.value = e.message;
-  } finally {
-    checking = false;
-  }
-}
+const { remoteChanged, markSynchronized } = useTripSynchronization(
+  trip,
+  saving,
+  () => String(route.params.id),
+  (message) => (error.value = message),
+);
 async function saveBudget(p: any) {
   if (saving.value || !current.value) return;
   saving.value = true;
@@ -65,7 +58,8 @@ async function saveBudget(p: any) {
       }),
     );
     current.value.revision = r.revision;
-    notify('장소 예상 비용을 저장했어요.');
+    await load();
+    notify('예상 비용 저장');
   } catch (e: any) {
     error.value = e.message;
   } finally {
@@ -105,7 +99,6 @@ onBeforeUnmount(() => {
   loadGeneration++;
   generation++;
   controller?.abort();
-  clearInterval(syncTimer);
 });
 async function load() {
   const token = ++loadGeneration;
@@ -126,7 +119,7 @@ async function load() {
         query: route.query,
         hash: route.hash,
       });
-    remoteChanged.value = false;
+    markSynchronized();
     if (!trip.value.days.some((d) => d.date === active.value))
       active.value = trip.value.days[0]?.date || '';
     selectTrip(String(route.params.id), active.value);
@@ -177,7 +170,6 @@ async function loadRoutes() {
 }
 onMounted(() => {
   void load();
-  syncTimer = setInterval(checkChanges, 15000);
 });
 watch(active, async () => {
   await nextTick();
@@ -276,6 +268,97 @@ const transportName = (value: string) =>
   ({ DRIVE: '렌터카', TAXI: '택시', WALK: '도보', BICYCLE: '자전거', TRANSIT: '대중교통' })[
     value
   ] || value;
+async function shiftVisit(day: Day, place: Place, start: number, end: number) {
+  if (saving.value) return;
+  saving.value = true;
+  error.value = '';
+  try {
+    await api(
+      `/trips/${trip.value!.id}/days/${day.date}/items/${place.id}/schedule`,
+      json('PATCH', {
+        startMinute: start,
+        endMinute: end,
+        expectedRevision: day.revision,
+      }),
+    );
+    await load();
+    notify(`${place.name} · ${clockTime(start)} 시작으로 옮겼어요.`);
+  } catch (e: any) {
+    error.value = e.message;
+    if (e.status === 409) await load();
+  } finally {
+    saving.value = false;
+  }
+}
+const scheduleEdit = ref<{ day: Day; place: Place } | null>(null);
+const visitStart = ref('09:00'),
+  visitEnd = ref('10:00'),
+  visitError = ref('');
+function editVisit(day: Day, place: Place, start: number, end: number) {
+  scheduleEdit.value = { day, place };
+  visitStart.value = clockTime(start);
+  visitEnd.value = end === 1440 ? '24:00' : clockTime(end);
+  visitError.value = '';
+}
+async function saveVisit(action: 'save' | 'auto' | 'delete') {
+  if (!scheduleEdit.value || saving.value) return;
+  const { day, place } = scheduleEdit.value;
+  const minutes = (value: string) => {
+    const [h, m] = value.split(':').map(Number);
+    return h! * 60 + m!;
+  };
+  const start = minutes(visitStart.value),
+    end = minutes(visitEnd.value);
+  if (
+    action === 'save' &&
+    (!Number.isFinite(start) || !Number.isFinite(end) || end <= start || end > 1440)
+  ) {
+    visitError.value = '종료 시간은 시작 시간보다 늦게 입력해주세요.';
+    return;
+  }
+  saving.value = true;
+  visitError.value = '';
+  try {
+    const base = `/trips/${trip.value!.id}/days/${day.date}/items`;
+    if (action === 'delete')
+      await api(
+        base,
+        json('PUT', {
+          placeIds: day.items.filter((p) => p.id !== place.id).map((p) => p.id),
+          expectedRevision: day.revision,
+        }),
+      );
+    else
+      await api(
+        `${base}/${place.id}/schedule`,
+        json('PATCH', {
+          startMinute: action === 'auto' ? null : start,
+          endMinute: action === 'auto' ? null : end,
+          expectedRevision: day.revision,
+        }),
+      );
+    scheduleEdit.value = null;
+    await load();
+    notify(
+      action === 'delete'
+        ? '일정에서 장소를 삭제했어요.'
+        : action === 'auto'
+          ? '빈 시간에 자동으로 배치했어요.'
+          : '방문 시간을 저장했어요.',
+    );
+  } catch (e: any) {
+    visitError.value = e.message;
+    if (e.status === 409) {
+      await load();
+      const fresh = trip.value?.days.find((d) => d.date === day.date);
+      if (fresh && scheduleEdit.value) scheduleEdit.value.day = fresh;
+      visitError.value =
+        '다른 화면에서 일정이 바뀌었어요. 최신 시간표를 확인하고 다시 저장해주세요.';
+    }
+  } finally {
+    saving.value = false;
+  }
+}
 const duration = (seconds: number) => {
   const min = Math.ceil(seconds / 60);
   return min >= 60 ? `${Math.floor(min / 60)}시간 ${min % 60}분` : `${min}분`;
@@ -293,10 +376,6 @@ const duration = (seconds: number) => {
       </div>
       <div class="planner-actions">
         <TripMenu v-if="trip" :trip="trip" @changed="load" @deleted="router.push('/trips')" />
-        <span class="saved-note">
-          <Icon name="check" :size="16" />
-          {{ saving ? '저장 중' : '일정 변경 자동 저장 · 메모는 저장 버튼' }}
-        </span>
         <button class="button subtle small" @click="editing = true">여행 설정</button>
         <button
           class="button subtle small"
@@ -325,6 +404,18 @@ const duration = (seconds: number) => {
         다시 시도
       </button>
     </p>
+    <TripTools
+      v-if="trip"
+      :key="trip.id"
+      :trip-id="trip.id"
+      :is-owner="trip.isOwner === true"
+      :trip-title="trip.title"
+      :budget-revision="
+        trip.days
+          .map((d) => [d.revision, ...d.items.map((p) => p.estimatedCost ?? '')].join(':'))
+          .join(',')
+      "
+    />
     <div class="day-tabs" v-if="trip">
       <button
         v-for="(d, i) in trip.days"
@@ -339,6 +430,18 @@ const duration = (seconds: number) => {
         <Icon name="plus" />
         날짜 추가
       </button>
+    </div>
+    <TripCalendar
+      v-if="trip"
+      :trip="trip"
+      :active="active"
+      :busy="saving"
+      @choose="chooseDay"
+      @edit="editVisit"
+      @shift="shiftVisit"
+    />
+    <div v-if="trip" class="map-section-heading">
+      <h2>지도와 상세 일정</h2>
     </div>
     <div v-if="trip && current" class="planner-workspace" style="position: relative">
       <div class="planner-map">
@@ -375,11 +478,6 @@ const duration = (seconds: number) => {
           </div>
           <span class="count-badge">{{ current.items.length }}곳</span>
         </div>
-        <div v-if="showRecommendations" class="recommendation-close-row">
-          <button class="icon-button" aria-label="일정 추천 숨기기" @click="toggleRecommendations">
-            ×
-          </button>
-        </div>
         <DayAlternatives
           v-if="showRecommendations"
           :key="trip.id + trip.transportMode"
@@ -389,6 +487,7 @@ const duration = (seconds: number) => {
           :items="current.items"
           :weather="weather"
           :disabled="saving"
+          @dismiss="toggleRecommendations"
           @preview="
             dayPreview = $event;
             alternativePreview = null;
@@ -477,7 +576,7 @@ const duration = (seconds: number) => {
                 <p>{{ p.openingHours || '운영시간 확인 필요' }}</p>
                 <details class="stop-budget">
                   <summary>
-                    얼마나 들까요? ·
+                    예상 비용 ·
                     {{
                       p.estimatedCost == null
                         ? '예상 비용 미입력'
@@ -485,7 +584,7 @@ const duration = (seconds: number) => {
                     }}
                   </summary>
                   <label>
-                    이 장소에서 쓸 예상 총액 (JPY · 엔)
+                    예상 금액 (엔)
                     <input
                       type="number"
                       min="0"
@@ -494,11 +593,12 @@ const duration = (seconds: number) => {
                       v-model.number="p.estimatedCost"
                       :disabled="saving"
                       :aria-label="p.name + ' 예상 비용'"
-                      placeholder="금액 미정이면 비워두세요"
+                      placeholder="금액"
+                      @change="saveBudget(p)"
                     />
                   </label>
                   <button class="text-button" :disabled="saving" @click="saveBudget(p)">
-                    예상 비용 저장
+                    저장
                   </button>
                 </details>
                 <details class="stop-note">
@@ -544,19 +644,79 @@ const duration = (seconds: number) => {
             <Icon name="plus" />
             장소 추가
           </RouterLink>
-          <small>운영시간과 계절별 개방 여부를 출발 전에 확인하세요.</small>
-          <small>
-            오늘 입력한 예상 비용 합계:
+          <strong>
+            오늘 예상
             {{
               current.items
                 .reduce((sum, p) => sum + Number(p.estimatedCost || 0), 0)
                 .toLocaleString()
-            }}엔 · 실제 지출은 아래 정산 계산기에 기록
-          </small>
+            }}엔
+          </strong>
         </div>
       </aside>
     </div>
-    <TripTools v-if="trip" :key="trip.id" :trip-id="trip.id" :is-owner="trip.isOwner === true" />
+
+    <div v-if="scheduleEdit" class="modal-backdrop" @click.self="!saving && (scheduleEdit = null)">
+      <section
+        class="modal visit-editor"
+        v-dialog
+        role="dialog"
+        aria-modal="true"
+        aria-label="일정 수정"
+      >
+        <PanelHeader
+          :title="scheduleEdit.place.name"
+          :eyebrow="`${scheduleEdit.day.date} · ${categoryName(scheduleEdit.place.category)}`"
+          close-label="일정 수정 닫기"
+          :disabled="saving"
+          @close="scheduleEdit = null"
+        />
+        <p>방문 시간을 정하면 자동 배치해도 이 시간을 유지해요.</p>
+        <form @submit.prevent="saveVisit('save')">
+          <div class="visit-times">
+            <label>
+              시작 시간
+              <input v-model="visitStart" type="time" required :disabled="saving" />
+            </label>
+            <label>
+              종료 시간
+              <input
+                v-model="visitEnd"
+                aria-label="종료 시간"
+                pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00"
+                placeholder="18:00"
+                required
+                :disabled="saving"
+              />
+              <small>자정은 24:00</small>
+            </label>
+          </div>
+          <p v-if="visitError" role="alert" class="form-error">{{ visitError }}</p>
+          <button class="button dark wide" :disabled="saving">
+            {{ saving ? '저장 중…' : '시간 저장' }}
+          </button>
+          <button
+            type="button"
+            class="button subtle wide"
+            :disabled="saving"
+            @click="saveVisit('auto')"
+          >
+            빈 시간에 자동 배치
+          </button>
+          <div class="visit-bottom">
+            <RouterLink :to="'/places/' + scheduleEdit.place.id">장소 정보 보기 ↗</RouterLink>
+            <button
+              type="button"
+              class="text-button"
+              :disabled="saving"
+              @click="saveVisit('delete')"
+            >
+              일정에서 삭제
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
     <div
       v-if="addingDay || editing"
       class="modal-backdrop"
@@ -655,15 +815,79 @@ const duration = (seconds: number) => {
   </main>
 </template>
 <style scoped>
-.recommendation-close-row {
+.planner-heading > div:first-child,
+.stop-content {
+  min-width: 0;
+}
+.planner-heading h1,
+.stop-name {
+  overflow-wrap: anywhere;
+}
+.map-section-heading {
+  flex-wrap: wrap;
+}
+.itinerary {
+  min-width: 0;
+}
+.route-between > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.map-section-heading {
   display: flex;
-  justify-content: flex-end;
-  background: #f4f5ed;
-  padding: 0 10px;
+  gap: 16px;
+  align-items: baseline;
+  margin: 24px 0 14px;
 }
-.recommendation-close-row button {
-  height: 26px;
+.map-section-heading h2 {
+  font-size: 20px;
 }
+.map-section-heading p {
+  font-size: 12px;
+  color: #748096;
+}
+.visit-editor > small {
+  color: #7b718e;
+}
+.visit-editor h2 {
+  margin: 14px 0;
+}
+.visit-editor > p {
+  font-size: 13px;
+  color: #788091;
+}
+.visit-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 22px 0;
+}
+.visit-times small {
+  font-size: 11px;
+  color: #8b8497;
+}
+.visit-editor .wide {
+  margin-top: 10px;
+}
+.visit-bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  font-size: 13px;
+}
+.visit-bottom button {
+  color: #a45555;
+}
+@media (max-width: 760px) {
+  .map-section-heading {
+    display: block;
+  }
+  .map-section-heading p {
+    margin-top: 6px;
+  }
+}
+
 .collaboration-notice {
   padding: 14px 18px;
   border-radius: 14px;
@@ -687,7 +911,39 @@ const duration = (seconds: number) => {
   border-radius: 10px;
 }
 .stop-budget label {
+  display: grid;
+  gap: 7px;
   font-size: 12px;
   line-height: 1.6;
+}
+.stop-budget .text-button,
+.stop-note .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  min-height: 42px;
+  margin: 12px 0 0 auto;
+  padding: 0 15px;
+  border: 1px solid #9eabc0;
+  border-radius: 11px;
+  background: #eef1f6;
+  color: #303751;
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: none;
+  box-shadow: 0 3px 8px #30375112;
+  transition:
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+.stop-budget .text-button:hover:not(:disabled),
+.stop-note .text-button:hover:not(:disabled) {
+  background: #dde4ef;
+  transform: translateY(-1px);
+}
+.stop-budget .text-button:disabled,
+.stop-note .text-button:disabled {
+  opacity: 0.55;
 }
 </style>

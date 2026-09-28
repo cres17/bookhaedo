@@ -29,21 +29,34 @@ export function selectTrip(id: string, date: string) {
   localStorage.setItem('kita-date', date);
 }
 export async function boot() {
-  try {
-    const d = await api('/auth/me');
-    state.user = d.user;
-  } catch {
-    state.user = null;
-    selectTrip('', '');
-  } finally {
-    state.ready = true;
-  }
-  try {
-    state.regions = (await api('/regions')).data;
-    state.cities = await fetch('/hokkaido-cities.json').then((r) => r.json());
-  } catch {
-    notify('지역 정보를 불러오지 못했습니다. 연결을 확인해주세요.');
-  }
+  const session = (async () => {
+    try {
+      const d = await api('/auth/me');
+      state.user = d.user;
+    } catch {
+      state.user = null;
+      selectTrip('', '');
+    } finally {
+      state.ready = true;
+    }
+  })();
+  const catalog = Promise.allSettled([
+    api('/regions').then((d) => {
+      state.regions = d.data;
+    }),
+    fetch('/hokkaido-cities.json')
+      .then((r) => {
+        if (!r.ok) throw new Error('CITY_DATA_UNAVAILABLE');
+        return r.json();
+      })
+      .then((cities) => {
+        state.cities = cities;
+      }),
+  ]).then((results) => {
+    if (results.some((result) => result.status === 'rejected'))
+      notify('지역 정보를 불러오지 못했습니다. 연결을 확인해주세요.');
+  });
+  await Promise.all([session, catalog]);
 }
 export function regionName(id: string) {
   return state.regions.find((r) => r.id === id)?.name || '홋카이도';

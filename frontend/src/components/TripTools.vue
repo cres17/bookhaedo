@@ -1,226 +1,91 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { api, json } from '../api';
-import { state, notify } from '../store';
-const props = defineProps<{ tripId: string; isOwner: boolean }>();
-const tab = ref(''),
-  busy = ref(false),
-  error = ref('');
-const members = ref<any[]>([]),
-  checklist = ref<any[]>([]),
-  messages = ref<any[]>([]),
-  expenses = ref<any>({ data: [], transfers: [], total: 0 }),
-  invites = ref<any[]>([]);
-const task = ref(''),
-  message = ref(''),
-  email = ref(''),
-  shareUrl = ref(''),
-  expenseLabel = ref(''),
-  amount = ref<number | null>(null),
-  payer = ref(''),
-  participants = ref<string[]>([]),
-  older = ref<any[]>([]),
-  hasMore = ref(false);
-const base = computed(() => `/trips/${props.tripId}`);
-const progress = computed(() => checklist.value.filter((i) => i.done).length);
-const chatLog = ref<HTMLElement | null>(null);
-const person = (id: string) => members.value.find((m) => m.id === id)?.name || '탈퇴한 동행자';
-const inviteStatus = (i: any) =>
-  i.status === 'PENDING' && new Date(i.expiresAt).getTime() < Date.now()
-    ? '만료'
-    : (
-        { PENDING: '대기', ACCEPTED: '수락 완료', DECLINED: '거절', REVOKED: '취소' } as Record<
-          string,
-          string
-        >
-      )[i.status];
-let timer: ReturnType<typeof setInterval>,
-  loading = false,
-  refreshAgain = false,
-  alive = true;
-async function refresh() {
-  if (!alive || !tab.value || document.hidden) return;
-  if (loading) {
-    refreshAgain = true;
-    return;
-  }
-  loading = true;
-  try {
-    const current = tab.value;
-    const data = await api(
-      base.value +
-        { checklist: '/checklist', expenses: '/expenses', chat: '/messages', share: '/members' }[
-          current
-        ]!,
-    );
-    if (!alive || current !== tab.value) return;
-    if (current === 'checklist') checklist.value = data.data;
-    if (current === 'expenses') expenses.value = data;
-    if (current === 'chat') {
-      const el = chatLog.value;
-      const follow =
-        !messages.value.length || (!!el && el.scrollHeight - el.scrollTop - el.clientHeight < 80);
-      messages.value = data.data;
-      if (!older.value.length) hasMore.value = data.hasMore;
-      if (follow) {
-        await nextTick();
-        if (chatLog.value) chatLog.value.scrollTop = chatLog.value.scrollHeight;
-      }
-    }
-    if (current === 'share') {
-      members.value = data.data;
-      if (props.isOwner) invites.value = (await api(base.value + '/invitations')).data;
-    }
-  } catch (e: any) {
-    if (alive) error.value = e.message;
-  } finally {
-    loading = false;
-    if (refreshAgain) {
-      refreshAgain = false;
-      void refresh();
-    }
-  }
-}
-async function open(value: string) {
-  tab.value = tab.value === value ? '' : value;
-  error.value = '';
-  if (!tab.value) return;
-  try {
-    members.value = (await api(base.value + '/members')).data;
-    if (!payer.value) payer.value = state.user!.id;
-    if (tab.value === 'expenses' && !participants.value.length)
-      participants.value = members.value.map((m) => m.id);
-    await refresh();
-  } catch (e: any) {
-    error.value = e.message;
-  }
-}
-async function mutate(path: string, method: string, body?: any) {
-  if (busy.value) return false;
-  busy.value = true;
-  error.value = '';
-  try {
-    await api(base.value + path, body === undefined ? { method } : json(method, body));
-    await refresh();
-    return true;
-  } catch (e: any) {
-    error.value = e.message;
-    return false;
-  } finally {
-    busy.value = false;
-  }
-}
-async function addTask() {
-  if (await mutate('/checklist', 'POST', { label: task.value })) task.value = '';
-}
-async function send() {
-  if (await mutate('/messages', 'POST', { body: message.value })) message.value = '';
-}
-async function addExpense() {
-  if (
-    await mutate('/expenses', 'POST', {
-      label: expenseLabel.value,
-      amount: amount.value,
-      payerId: payer.value,
-      participantIds: participants.value,
-    })
-  ) {
-    expenseLabel.value = '';
-    amount.value = null;
-  }
-}
-async function invite(link = false) {
-  busy.value = true;
-  error.value = '';
-  try {
-    const result = await api(
-      base.value + '/invitations',
-      json('POST', link ? {} : { email: email.value.trim().toLowerCase() }),
-    );
-    shareUrl.value = location.origin + result.path;
-    email.value = '';
-    await refresh();
-    notify(
-      link
-        ? '한 사람이 수락할 수 있는 초대 링크를 만들었어요.'
-        : '해당 이메일 계정의 알림함에 초대장을 보냈어요.',
-    );
-  } catch (e: any) {
-    error.value = e.message;
-  } finally {
-    busy.value = false;
-  }
-}
-async function copy() {
-  try {
-    await navigator.clipboard.writeText(shareUrl.value);
-    notify('초대 링크를 복사했어요.');
-  } catch {
-    notify('아래 링크를 직접 선택해 복사해주세요.');
-  }
-}
-async function more() {
-  if (busy.value) return;
-  busy.value = true;
-  try {
-    const first = older.value[0] || messages.value[0];
-    const r = await api(base.value + '/messages?before=' + encodeURIComponent(first.id));
-    older.value = [...r.data, ...older.value];
-    hasMore.value = r.hasMore;
-  } catch (e: any) {
-    error.value = e.message;
-  } finally {
-    busy.value = false;
-  }
-}
-const allMessages = computed(() => [
-  ...new Map([...older.value, ...messages.value].map((m) => [m.id, m])).values(),
-]);
-onMounted(() => {
-  timer = setInterval(() => {
-    if (tab.value === 'chat' || tab.value === 'share') void refresh();
-  }, 6000);
-});
-onBeforeUnmount(() => {
-  alive = false;
-  clearInterval(timer);
-});
+import PanelHeader from './PanelHeader.vue';
+import ExpensePanel from './ExpensePanel.vue';
+import Icon from './Icon.vue';
+import { useTripTools } from '../composables/useTripTools';
+const toolIcons: Record<string, string> = {
+  checklist: 'check',
+  expenses: 'wallet',
+  share: 'user',
+  chat: 'chat',
+};
+const props = defineProps<{
+  tripId: string;
+  isOwner: boolean;
+  tripTitle?: string;
+  budgetRevision?: string;
+}>();
+const {
+  addTask,
+  allMessages,
+  busy,
+  chatLog,
+  checklist,
+  copy,
+  email,
+  error,
+  expenses,
+  hasMore,
+  invite,
+  invites,
+  inviteStatus,
+  members,
+  message,
+  more,
+  mutate,
+  open,
+  plannedTotal,
+  progress,
+  refresh,
+  send,
+  shareUrl,
+  state,
+  summaryReady,
+  tab,
+  task,
+} = useTripTools(props);
 </script>
 <template>
   <section class="trip-tools" aria-label="여행 도구">
     <div class="tools-bar">
-      <div>
-        <small>TOGETHER, BETTER</small>
-        <strong>여행 준비부터, 마지막 정산까지.</strong>
-      </div>
       <div class="tool-tabs">
         <button
           v-for="[key, name] in [
-            ['checklist', '체크리스트'],
-            ['expenses', '정산 계산기'],
-            ['share', '동행자 · 초대'],
-            ['chat', '여행 채팅'],
+            ['checklist', '준비'],
+            ['expenses', '지출'],
+            ['share', '초대'],
+            ['chat', '채팅'],
           ]"
           :key="key"
+          :aria-label="name"
           :aria-expanded="tab === key"
           :class="{ active: tab === key }"
           @click="open(key!)"
         >
-          {{ name }}
+          <span class="tool-label">
+            <Icon :name="toolIcons[key!]!" :size="21" />
+            {{ name }}
+            <Icon class="tool-chevron" :name="tab === key ? 'up' : 'down'" :size="16" />
+          </span>
+          <strong v-if="key === 'checklist'">
+            {{ summaryReady ? `준비 ${progress} / ${checklist.length}` : '준비물 확인' }}
+          </strong>
+          <strong v-else-if="key === 'expenses'">
+            {{ summaryReady ? `예상 ${plannedTotal.toLocaleString()}엔` : '예산 보기' }}
+          </strong>
+          <strong v-else-if="key === 'share'">
+            {{ summaryReady ? members.length + '명' : '동행자' }}
+          </strong>
+          <strong v-else>대화</strong>
         </button>
       </div>
     </div>
     <div v-if="tab" class="tools-panel">
-      <button class="icon-button tools-close" aria-label="여행 도구 닫기" @click="tab = ''">
-        ×
-      </button>
       <p v-if="error" role="alert" class="form-error">{{ error }}</p>
       <template v-if="tab === 'checklist'">
-        <h2>
-          가볍게 떠날 준비
-          <small>{{ progress }} / {{ checklist.length }} 완료</small>
-        </h2>
-        <p>동행자와 함께 체크해요. 항목을 체크하거나 삭제하면 모두에게 반영됩니다.</p>
+        <PanelHeader title="가볍게 떠날 준비" close-label="여행 도구 닫기" @close="tab = ''">
+          <small class="preparation-count">{{ progress }} / {{ checklist.length }} 완료</small>
+        </PanelHeader>
         <progress :value="progress" :max="checklist.length || 1" aria-label="준비 완료율" />
         <form class="inline-form" @submit.prevent="addTask">
           <input
@@ -232,7 +97,7 @@ onBeforeUnmount(() => {
           />
           <button class="button dark small" :disabled="busy">추가</button>
         </form>
-        <p v-if="!checklist.length" class="empty-copy">준비할 것을 하나씩 적어보세요.</p>
+        <p v-if="!checklist.length" class="empty-copy">준비물 없음</p>
         <div v-for="item in checklist" :key="item.id" class="tool-row">
           <label>
             <input
@@ -256,82 +121,23 @@ onBeforeUnmount(() => {
             삭제
           </button>
         </div>
-        <button class="text-button" @click="refresh">동행자 변경 새로고침</button>
+        <button class="text-button" @click="refresh">새로고침</button>
       </template>
-      <template v-if="tab === 'expenses'">
-        <h2>같이 쓴 만큼, 깔끔하게.</h2>
-        <p>
-          실제 지출을 엔화로 기록하세요. 선택한 분담자끼리 균등 분할하며, 나머지 1엔도 빠짐없이
-          배분해요. 송금은 직접 진행해주세요.
-        </p>
-        <div class="expense-layout">
-          <form class="expense-form" @submit.prevent="addExpense">
-            <label>
-              지출 내용
-              <input
-                v-model="expenseLabel"
-                required
-                maxlength="200"
-                placeholder="저녁 식사, 렌터카…"
-              />
-            </label>
-            <label>
-              금액 (JPY · 엔)
-              <input
-                v-model.number="amount"
-                type="number"
-                min="1"
-                max="100000000"
-                step="1"
-                required
-              />
-            </label>
-            <label>
-              결제한 사람
-              <select v-model="payer">
-                <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
-              </select>
-            </label>
-            <fieldset>
-              <legend>함께 나눌 사람</legend>
-              <label v-for="m in members" :key="m.id">
-                <input type="checkbox" v-model="participants" :value="m.id" />
-                {{ m.name }}
-              </label>
-            </fieldset>
-            <button class="button dark" :disabled="busy || !participants.length">지출 기록</button>
-          </form>
-          <div>
-            <strong class="expense-total">총 {{ expenses.total.toLocaleString() }}엔</strong>
-            <div v-for="e in expenses.data" :key="e.id" class="tool-row">
-              <div>
-                <strong>{{ e.label }}</strong>
-                <small>
-                  {{ person(e.payerId) }} 결제 · {{ e.amount.toLocaleString() }}엔 ·
-                  {{ e.shares.length }}명 분담
-                </small>
-              </div>
-              <button
-                class="text-button"
-                :disabled="busy"
-                @click="mutate('/expenses/' + e.id, 'DELETE')"
-              >
-                삭제
-              </button>
-            </div>
-            <h3>정산 안내</h3>
-            <p v-if="!expenses.transfers.length">주고받을 금액이 없어요.</p>
-            <p v-for="(t, i) in expenses.transfers" :key="i" class="transfer">
-              {{ person(t.from) }} → {{ person(t.to) }}
-              <strong>{{ t.amount.toLocaleString() }}엔</strong>
-            </p>
-            <button class="text-button" @click="refresh">최신 정산 불러오기</button>
-          </div>
-        </div>
-      </template>
+      <ExpensePanel
+        v-if="tab === 'expenses'"
+        :trip-id="tripId"
+        :title="tripTitle || '여행 정산'"
+        :members="members"
+        :revision="budgetRevision"
+        @updated="expenses = $event"
+        @close="tab = ''"
+      />
       <template v-if="tab === 'share'">
-        <h2>이 여행을 함께 만들어요.</h2>
-        <p>초대를 수락한 동행자는 장소·순서·메모·예산을 함께 수정하고 채팅에 참여할 수 있어요.</p>
+        <PanelHeader
+          title="이 여행을 함께 만들어요."
+          close-label="여행 도구 닫기"
+          @close="tab = ''"
+        />
         <div class="member-chips">
           <span v-for="m in members" :key="m.id">
             {{ m.name }} · {{ m.isOwner ? '소유자' : '동행자' }}
@@ -344,17 +150,13 @@ onBeforeUnmount(() => {
               type="email"
               required
               aria-label="초대할 이메일"
-              placeholder="동행자의 가입 이메일"
+              placeholder="이메일"
             />
             <button class="button dark small" :disabled="busy">초대장 보내기</button>
           </form>
           <button class="button subtle small" :disabled="busy" @click="invite(true)">
             공유 초대 링크 만들기
           </button>
-          <p>
-            이메일 초대는 서비스 알림함으로 전달됩니다. 링크는 7일 동안 유효하며 1명만 수락할 수
-            있어요.
-          </p>
           <div v-if="shareUrl" class="inline-form">
             <input
               :value="shareUrl"
@@ -379,16 +181,15 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </template>
-        <p v-else>새로운 동행자 초대는 여행 소유자가 할 수 있어요.</p>
+        <p v-else>소유자만 초대할 수 있어요.</p>
       </template>
       <template v-if="tab === 'chat'">
-        <h2>우리 여행 이야기</h2>
-        <p>이 여행의 동행자만 볼 수 있어요. 대화는 약 6초마다 갱신됩니다.</p>
+        <PanelHeader title="우리 여행 이야기" close-label="여행 도구 닫기" @close="tab = ''" />
         <button v-if="hasMore" class="text-button" :disabled="busy" @click="more">
           이전 대화 보기
         </button>
         <div ref="chatLog" class="chat-log" role="log" aria-label="여행 대화">
-          <p v-if="!allMessages.length">첫 이야기를 남겨보세요. “첫날 저녁은 어디로 갈까요?”</p>
+          <p v-if="!allMessages.length">대화 없음</p>
           <article
             v-for="m in allMessages"
             :key="m.id"
@@ -414,7 +215,7 @@ onBeforeUnmount(() => {
             required
             maxlength="2000"
             aria-label="채팅 메시지"
-            placeholder="동행자에게 이야기 남기기"
+            placeholder="메시지"
           />
           <button class="button dark small" :disabled="busy">전송</button>
         </form>
@@ -423,6 +224,12 @@ onBeforeUnmount(() => {
   </section>
 </template>
 <style scoped>
+.preparation-count {
+  display: block;
+  font-size: 15px;
+  color: #8b7c99;
+  margin-top: 7px;
+}
 .trip-tools {
   margin: 22px 0;
   border: 1px solid #dfe5e0;
@@ -629,5 +436,317 @@ progress {
     font-size: 12px;
     padding: 9px 11px;
   }
+}
+
+/* Shared travel tools: readable labels, clear selected state, generous touch targets. */
+.trip-tools {
+  border-color: #e2deec;
+  background: #fff;
+  box-shadow: 0 3px 14px #48356404;
+}
+.tools-bar {
+  display: block;
+  padding: 12px;
+  background: #f8f7fb;
+}
+.tool-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.tool-tabs button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #e5e0ed;
+  border-radius: 16px;
+  background: white;
+  text-align: left;
+  color: #50495e;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.tool-tabs button:hover {
+  background: #f4f1f9;
+  border-color: #c4b7d5;
+}
+.tool-tabs button.active {
+  background: #f0eaf8;
+  border-color: #a993c2;
+  color: #56406e;
+  box-shadow: inset 0 -3px #a993c2;
+}
+.tool-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.tool-label > svg {
+  flex-shrink: 0;
+  color: #8b76a4;
+}
+.tool-label .tool-chevron {
+  margin-left: auto;
+}
+.tool-tabs button strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  color: #393346;
+}
+.tools-bar .tool-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: #8a8195;
+}
+.tools-panel {
+  padding: 30px;
+  border-top: 1px solid #e4dfec;
+  background: linear-gradient(#fcfbfd, #fff 100px);
+}
+.tools-panel h2 {
+  font-size: 25px;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+.tools-panel h2 small {
+  font-size: 16px;
+  margin-left: 8px;
+}
+.tools-panel p {
+  font-size: 16px;
+  line-height: 1.75;
+  color: #786e82;
+}
+.tools-panel input:not([type='checkbox']),
+.tools-panel select {
+  font-size: 16px;
+  min-height: 48px;
+  border-color: #dcd6e4;
+}
+.tools-panel .button,
+.tools-panel .text-button {
+  font-size: 15px;
+  min-height: 44px;
+}
+.tools-panel .tools-close {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+}
+.tool-row {
+  font-size: 16px;
+  min-height: 60px;
+  padding: 16px 0;
+  border-color: #eeeaf3;
+}
+.tool-row label {
+  cursor: pointer;
+  flex: 1;
+  min-height: 44px;
+}
+.tool-row input[type='checkbox'],
+.expense-form input[type='checkbox'] {
+  width: 21px;
+  height: 21px;
+  accent-color: #80649d;
+  flex-shrink: 0;
+}
+.tool-row small {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.expense-form label {
+  font-size: 16px;
+  gap: 9px;
+}
+.expense-form legend {
+  font-size: 15px;
+}
+.expense-form {
+  gap: 20px;
+}
+.expense-form fieldset {
+  gap: 18px;
+  border-color: #e0d9e8;
+}
+.member-chips span {
+  font-size: 15px;
+  background: #f0ebf7;
+}
+.transfer {
+  background: #f1edf7;
+}
+.chat-log {
+  padding: 20px;
+  background: #f6f3f9;
+  gap: 16px;
+  min-height: 180px;
+}
+.chat-message {
+  padding: 15px 18px;
+}
+.chat-message.mine {
+  background: #eae1f3;
+}
+.chat-message small {
+  font-size: 13px;
+}
+.empty-copy {
+  padding: 22px;
+  border-radius: 14px;
+  background: #f7f4fa;
+  text-align: center;
+}
+progress {
+  height: 9px;
+  accent-color: #9676b1;
+}
+@media (max-width: 1000px) {
+  .tool-tabs button {
+    padding: 18px 14px;
+  }
+  .tool-label {
+    font-size: 16px;
+    gap: 7px;
+  }
+  .tool-tabs button strong {
+    font-size: 22px;
+  }
+  .tool-description {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .tools-bar {
+    padding: 10px;
+  }
+  .tool-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .tool-tabs button {
+    padding: 16px 12px;
+    gap: 14px;
+    min-height: 112px;
+  }
+  .tool-label {
+    font-size: 15px;
+    gap: 6px;
+  }
+  .tool-label > svg {
+    width: 18px;
+  }
+  .tool-label .tool-chevron {
+    width: 14px;
+  }
+  .tool-tabs button strong {
+    font-size: 20px;
+  }
+  .tools-panel {
+    padding: 26px 18px;
+  }
+  .tools-panel h2 {
+    font-size: 23px;
+  }
+  .tools-panel h2 small {
+    display: block;
+    margin: 7px 0 0;
+  }
+  .expense-total {
+    font-size: 28px;
+  }
+  .inline-form {
+    gap: 8px;
+  }
+  .inline-form input {
+    flex-basis: 180px;
+  }
+  .tools-panel .tool-row {
+    gap: 8px;
+  }
+  .chat-log {
+    padding: 14px;
+  }
+  .chat-message {
+    max-width: 95%;
+  }
+}
+
+/* Travel tools use the app's existing navy, with lighter blue-grey layers. */
+.trip-tools {
+  border-color: #d7deea;
+  box-shadow: 0 3px 14px #30375108;
+}
+.tools-bar {
+  background: #f7f9fc;
+}
+.tool-tabs button {
+  border-color: #d9e0eb;
+  color: #3d475d;
+}
+.tool-tabs button:hover {
+  background: #eef2f7;
+  border-color: #afbdd1;
+}
+.tool-tabs button.active {
+  background: #e8edf5;
+  border-color: #7f90ab;
+  color: #2e314e;
+  box-shadow: inset 0 -3px #627697;
+}
+.tool-label > svg {
+  color: #607294;
+}
+.tool-tabs button strong,
+.tools-panel h2 {
+  color: #2e314e;
+}
+.tools-bar .tool-description,
+.tools-panel p,
+.tool-row small,
+.chat-message small {
+  color: #748198;
+}
+.tools-panel {
+  border-top-color: #dce3ed;
+  background: linear-gradient(#fafbfe, #fff 100px);
+}
+.tools-panel input:not([type='checkbox']),
+.tools-panel select {
+  border-color: #d3dce8;
+}
+.tool-row {
+  border-color: #e8edf3;
+}
+.tool-row input[type='checkbox'],
+.expense-form input[type='checkbox'],
+progress {
+  accent-color: #526887;
+}
+.member-chips span,
+.transfer {
+  background: #edf1f6;
+}
+.chat-log {
+  background: #f4f7fb;
+}
+.chat-message.mine {
+  background: #e3eaf3;
+}
+.empty-copy {
+  background: #f2f5f9;
 }
 </style>

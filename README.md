@@ -46,17 +46,17 @@ Book해도는 소도시의 장소와 일본어 이름을 찾는 불편함, 여�
 
 ### 동행자와 함께 준비하는 여행
 
-일정 페이지 아래 **체크리스트 / 정산 계산기 / 동행자·초대 / 여행 채팅**에서 필요한 도구를 펼칠 수 있습니다.
+일정 화면의 여행 준비 도구에서 **체크리스트 / 지출·정산 / 동행자·초대 / 여행 채팅** 패널을 열 수 있습니다. 시간표 캘린더에서 방문 시간을 수정하거나 캘린더를 숨길 수 있습니다. 공동·개인 지출은 구분하며 Excel 다운로드와 PDF 인쇄를 제공합니다. 지역 안내는 12개 지역의 사계절 추천·배경·축제·방문 제한을 제공합니다.
 
 - **추천 표시 설정**: 처음에는 하루 코스 추천이 보입니다. ×로 숨기거나 상단 버튼으로 다시 표시할 수 있고, 이 브라우저의 여행별 선택을 기억합니다.
-- **장소별 예상 비용**: 각 장소의 ‘얼마나 들까요?’에 엔화 예상 총액을 저장합니다. 순서 변경에도 메모·비용이 유지되며, 다른 장소로 교체하면 초기화됩니다. 미입력과 0엔은 구분합니다.
+- **장소별 예상 비용**: 각 장소의 ‘예상 비용’에 엔화 예상 총액을 저장합니다. 순서 변경에도 메모·비용이 유지되며, 다른 장소로 교체하면 초기화됩니다. 미입력과 0엔은 구분합니다.
 - **공동 체크리스트**: 준비 항목 추가·완료·삭제를 여행 단위로 저장합니다.
 - **정산 계산기**: 실제 지출의 결제자·분담자를 선택합니다. JPY 정수 단위 균등분할로 나머지 1엔까지 배분하며, 누가 누구에게 얼마를 보내면 되는지 계산합니다. 송금 자체는 수행하지 않습니다.
 - **초대와 공동 편집**: 소유자가 가입 이메일로 서비스 내 초대장을 보내거나 7일 유효·1회 수락 링크를 발급합니다. 수락한 동행자는 일정을 함께 수정하고 메모를 봅니다. 초대 관리와 여행 전체 삭제는 소유자만 가능합니다. 이메일 발송 서비스는 사용하지 않습니다.
 - **여행 채팅·알림**: 열린 채팅은 약 6초마다, 초대 알림은 15초마다 갱신됩니다. 이전 대화를 더 불러올 수 있습니다. 일정 변경은 15초마다 확인 후 새로고침 안내를 표시하며 작성 중인 입력을 자동으로 덮어쓰지 않습니다.
 - **회원 탈퇴**: 사용자명 옆 알림 → 계정 관리에서 비밀번호와 삭제 범위를 확인합니다. 소유 여행은 관련 데이터와 함께 삭제하고, 타인 소유 여행의 대화는 작성자를 익명 표시하며 정산 금액·식별자는 보존합니다. 관리자 계정은 먼저 회원 역할로 전환해야 합니다.
 
-관련 데이터는 `db/collaboration.sql`로 기존 스키마에 추가됩니다. `npm run db:init` 또는 API 서버 시작 시 마이그레이션이 적용됩니다. 공유 일정의 순서·메모·예산·대안 저장은 날짜별 revision을 검사하며 충돌 시 409를 반환합니다. 예산과 실제 지출은 별도 데이터입니다.
+현재 데이터 구조는 `db/planner.sql`, `db/admin.sql`, `db/collaboration.sql`과 `db/migrations/`에 정의됩니다. 신규 DB는 `npm run db:init`, 기존 DB는 `npm run db:migrate`로 적용합니다. 개발 서버는 자동 적용하지만 운영 서버는 적용 이력만 검증합니다. 공유 일정의 순서·메모·예산·대안 저장은 날짜별 revision을 검사하며 충돌 시 409를 반환합니다. 예산과 실제 지출은 별도 데이터입니다.
 
 검증: `tests/collaboration.test.ts`는 실제 PostgreSQL에서 초대 수락 전후 권한·외부인 차단·공동 메모/예산 보존·정산·초대 만료/취소·탈퇴를 검사합니다.
 전체 검증 결과와 브라우저 확인 범위는 [공동 여행 기능 검증 기록](docs/collaboration-verification.md)에 정리했습니다.
@@ -64,6 +64,7 @@ Book해도는 소도시의 장소와 일본어 이름을 찾는 불편함, 여�
 | 화면 | 사용자가 할 수 있는 일 |
 |---|---|
 | 회원가입·로그인 | 계정 생성, 세션 인증, 로그아웃 및 만료 시 재로그인 |
+| 홋카이도 안내 | 상단 메뉴에서 12개 지역의 사계절 추천·배경·축제·방문 제한 확인 |
 | 발견하기 | 지역 소개 → 테마 선택 → 지도와 연결된 장소 목록 |
 | 통합 검색 | `삿포로 공원`, `오타루 빈티지 옷가게`, 장소명 검색 |
 | 장소 상세 | 원문 이름, 출처, 확인된 웹사이트, Google 사진·전체 평점·리뷰 |
@@ -96,6 +97,22 @@ Book해도는 소도시의 장소와 일본어 이름을 찾는 불편함, 여�
 
 공식 웹사이트가 없으면 링크를 만들지 않고, 날씨나 경로를 가져오지 못하면 미제공 상태를 안내합니다. 실제 영업시간·휴무·이동 안전은 방문 전에 다시 확인해야 합니다.
 
+## 날씨 API 교체와 호출 최적화
+
+홋카이도의 장소·날짜별 예보를 제공하기 위해 Google Weather에서 **Open-Meteo**로 교체했습니다. 당시 API 활성화 후에도 일본 좌표의 일별 예보 조회가 404를 반환했고, 당시 지원 범위와 요구사항이 맞지 않는 것을 확인했습니다. 일본 시간대의 날짜 선택, 한국어 날씨 설명·기상 항목 변환, 예보 범위 밖 날짜와 외부 오류 처리를 구현해 일정 화면과 실내 대안 추천에 연결했습니다.
+
+교체 후에는 날짜마다 같은 10일 예보를 다시 받는 중복 호출을 줄이는 로컬 최적화를 진행했습니다. 예보를 10분간 공유하고 동시 중복 요청을 합쳤으며, 경로는 성공한 구간을 재사용하고 장소 상세는 검증된 장소 ID로 반복 검색을 줄였습니다.
+
+| 실제 외부 API 시나리오 | 외부 호출/회차 | 개선 전 → 후 중앙값 | 단축률 |
+| --- | ---: | ---: | ---: |
+| 같은 좌표의 오늘·내일·모레 예보 | 3 → 1 | 1,603.60 → 984.97ms | 38.58% |
+| 4개 장소 경로 최초·재조회·중간 장소 교체 | 9 → 5 | 9,057.70 → 4,652.32ms | 48.64% |
+| 같은 장소 상세 2회 조회 | 4 → 3 | 1,918.92 → 1,642.55ms | 14.40% |
+
+2026-09-22에 기준 커밋 `71bca6f`와 로컬 개선본을 각각 3회 실행한 결과입니다. **38.58%는 제공자 교체 자체가 아닌 Open-Meteo 중복 호출 최적화 결과**입니다. 측정은 실제 외부 API 응답 해석까지이며 DB·로그인·화면 표시 및 운영 부하는 포함하지 않습니다.
+
+실제 삿포로 예보의 화면 표시·실내 후보·경로 미리보기와, 통제된 날씨 응답에서의 실제 DB 교체·저장 검증을 구분했습니다. [교체 이유·변경 코드 설명·검증 범위](docs/weather-provider-and-performance.md)와 [회차별 측정 원본](docs/benchmarks/provider-measurement-20260922.json)에서 근거와 한계를 확인할 수 있습니다.
+
 ## 시스템 구조
 
 Vue 3 + Express REST API + PostgreSQL/PostGIS로 구성했습니다. AI/LLM·Vector DB를 사용하지 않으며, 추천은 장소 태그·날씨·거리·리뷰 표본과 공개된 계산 기준으로 설명합니다.
@@ -117,26 +134,6 @@ flowchart LR
 
 [![quality](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml/badge.svg)](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml)
 
-<p align="center">
-  <img alt="Vue 3" src="https://img.shields.io/badge/Vue_3-4FC08D?style=flat-square&amp;logo=vuedotjs&amp;logoColor=white">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white">
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&amp;logo=vite&amp;logoColor=white">
-  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-339933?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white">
-  <img alt="Express 5" src="https://img.shields.io/badge/Express_5-222222?style=flat-square&amp;logo=express&amp;logoColor=white">
-</p>
-<p align="center">
-  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL_17-4169E1?style=flat-square&amp;logo=postgresql&amp;logoColor=white">
-  <img alt="PostGIS" src="https://img.shields.io/badge/PostGIS-336791?style=flat-square">
-  <img alt="Google Maps" src="https://img.shields.io/badge/Google_Maps-4285F4?style=flat-square&amp;logo=googlemaps&amp;logoColor=white">
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&amp;logo=docker&amp;logoColor=white">
-  <img alt="OpenAPI 3.1" src="https://img.shields.io/badge/OpenAPI_3.1-6BA539?style=flat-square&amp;logo=openapiinitiative&amp;logoColor=white">
-</p>
-<p align="center">
-  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&amp;logo=vitest&amp;logoColor=white">
-  <img alt="Playwright" src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square">
-  <img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&amp;logo=githubactions&amp;logoColor=white">
-</p>
-
 | 계층 | 사용 기술 | 역할 |
 |---|---|---|
 | Frontend | Vue 3, Vue Router, TypeScript, Vite | 화면·폼·지도 상태와 사용자 흐름 |
@@ -148,28 +145,49 @@ flowchart LR
 | Contract | OpenAPI 3.1, Swagger UI, DBML | API·데이터 모델 설명 |
 | Automation | GitHub Actions, Docker Compose | CI, 로컬 PostGIS |
 
-Google Maps는 지도 표시, Valhalla는 자동차·택시·도보·자전거 경로, Google Routes는 대중교통과 선택적 자동차 교통비 조회에 사용합니다. 경로 조회가 실패하면 직선거리와 `durationSeconds: null`을 반환합니다.
+Google Maps는 지도 표시, Valhalla는 자동차·택시·도보·자전거 경로에 사용합니다. 대중교통 길찾기는 Google Maps 링크로 열며, 선택적 자동차 교통비 조회는 Google Routes에 연결합니다. 경로 조회가 실패하면 직선거리와 `durationSeconds: null`을 반환합니다.
 
 ## API와 데이터 모델
 
 - [OpenAPI YAML](docs/Bookhaedo-API.yml) · [OpenAPI JSON](docs/openapi-rest.json)
 - [DBML — dbdiagram 편집기에 붙여넣기](docs/erd.dbml)
 - [운영·마이그레이션·오류 대응](docs/operations.md)
+- [날씨 제공자 교체 이유·구현·실제 검증](docs/weather-provider-and-performance.md)
+- [외부 API 호출·대기시간 개선과 재현 측정](docs/provider-performance.md)
+- [아키텍처 경계와 확장 규칙](docs/architecture.md)
 
 API 명세의 원본은 `scripts/write-api-spec.mjs`입니다. API 변경 후 `npm run spec:generate`로 JSON·YAML·Swagger 문서를 함께 생성합니다. `npm run spec:check`는 생성물의 일치와 DBML 문법을 확인합니다.
 
 ## 프로젝트 구조
 
 ```text
-frontend/src/    화면, 지도, 추천 패널, 공통 API 클라이언트
-server/          인증·검색·일정·추천·외부 제공자 처리
-shared/          화면과 서버가 공유하는 날씨 정책
-db/              장소·일정·관리자 SQL
+frontend/src/    화면·라우터, 재사용 컴포넌트, 상태 composable, 공통 API 클라이언트
+server/app.ts    공통 미들웨어와 라우터 조립, 여행 권한 경계
+server/auth/     비동기 비밀번호 해싱, 세션, 여행 접근 검사
+server/http/     요청 ID, JSON 오류, CSP·Origin, PostgreSQL 중앙 요청 제한
+server/observability/ 구조화 로그와 Prometheus 지표
+server/routes/   인증·카탈로그·여행·외부 제공자·health 라우터
+server/          공동 여행·정산·추천, DB 풀·트랜잭션·마이그레이션
+shared/          화면·서버 공통 날씨 정책과 지출 내보내기
+db/              장소·일정·관리자 SQL과 버전별 migrations
 tests/           단위·DB·동시성·브라우저 테스트
 scripts/         데이터 적재, DB 초기화, 명세 생성
+ops/             Prometheus 수집 예시와 경보 규칙
 docs/            현재 명세·데이터 출처·운영 및 검증 기록
 .github/         자동 품질 검사
 ```
+
+## 마이그레이션과 운영 시작
+
+```bash
+npm run db:migrate
+npm run build
+npm start
+```
+
+`planner.schema_migration`에 파일명·SHA-256·적용 시간을 기록합니다. 적용 SQL은 수정하지 않고 새 번호의 SQL을 추가합니다. 이력 불일치·누락·미적용 버전은 운영 시작을 막습니다. `001_baseline.sql`은 기존 SQL의 고정 스냅샷이며 기존 DB에도 멱등 적용합니다. 이후 변경은 순서대로 같은 트랜잭션과 advisory lock 안에서 적용합니다. 카탈로그를 삭제하거나 재적재하지 않습니다. 초기화용 SQL을 직접 실행하는 것만으로 전체 서비스 마이그레이션이 완료되지는 않습니다.
+
+`/api/health/live`는 프로세스 생존, `/api/health/ready`는 `SELECT 1` DB 연결 검사입니다. `/api/health`의 장소 수 응답은 호환성을 위해 유지합니다. 장애 판단 자체가 중앙 제한 저장소에 막히지 않도록 probe는 요청 제한보다 먼저 처리합니다.
 
 ## 데이터 보호와 안정성
 
@@ -180,6 +198,9 @@ docs/            현재 명세·데이터 출처·운영 및 검증 기록
 - **공통 날씨 정책**: 발견하기와 일정 대안이 같은 강수·적설·풍속 기준과 실내 근거를 사용합니다.
 - **독립적 화면 갱신**: 날씨는 경로 완료를 기다리지 않습니다. DB 저장 완료와 외부 경로 계산 상태를 분리합니다.
 - **조회와 저장 한도 분리**: 날씨·경로·대안의 외부 조회 한도는 회원별로 적용합니다. 조회 한도에 도달해도 이미 비교한 일정의 확정을 막지 않습니다.
+- **다중 인스턴스 요청 제한**: 모든 API 인스턴스가 PostgreSQL의 원자적 카운터를 공유합니다. 제한 키는 SHA-256으로 저장해 원문 IP와 사용자 ID를 남기지 않습니다.
+- **관측과 경보**: 요청 ID가 포함된 JSON 로그와 지연·상태·DB 풀 Prometheus 지표를 제공합니다. 운영 지표 endpoint는 bearer token이 필요하며 예시 경보 규칙을 제공합니다.
+- **복구·용량 검증**: 체크섬이 붙은 custom-format 백업, 고유 임시 DB 복원 훈련, 중앙 제한과 카탈로그를 거치는 부하 기준을 실행 스크립트와 주간 workflow로 유지합니다.
 - **검증·운영 기반**: ESLint, TypeScript, Prettier, DB 회귀 테스트, Chrome E2E, 명세 일치 검사, GitHub Actions CI, 요청 ID, 종료 처리와 운영 설정 검사를 포함합니다.
 
 회원 전용 화면과 관리자 화면은 서버에서도 인증·역할을 확인합니다. 여행 데이터는 소유자 또는 초대를 수락한 동행자만 조회·수정할 수 있으며, 여행 전체 삭제와 초대 관리는 소유자 권한으로 제한합니다.
@@ -251,17 +272,24 @@ npm test
 npm run spec:check
 npm run build
 npm run test:e2e
+npm run test:load:ci
 ```
 
 `npm test`의 기존 통합 테스트는 홋카이도 카탈로그가 적재된 로컬 DB를 사용합니다. `npm run test:ci`는 외부 키 없이 실행하는 단위 테스트와 자체 임시 데이터를 사용하는 동시성 테스트입니다. CI는 별도 PostGIS 서비스에서 이 검증을 실행합니다.
 
 Chrome E2E에는 실제 Google·Valhalla·Open-Meteo 연결 테스트가 포함되어 외부 설정과 사용량이 필요합니다. macOS는 설치된 Chrome을 사용하며, Linux에서는 `npx playwright install --with-deps chromium`으로 브라우저를 준비합니다. 회귀 테스트는 임시 계정만 만들고 완료 후 정리합니다.
 
-[최신 검증 기록](docs/quality-v2.md)에서 테스트 결과와 외부 연동 범위를 확인할 수 있습니다.
+[2026-09-28 통합 검증](docs/release-verification-20260928.md)에서 이번 코드의 검사 결과를 확인할 수 있습니다. 이전 기능 검증과 외부 연동 범위는 [기존 검증 기록](docs/quality-v2.md)에 구분해 보존했습니다.
+
+## 리팩토링 평가
+
+실행 오류를 복구하고 API 모듈, 비동기 인증, 오류 응답(`code`, `error`, `requestId`), 연결 반환, 버전 마이그레이션을 정리했습니다. DB는 트랜잭션 종료 시 지출·분담금 합계와 개인 지출 분담자를 검사합니다. 장소명·예상 비용은 기록 당시 스냅샷이며 일정 변경으로 자동 덮어쓰지 않습니다. 탈퇴자의 공동 정산 UUID는 유지합니다.
+
+저장소 기준으로 중앙 제한·관측·복구 훈련·부하 기준까지 갖춘 **엔터프라이즈 운영 후보 수준**입니다. 실제 인프라의 비밀 관리, 다중 AZ 복원, 관리자 강화 인증과 장시간 부하 결과는 배포 환경에서 별도 승인해야 합니다. 근거와 남은 승인 항목은 [리팩토링 평가](docs/refactoring-assessment.md)에 정리했습니다.
 
 ## 운영 범위와 데이터
 
-이 저장소는 운영을 위한 코드 보호 장치와 검증 기반을 갖춘 프로젝트입니다. 다중 인스턴스 부하 시험, 관리자 SSO/MFA, 중앙 관측·알람, 백업 복구 훈련까지 검증한 상용 운영 체계를 의미하지는 않습니다. 실제 배포 조건과 남은 작업은 [운영 안내](docs/operations.md)에 명시했습니다.
+이 저장소는 여러 인스턴스가 공유하는 요청 제한, 관측·경보 설정, 백업 복원 훈련과 부하 임계값을 포함합니다. 로컬 실측과 CI 훈련은 재현 가능한 코드 수준 근거이며, 실제 클라우드의 가용성·RPO/RTO·보안 통제를 대신하지 않습니다. 배포 승인 조건은 [운영 안내](docs/operations.md)에 명시했습니다.
 
 기본 장소는 OpenStreetMap·홋카이도 공공 지리 데이터입니다. 화면에 원문 이름·수집 출처·제공되지 않은 정보를 구분해서 표시합니다. 외부 이름 검색은 기존 DB 장소와 이름·150m 위치가 일치할 때만 연결하며, 가상 장소나 링크를 만들지 않습니다.
 

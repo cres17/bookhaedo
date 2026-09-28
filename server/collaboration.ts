@@ -1,8 +1,11 @@
+import { rollback, release } from './transactions.js';
 import { Router, type RequestHandler } from 'express';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { pool } from './db.js';
-import { splitYen, settle } from './settlement.js';
+import { expenseReport } from './expense-report.js';
+import { expenseWorkbook } from './expense-workbook.js';
+import { splitYen } from './settlement.js';
 import { dateOnly } from './domain.js';
 import { requireRevision } from './itinerary-version.js';
 
@@ -119,11 +122,11 @@ invitations.post(
         new Date(i.expires_at).getTime() <= Date.now() ||
         (i.email ? i.email !== user.email : !input.token)
       ) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res.status(404).json({ error: '초대가 만료되었거나 대상 계정이 아니에요.' });
       }
       if (i.sender_id === user.id) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res.status(400).json({ error: '본인의 초대는 수락할 수 없어요.' });
       }
       if (input.accept)
@@ -144,10 +147,10 @@ invitations.post(
       await db.query('COMMIT');
       res.json({ accepted: input.accept, tripId: i.trip_id });
     } catch (e) {
-      await db.query('ROLLBACK');
+      await rollback(db);
       throw e;
     } finally {
-      db.release();
+      release(db);
     }
   }),
 );
@@ -301,76 +304,135 @@ collaboration.post(
 collaboration.get(
   '/expenses',
   wrap(async (req, res) => {
-    const expenses = (
-      await pool.query(
-        'SELECT id,label,amount,payer_id AS "payerId" FROM planner.expense WHERE trip_id=$1 ORDER BY created_at DESC',
-        [req.params.id],
-      )
-    ).rows;
-    const shares = (
-      await pool.query(
-        'SELECT s.expense_id AS "expenseId",s.participant_id AS id,s.amount FROM planner.expense_share s JOIN planner.expense e ON e.id=s.expense_id WHERE e.trip_id=$1',
-        [req.params.id],
-      )
-    ).rows;
-    const balances = new Map<string, number>();
-    for (const e of expenses)
-      balances.set(
-        e.payerId || 'withdrawn',
-        (balances.get(e.payerId || 'withdrawn') || 0) + e.amount,
-      );
-    for (const s of shares) balances.set(s.id, (balances.get(s.id) || 0) - s.amount);
-    res.json({
-      data: expenses.map((e) => ({ ...e, shares: shares.filter((s) => s.expenseId === e.id) })),
-      total: expenses.reduce((n, e) => n + e.amount, 0),
-      transfers: settle([...balances].map(([id, balance]) => ({ id, balance }))),
-    });
+    res.json(await expenseReport(String(req.params.id), res.locals.user.id));
   }),
 );
-collaboration.post(
-  '/expenses',
+collaboration.get(
+  '/expenses/export.xlsx',
   wrap(async (req, res) => {
-    const input = z
-      .object({
-        label,
-        amount: z.number().int().min(1).max(100000000),
-        payerId: z.uuid(),
-        participantIds: z.array(z.uuid()).min(1).max(100),
-      })
-      .parse(req.body);
-    const members = await people(String(req.params.id));
-    if (![input.payerId, ...input.participantIds].every((id) => members.some((m) => m.id === id)))
-      return res.status(400).json({ error: '현재 여행 동행자만 정산할 수 있어요.' });
-    const db = await pool.connect(),
-      id = randomUUID();
-    try {
-      await db.query('BEGIN');
-      await db.query(
-        'INSERT INTO planner.expense(id,trip_id,label,amount,payer_id) VALUES($1,$2,$3,$4,$5)',
-        [id, req.params.id, input.label, input.amount, input.payerId],
-      );
-      for (const s of splitYen(input.amount, input.participantIds))
-        await db.query(
-          'INSERT INTO planner.expense_share(expense_id,participant_id,amount) VALUES($1,$2,$3)',
-          [id, s.id, s.amount],
-        );
-      await db.query('COMMIT');
-      res.status(201).json({ saved: true });
-    } catch (e) {
-      await db.query('ROLLBACK');
-      throw e;
-    } finally {
-      db.release();
-    }
+    const scope = z.enum(['SHARED', 'PERSONAL', 'ALL']).default('SHARED').parse(req.query.scope);
+    const report = await expenseReport(String(req.params.id), res.locals.user.id);
+    const workbook = expenseWorkbook(
+      report,
+      res.locals.trip.title,
+      await people(String(req.params.id)),
+      scope,
+    );
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.set('Content-Disposition', 'attachment; filename="travel-expenses.xlsx"');
+    res.send(workbook);
   }),
 );
+const expenseInput = z
+  .object({
+    label,
+    amount: z.number().int().min(1).max(100000000),
+    scope: z.enum(['SHARED', 'PERSONAL']).default('SHARED'),
+    payerId: z.uuid().optional(),
+    participantIds: z.array(z.uuid()).min(1).max(100).optional(),
+    placeId: z.string().min(1).max(200).nullable().optional(),
+    visitDate: dateOnly.nullable().optional(),
+  })
+  .refine((v) => !!v.placeId === !!v.visitDate, '장소와 여행 날짜를 함께 입력해주세요.');
+const saveExpense: RequestHandler = wrap(async (req, res) => {
+  const input = expenseInput.parse(req.body);
+  const tripId = String(req.params.id),
+    userId = res.locals.user.id;
+  const payer = input.scope === 'PERSONAL' ? userId : input.payerId;
+  const participants = input.scope === 'PERSONAL' ? [userId] : input.participantIds;
+  const members = await people(tripId);
+  if (
+    !payer ||
+    !participants?.length ||
+    ![payer, ...participants].every((id) => members.some((m) => m.id === id))
+  )
+    return res.status(400).json({ error: '현재 여행 동행자만 정산할 수 있어요.' });
+  const id = req.params.expenseId ? z.uuid().parse(req.params.expenseId) : randomUUID();
+  const db = await pool.connect();
+  try {
+    await db.query('BEGIN');
+    let existing: any;
+    if (req.params.expenseId) {
+      existing = (
+        await db.query(
+          "SELECT *,visit_date::text AS linked_date FROM planner.expense WHERE id=$1 AND trip_id=$2 AND (scope='SHARED' OR personal_owner_id=$3) FOR UPDATE",
+          [id, tripId, userId],
+        )
+      ).rows[0];
+      if (!existing) {
+        await rollback(db);
+        return res.status(404).json({ error: '지출 기록을 찾을 수 없어요.' });
+      }
+      if (existing.scope !== input.scope) {
+        await rollback(db);
+        return res
+          .status(400)
+          .json({ error: '지출 구분은 기존 기록을 삭제한 뒤 다시 지정해주세요.' });
+      }
+    }
+    let linked: any;
+    if (input.placeId) {
+      linked = (
+        await db.query(
+          `SELECT COALESCE(p.name_ko,p.name_ja) AS name,i.estimated_cost FROM planner.itinerary_item i JOIN planner.trip_day d ON d.id=i.day_id JOIN geo_data.place p ON p.id=i.place_id WHERE d.trip_id=$1 AND d.visit_date=$2 AND i.place_id=$3`,
+          [tripId, input.visitDate, input.placeId],
+        )
+      ).rows[0];
+      if (existing?.place_id === input.placeId && existing.linked_date === input.visitDate)
+        linked = { name: existing.place_name, estimated_cost: existing.estimated_cost };
+      if (!linked) {
+        await rollback(db);
+        return res
+          .status(400)
+          .json({ error: '이 날짜의 일정에 없는 장소예요. 최신 일정을 확인해주세요.' });
+      }
+    }
+    const values = [
+      input.label,
+      input.amount,
+      payer,
+      input.scope,
+      input.scope === 'PERSONAL' ? userId : null,
+      input.placeId || null,
+      input.visitDate || null,
+      linked?.name || null,
+      linked?.estimated_cost ?? null,
+    ];
+    if (existing) {
+      await db.query(
+        'UPDATE planner.expense SET label=$1,amount=$2,payer_id=$3,scope=$4,personal_owner_id=$5,place_id=$6,visit_date=$7,place_name=$8,estimated_cost=$9 WHERE id=$10',
+        [...values, id],
+      );
+      await db.query('DELETE FROM planner.expense_share WHERE expense_id=$1', [id]);
+    } else
+      await db.query(
+        'INSERT INTO planner.expense(label,amount,payer_id,scope,personal_owner_id,place_id,visit_date,place_name,estimated_cost,id,trip_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+        [...values, id, tripId],
+      );
+    for (const share of splitYen(input.amount, participants))
+      await db.query(
+        'INSERT INTO planner.expense_share(expense_id,participant_id,amount) VALUES($1,$2,$3)',
+        [id, share.id, share.amount],
+      );
+    await db.query('COMMIT');
+    res.status(existing ? 200 : 201).json({ saved: true, id });
+  } catch (e) {
+    await rollback(db);
+    throw e;
+  } finally {
+    release(db);
+  }
+});
+collaboration.post('/expenses', saveExpense);
+collaboration.patch('/expenses/:expenseId', saveExpense);
 collaboration.delete(
   '/expenses/:expenseId',
   wrap(async (req, res) => {
-    await pool.query('DELETE FROM planner.expense WHERE id=$1 AND trip_id=$2', [
-      z.uuid().parse(req.params.expenseId),
-      req.params.id,
-    ]);
+    const result = await pool.query(
+      "DELETE FROM planner.expense WHERE id=$1 AND trip_id=$2 AND (scope='SHARED' OR personal_owner_id=$3)",
+      [z.uuid().parse(req.params.expenseId), req.params.id, res.locals.user.id],
+    );
+    if (!result.rowCount) return res.status(404).json({ error: '지출 기록을 찾을 수 없어요.' });
     res.status(204).end();
   }),
 );
@@ -390,12 +452,12 @@ collaboration.patch(
         [req.params.id, date],
       );
       if (!q.rowCount) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res.status(404).json({ error: '날짜가 없어요.' });
       }
       const day = q.rows[0];
       if (!requireRevision(req.body, day.revision, res)) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return;
       }
       const item = await db.query(
@@ -403,17 +465,17 @@ collaboration.patch(
         [estimatedCost, day.id, place],
       );
       if (!item.rowCount) {
-        await db.query('ROLLBACK');
+        await rollback(db);
         return res.status(404).json({ error: '장소가 없어요.' });
       }
       await db.query('UPDATE planner.trip_day SET revision=revision+1 WHERE id=$1', [day.id]);
       await db.query('COMMIT');
       res.json({ revision: day.revision + 1 });
     } catch (e) {
-      await db.query('ROLLBACK');
+      await rollback(db);
       throw e;
     } finally {
-      db.release();
+      release(db);
     }
   }),
 );

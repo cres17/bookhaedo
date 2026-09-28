@@ -10,6 +10,8 @@ const body=schema=>({required:true,content:{'application/json':{schema}}});
 const op=(summary,auth=false,schema=object({}),extra={})=>({summary,...(auth?{security:[{cookieAuth:[]}]}:{}),responses:{200:response(schema),400:response(ref('Error'),'잘못된 입력'),...(auth?{401:response(ref('Error'),'인증 필요'),404:response(ref('Error'),'존재하지 않거나 다른 사용자의 리소스')}:{})},...extra});
 const tripParam=parameter('id',id),dayParam=parameter('date',date);
 const paths={
+ '/health/live':{get:op('프로세스 생존 확인 (DB 조회 없음)',false,object({status:str}))},
+ '/health/ready':{get:op('경량 DB 연결 준비 상태',false,object({status:str,database:str}),{responses:{200:response(object({status:str,database:str})),503:response(ref('Error'),'DB 연결 불가')}})},
  '/health':{get:op('PostgreSQL 연결 및 장소 건수',false,object({status:str,database:str,places:{type:'integer'}}))},
  '/regions':{get:op('12개 관광권과 실제 DB 장소 수',false,object({data:array(ref('Region'))}))},
  '/auth/register':{post:op('회원가입 및 세션 발급',false,object({user:ref('User')}),{requestBody:body({type:'object',required:['email','password','name'],properties:{email:{type:'string',format:'email'},password:{type:'string',minLength:10,maxLength:128},name:{type:'string',minLength:1,maxLength:40}}}),responses:{201:response(object({user:ref('User')})),400:response(ref('Error'),'입력 오류'),409:response(ref('Error'),'이메일 중복')}})},
@@ -35,7 +37,7 @@ paths['/trips/{id}/days/{date}/items/{placeId}/note']={parameters:[tripParam,day
 paths['/trips/{id}/days/{date}/route-options']={parameters:[tripParam,dayParam],get:op('인접 장소 이동 비교 · 선택적 Google 교통비',true,object({options:array(ref('Segment')),departureTime:str,notice:str}),{parameters:[{...parameter('from',id,'query'),required:true},{...parameter('to',id,'query'),required:true},parameter('departure',{type:'string',default:'09:00',pattern:'^([01][0-9]|2[0-3]):[0-5][0-9]$'},'query'),parameter('google',{type:'string',enum:['true','false','drive'],default:'false'},'query')],description:'false: Valhalla DRIVE/WALK/BICYCLE. drive: Google GOOGLE_DRIVE만 조회. 대중교통 UI는 Google 지도 외부 링크 사용. true: Google TRANSIT/GOOGLE_DRIVE, 운임/통행료 및 사용자 기준 연료비·택시 추정. departure는 여행일 JST 시각. 경로 DB 저장 없음. 요금 null은 무료가 아님.'})};
 
 const schemas={
- Error:object({error:str,details:array(object({path:array(str),message:str}))}),
+ Error:object({error:str,code:str,requestId:str,details:array(object({path:array(str),message:str}))}),
  User:object({id,email:{type:'string',format:'email'},name:str,role:{type:'string',enum:['MEMBER','ADMIN']},status:{type:'string',enum:['ACTIVE','SUSPENDED']}}),
  Region:object({id:str,name:str,ja:str,latitude:{type:'number'},longitude:{type:'number'},description:str,count:{type:'integer'},image:str}),
  Place:object({id,regionId:str,category:{type:'string',enum:['ATTRACTION','RESTAURANT','LODGING']},name:str,nameJa:str,nameKo:{type:['string','null']},nameEn:{type:['string','null']},latitude:{type:'number'},longitude:{type:'number'},address:{type:['string','null']},municipality:{type:['string','null']},website:{type:['string','null']},phone:{type:['string','null']},openingHours:{type:['string','null']},tags:{type:'object',additionalProperties:str},sources:array(object({source:str,url:str,license:str})),operatingPeriod:{type:'null'},seasonNotice:str,note:str,trendBadge:{type:['string','null']}}),
@@ -115,6 +117,21 @@ paths['/trips/{id}/days/{date}/items/{placeId}/budget']={parameters:[tripParam,d
 paths['/trips'].get.description='내 소유 여행 및 초대 수락한 공유 여행 목록.';
 paths['/trips/{id}'].delete.description='소유자 전용. 여행과 초대·채팅·정산·체크리스트를 함께 삭제.';
 paths['/trips/{id}'].delete.responses[403]=response(ref('Error'),'동행자는 여행 삭제 불가');
+paths['/trips/{id}/days/{date}/items'].post.requestBody.content['application/json'].schema.properties.placement={type:'string',enum:['APPEND','NEARBY'],default:'APPEND',description:'NEARBY는 첫 장소·기존 상대 순서를 유지하고 직선거리 증가가 적은 위치에 삽입. 도로 최적 경로 보장 없음.'};
+const scheduleFields={startMinute:{type:['integer','null'],minimum:0,maximum:1439},endMinute:{type:['integer','null'],minimum:1,maximum:1440}};
+Object.assign(schemas.Place.properties,scheduleFields);
+paths['/trips/{id}/days/{date}/items/{placeId}/schedule']={parameters:[tripParam,dayParam,parameter('placeId',id)],patch:collabOp('방문 시작·종료 시간 저장 또는 자동 배치로 복원',object({saved:{type:'boolean'},revision}),{requestBody:body(requiredObject({...scheduleFields,expectedRevision:revision})),responses:{428:response(ref('Error'),'expectedRevision 누락'),409:response(ref('Error'),'일정 버전 충돌')},description:'소유자 또는 수락한 동행자만 접근. 날짜 잠금과 revision 검사. 두 값 모두 null이면 자동 제안, 고정 시간은 endMinute > startMinute. 중복 시간은 허용하고 화면에서 표시. 순서 변경·추천 코스에 남는 장소의 시간은 유지.'})};
+
+const expenseFields={scope:{type:'string',enum:['SHARED','PERSONAL'],default:'SHARED'},placeId:{type:['string','null']},visitDate:{type:['string','null'],format:'date'},placeName:{type:['string','null']},estimatedCost:{type:['integer','null'],minimum:0,maximum:100000000},createdAt:{type:'string',format:'date-time'}};
+Object.assign(schemas.Expense.properties,expenseFields);
+const expensesPath=paths['/trips/{id}/expenses'];
+Object.assign(expensesPath.get.responses[200].content['application/json'].schema.properties,{personalTotal:{type:'integer'},mySharedTotal:{type:'integer'},budgets:array(object({placeId:str,visitDate:date,name:str,estimatedCost:{type:'integer'},sharedActual:{type:'integer'},personalActual:{type:'integer'},sharedCount:{type:'integer'},personalCount:{type:'integer'}}))});
+expensesPath.get.description='공동 지출과 요청자 자신의 개인 지출만 반환. total·transfers는 공동 지출만, personalTotal은 본인 개인 지출, mySharedTotal은 본인 공동 분담액. budgets는 현재 일정의 예상 비용과 날짜·장소별 공동/본인 개인 실제 합계. 다른 사람의 개인 기록과 금액은 반환하지 않는다.';
+expensesPath.post.requestBody=body({type:'object',required:['label','amount'],properties:{label:{type:'string',minLength:1,maxLength:200},amount:{type:'integer',minimum:1,maximum:100000000},scope:expenseFields.scope,payerId:id,participantIds:{type:'array',items:id,minItems:1,maxItems:100},placeId:expenseFields.placeId,visitDate:expenseFields.visitDate}});
+expensesPath.post.description='SHARED(기본)는 payerId와 participantIds 필수. PERSONAL은 결제자·분담자를 서버에서 요청자 자신으로 고정한다. placeId/visitDate는 함께 지정하며 해당 여행 일정의 실제 장소인지 검증한다. 장소명·예상 비용 스냅샷 보존. 개인 지출은 본인만 접근하며 공동 정산에서 제외.';
+paths['/trips/{id}/expenses/{expenseId}'].patch=collabOp('실제 지출 수정',object({saved:{type:'boolean'},id}),{requestBody:expensesPath.post.requestBody,description:'현재 여행 참여자만 공동 지출을 수정. 개인 지출은 작성자만 수정. 지출 구분 변경 불가. 금액·내용·결제자·분담자·연결 장소 수정 후 분담액 재계산.'});
+paths['/trips/{id}/expenses/{expenseId}'].delete.description='공동 지출은 여행 참여자만, 개인 지출은 작성자만 삭제. 다른 사람의 개인 지출 ID는 404.';
+paths['/trips/{id}/expenses/export.xlsx']={parameters:[tripParam],get:collabOp('정산 엑셀 다운로드',{}, {parameters:[parameter('scope',{type:'string',enum:['SHARED','PERSONAL','ALL'],default:'SHARED'},'query')],description:'소유자·수락한 동행자만 다운로드. ALL도 공동 지출과 요청자 자신의 개인 지출만 포함. 지출 내역, 현재 예상 비용과 공동 실제 비교, 송금 안내. PERSONAL은 개인 내역 시트만 포함. 수식 실행 없는 문자열 셀.',responses:{200:{description:'Excel OOXML 통합 문서',content:{'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':{schema:{type:'string',format:'binary'}}}}}})};
 for(const [path,item] of Object.entries(paths))for(const method of ['get','post','put','patch','delete'])if(item[method])item[method].tags=[tagFor(path)];
 for(const [path,item]of Object.entries(paths))for(const method of ['get','post','put','patch','delete'])if(item[method]){item[method].operationId=method+'_'+path.replace(/[^a-zA-Z0-9]+/g,'_');item[method].responses[429]=response(ref('Error'),'요청 제한. Retry-After 후 재시도');}
 const document={openapi:'3.1.0',info:{title:'Book해도. REST API',version:'2.0.0',description:'쿠키 인증, 소유권 검증, 날짜별 optimistic concurrency. 전체 일정/메모/대안 변경에 expectedRevision 필수(누락 428, 충돌 409). POST 장소 추가는 원자적 append. X-Request-ID로 오류 추적.'},tags:['관리자','시스템','인증','장소','추천','여행','경로','날씨'].map(name=>({name})),servers:[{url:'/api',description:'동일 출처 API'}],paths,components:{securitySchemes:{cookieAuth:{type:'apiKey',in:'cookie',name:'kita_session'}},schemas}};

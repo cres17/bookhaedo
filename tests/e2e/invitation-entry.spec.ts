@@ -31,7 +31,7 @@ test('로그아웃 초대 링크 → 비밀번호 재확인 → 수락 → 같�
     await expect(page.getByRole('alert')).toContainText('비밀번호가 일치하지');
     await page.getByLabel('비밀번호 재확인', { exact: true }).fill(password);
     await page.getByRole('button', { name: '계정 만들고 시작하기' }).click();
-    await page.getByRole('button', { name: '초대 수락하고 여행 보기' }).click();
+    await page.getByRole('button', { name: '여행 참여' }).click();
     await expect(page).toHaveURL(new RegExp(`/trips/${trip}/`));
     expect(decodeURIComponent(page.url())).toContain('우리-삿포로-여행');
     await page.goto(link);
