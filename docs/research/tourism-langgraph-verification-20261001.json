@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-10-01T04:46:56.184514+00:00",
+  "basis_files": {
+    "tourism-data-automation-plan.md": "42cac4ecbb902cb197d0c1273daf611286bc4fdceba4c7feeae5a056f89d071b",
+    "tourism-automation-revalidation-20261001.json": "e33ae10e423e33aec7798673cb99a7ec18c29e1d3c75d94dcb6fb73d16f3befb"
+  },
+  "code_sha256": {
+    "server/ai/tourism-graph.ts": "ef027c947ef8b31af07e5eab684336d5685f84abc2ccde7c695f71e49c14bd0e",
+    "server/routes/ai-recommendations.ts": "dfce3e8919d145942e8e51a954b61d12699d0494ef9678edda9bc8d787103e1b",
+    "server/tourism-search.ts": "de5bdc99dddcb61ffcfc28def28d4af053111baf70a9bef4c12178fabce19d90",
+    "server/tourism-knowledge.ts": "3e3448be6949705907fae2c0f9beff0ff5fe1f1175e990e54fa08549961a4936",
+    "db/migrations/005_tourism_knowledge.sql": "04b9619967d4c1f43ade43005f226edb3241a6ac5a5e115ffe53e0a5801feb56",
+    "scripts/tourism/normalize.py": "da08d423c2e235443405497dd695bd14b93127b9b09a7774203fb044161cc973",
+    "scripts/tourism/collector.py": "5b807b81727d7f954a82ff42be0a9d140e88c5f1d92b8db4a02811efed0326b5",
+    "scripts/tourism/test_collector.py": "dc5da34befb6f8eec5ce9801d33fc7260153173d92a8f65762bf0c0fee78de2c"
+  },
+  "results": {
+    "build": "passed",
+    "lint": "passed",
+    "spec_check": "passed",
+    "vitest": {
+      "files": 28,
+      "passed": 167
+    },
+    "ci_tests": {
+      "files": 22,
+      "passed": 102
+    },
+    "playwright": {
+      "passed": 23,
+      "new_viewports": [
+        1440,
+        390
+      ]
+    },
+    "python": {
+      "passed": 18,
+      "collector": 13,
+      "normalize": 5
+    },
+    "fresh_migrations": "passed",
+    "changed_file_format_check": "passed",
+    "full_format_check": "8 pre-existing files have warnings"
+  },
+  "implementation": {
+    "langgraph_version": "1.4.18",
+    "default_generation": "rules",
+    "llm_adapter": "injected DraftGenerator; runtime model provider not configured",
+    "publication": "manual local normalize + atomic PostgreSQL snapshot switch"
+  },
+  "limits": [
+    "Tourism UI evidence/providers are fixtures; confirmation uses real API and DB",
+    "Source-probe CSV samples used for adapter tests; not full live datasets",
+    "No AWS, S3, production scheduler, distributed ingestion or model calls",
+    "Existing dependency audit warnings: ip-address and brace-expansion",
+    "Existing uncommitted user changes preserved; no commit or push"
+  ]
+}

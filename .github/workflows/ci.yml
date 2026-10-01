@@ -32,6 +32,7 @@ jobs:
       - run: npm run db:init
       - run: npx tsx scripts/verify-fresh-migrations.ts
       - run: npm run test:ci
+      - run: python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
       - run: npm run test:load:ci
       - run: npm run spec:check
       - run: npm run build

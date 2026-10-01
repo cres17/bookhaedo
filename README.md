@@ -42,6 +42,12 @@ Book해도는 소도시의 장소와 일본어 이름을 찾는 불편함, 여�
 
 일본어 리뷰는 새로운 후보를 발견하는 단서로 활용합니다. 작성자의 거주지·국적을 확인하거나 특정 장소를 “현지인 맛집”으로 인증하는 기능은 아닙니다.
 
+### 공개 관광 자료를 함께 보는 추천
+
+하루 코스 추천에서 **공개 관광 자료 함께 보기**를 선택하면 LangGraph.js가 승인된 자료 검색 → 예보 조회 → 코스 생성 → 조건 검증 → 동선 미리보기를 연결합니다. 유지할 장소를 고를 수 있고, 자료 출처·라이선스·수집 시점·행사 미확정 상태를 확인한 뒤 기존 확정 API로 저장합니다. 공개 자료가 없으면 기존 장소 추천으로 이어집니다.
+
+현재 기본 코스 생성은 규칙 기반입니다. 외부 LLM·번역·임베딩·AWS 스케줄러는 연결하지 않았으며, CSV 정제·공개 버전 발행은 운영자가 실행합니다. 설치·자료 적재·API·모델 확장 방법과 검증 범위는 [LangGraph 확장 안내](docs/tourism-langgraph.md)를 참고하세요.
+
 ## 주요 기능
 
 ### 동행자와 함께 준비하는 여행
@@ -133,6 +139,26 @@ flowchart LR
 ## 기술 스택
 
 [![quality](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml/badge.svg)](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml)
+
+<p align="center">
+  <img alt="Vue 3" src="https://img.shields.io/badge/Vue_3-4FC08D?style=flat-square&amp;logo=vuedotjs&amp;logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white">
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&amp;logo=vite&amp;logoColor=white">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-339933?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white">
+  <img alt="Express 5" src="https://img.shields.io/badge/Express_5-222222?style=flat-square&amp;logo=express&amp;logoColor=white">
+</p>
+<p align="center">
+  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL_17-4169E1?style=flat-square&amp;logo=postgresql&amp;logoColor=white">
+  <img alt="PostGIS" src="https://img.shields.io/badge/PostGIS-336791?style=flat-square">
+  <img alt="Google Maps" src="https://img.shields.io/badge/Google_Maps-4285F4?style=flat-square&amp;logo=googlemaps&amp;logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&amp;logo=docker&amp;logoColor=white">
+  <img alt="OpenAPI 3.1" src="https://img.shields.io/badge/OpenAPI_3.1-6BA539?style=flat-square&amp;logo=openapiinitiative&amp;logoColor=white">
+</p>
+<p align="center">
+  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&amp;logo=vitest&amp;logoColor=white">
+  <img alt="Playwright" src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square">
+  <img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&amp;logo=githubactions&amp;logoColor=white">
+</p>
 
 | 계층 | 사용 기술 | 역할 |
 |---|---|---|
