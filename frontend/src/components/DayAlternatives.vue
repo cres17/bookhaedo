@@ -381,6 +381,41 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
             <p>원문을 정제·발췌했습니다. 현재 방문 제한 확인을 보장하지 않습니다.</p>
           </details>
         </section>
+        <section
+          v-if="result.referenceEvents?.length"
+          class="tourism-evidence tourism-reference"
+          aria-label="지역 행사 참고 목록"
+        >
+          <h3>일정 확인이 필요한 행사</h3>
+          <p>
+            반복 개최 또는 날짜가 기재되지 않은 지역 자료입니다. 여행일에 열리는지 확인한 정보가
+            아니며 자동으로 일정에 추가하지 않아요.
+          </p>
+          <details v-for="event in result.referenceEvents" :key="event.id">
+            <summary>
+              {{ event.title }} ·
+              {{ event.dateStatus === 'recurring' ? '반복 개최 자료' : '날짜 미기재' }}
+            </summary>
+            <p>{{ event.excerpt }}</p>
+            <p v-if="event.scheduleRaw">원문 일정 표현: {{ event.scheduleRaw }}</p>
+            <p>
+              올해 개최 여부·정확한 날짜·장소는 원문에서 다시 확인해주세요. 과거 소개가 포함될 수
+              있어요.
+            </p>
+            <p>
+              최종 수집 확인: {{ event.fetchedAt.slice(0, 10) }} · 원문 수정 시점
+              {{ event.sourceUpdatedAt?.slice(0, 10) || '미제공' }}
+            </p>
+            <a :href="event.resourceUrl" target="_blank" rel="noopener noreferrer">
+              {{ event.publisher }} 원문 CSV
+            </a>
+            <span>·</span>
+            <a :href="event.licenseUrl" target="_blank" rel="noopener noreferrer">
+              {{ event.licenseId }}
+            </a>
+            <p>원문을 정제·발췌했습니다. 개최 확정이나 현재 방문 가능 여부를 보장하지 않습니다.</p>
+          </details>
+        </section>
         <p v-for="warning in result.warnings || []" :key="warning" role="status">{{ warning }}</p>
         <p class="notice">{{ result.notice }}</p>
       </template>
@@ -431,6 +466,13 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
 }
 .tourism-evidence {
   margin-top: 20px;
+}
+.tourism-reference summary {
+  min-height: 44px;
+  padding-block: 12px;
+}
+.tourism-reference {
+  overflow-wrap: anywhere;
 }
 .tourism-evidence details {
   border-bottom: 1px solid #dbe2dc;

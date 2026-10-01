@@ -155,6 +155,23 @@ class Integration(unittest.TestCase):
             self.assertEqual(run.returncode, 2)
             self.assertIn('already_running', run.stdout)
 
+    def test_pinned_resource_does_not_collect_old_versions_and_fails_when_missing(self):
+        c = module.Collector(self.root, self.page, interval=0.01,
+                             resource_url=self.page.replace('/dataset.html', '/event2026.csv'))
+        try:
+            c.robots()
+            self.state['year'] = 2027
+            report = c.run('fixture')
+            self.assertEqual(report['errors'], [])
+            self.assertEqual(len(report['resources']), 1)
+            self.assertEqual(report['resources'][0]['key'], 'event2026.csv')
+            self.state['csv_path'] = '/new-directory/event2026.csv'
+            missing = c.run('fixture')
+            self.assertEqual(missing['resources'], [])
+            self.assertIn('No eligible CSV', missing['errors'][0]['error'])
+        finally:
+            c.db.close()
+
     def test_external_interval_cannot_be_lowered(self):
         c = module.Collector(self.root, module.SOURCES['eniwa-events'], interval=0.01)
         self.assertEqual(c.interval, 60)

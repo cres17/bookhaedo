@@ -70,6 +70,7 @@ export const sourceRegistry = async () =>
     id: string;
     publisher: string;
     sourceUrl: string;
+    resourceUrl?: string;
     licenseId: string | null;
     licenseUrl: string | null;
     rightsStatus: string;
@@ -137,6 +138,7 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
       (r) =>
         r.regionId !== source.regionId ||
         r.kind !== source.kind ||
+        (source.resourceUrl && r.resourceUrl !== source.resourceUrl) ||
         !new URL(r.resourceUrl).pathname.startsWith(
           new URL(source.sourceUrl).pathname.replace('.html', '/'),
         ),
@@ -177,7 +179,11 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
       [snapshotId, source.id, hash, batch.parserVersion, batch.fetchedAt, batch.records.length],
     );
     for (const r of batch.records) {
-      const { placeId } = await matchTourismFacility(db, { ...r, title: r.titleJa });
+      const { placeId } = await matchTourismFacility(db, {
+        ...r,
+        sourceId: source.id,
+        title: r.titleJa,
+      });
       await db.query(
         `INSERT INTO tourism_knowledge.record
         (snapshot_id,external_id,kind,region_id,canonical_place_id,title_ja,description_ja,resource_url,

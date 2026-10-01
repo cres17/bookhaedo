@@ -6,7 +6,7 @@
 
 | 계층 | 파일 | 동작 |
 |---|---|---|
-| 출처 등록부 | `ops/tourism/sources.json` | HARP 3개 출처 승인, HOKKAIDO LOVE는 허락 대기·비활성 |
+| 출처 등록부 | `ops/tourism/sources.json` | HARP 4개 출처 승인, HOKKAIDO LOVE는 허락 대기·비활성 |
 | CSV 정제 | `scripts/tourism/normalize.py` | SQLite 최신 성공 보고서와 SHA 원본 확인, BOM/CP932, 선행 0 보존, 날짜·좌표·열 검사 |
 | 공개 버전 | `server/tourism-knowledge.ts`, `scripts/tourism/publish.ts` | 검증된 전체 자료만 트랜잭션으로 삽입 후 활성 snapshot 교체, source 잠금, 실패 시 이전 버전 유지 |
 | 저장소 | `db/migrations/005_tourism_knowledge.sql` | `tourism_knowledge.source/snapshot/record`, GIN 전문검색, 기존 catalog/planner 보존 |
@@ -35,7 +35,7 @@ npm run tourism:normalize -- --source eniwa-events --state-dir <state-dir> --yea
 npm run tourism:publish -- <state-dir>/curated/eniwa-events.json
 ```
 
-부라노 자료는 `--source furano-places` 또는 `furano-events`와 각각의 출력 파일로 실행한다. HARP 요청은 기존 수집기에서 최소 60초 간격을 지킨다. 정제·발행은 네트워크를 사용하지 않는다.
+후라노 자료는 `--source furano-places` 또는 `furano-events`, 북토시 자료는 `--source hokuto-places`와 각각의 출력 파일로 실행한다. 북토시는 등록부의 최신 CSV URL에 고정되어 URL 변경 시 재검토한다. HARP 요청은 기존 수집기에서 최소 60초 간격을 지킨다. 정제·발행은 네트워크를 사용하지 않는다.
 
 에니와 `--year`를 생략하면 실행 시점의 현재 연도 자료를 선택한다. 선택 연도의 파일이 없으면 오래된 파일을 대신 쓰지 않고 오류를 낸다. 실제 행사 날짜는 CSV 값으로만 결정한다. 현재 MVP는 에니와의 한 선택 연도 snapshot을 활성화하며 여러 연도의 event occurrence 동시 색인은 후속 작업이다. 같은 ID를 가진 파일들이 선택 범위에 중복되면 공개하지 않는다.
 
@@ -96,8 +96,8 @@ npm run tourism:prune -- --source furano-places --days 90 --keep-latest 3
 ## 근거와 불명 정보
 
 - `confirmed`는 자료에 시작·종료일이 기재되었다는 정제 상태이며 실제 개최 확정 진술이 아니다. 화면에서도 개최 확정 여부는 원문에서 확인하도록 안내한다. `tentative` 키워드 분류는 보수적인 휴리스틱이며 일반적인 예정·변경 문구에도 적용될 수 있다.
-- 행사 기간이 여행일과 겹쳐야 반환한다. `tentative`는 화면에 미확정으로 표시하고 자동 배치에 사용하지 않는다. `recurring/unknown` 행사와 종료 행사는 특정 날짜 추천에서 제외한다.
-- 좌표가 없으면 null을 유지한다. 시설 연결은 동일 정규화 명칭 + 250m 안의 유일한 후보만 허용한다. 동명 후보가 여러 개거나 좌표가 없으면 연결하지 않는다. 행사는 이 버전에서 기존 장소와 자동 연결하지 않는다.
+- 행사 기간이 여행일과 겹쳐야 반환한다. `tentative`는 화면에 미확정으로 표시하고 자동 배치에 사용하지 않는다. `recurring/unknown` 행사는 코스 근거에서 제외하되 `referenceEvents` 지역 참고 목록(최대 20개)에 분리한다. 시작·종료일이 없는 행만 표시하며 올해/여행일 개최 여부 미확인, 과거 소개 포함 가능성을 안내한다. 날짜가 있는 종료 행사는 두 목록에서 제외한다.
+- 좌표가 없으면 null을 유지한다. 시설 연결은 동일 정규화 명칭 + 250m 안의 유일한 후보를 기본으로 한다. `ops/tourism/approved-aliases.json`의 검증된 별칭은 출처·외부ID·원문SHA·제목·catalog 이름·공식 웹사이트 지문이 일치하고 같은 지역 250m 이내일 때만 적용한다. 지문 변경과 exact-name 중복은 다시 검토하며 임의 근접 연결은 하지 않는다. 동명 후보가 여러 개거나 좌표가 없으면 연결하지 않는다. 행사는 이 버전에서 기존 장소와 자동 연결하지 않는다.
 - 시설 소개와 과거 영업시간을 분리한다. 자료의 연도가 있는 이용 시간은 `historical`로 보존하며 현재 영업시간·요금·휴관 근거로 사용하지 않는다. 현재시간을 확인했다는 안내를 만들지 않는다.
 - 기존 장소의 `openingHours='closed'` 또는 `tags.opening_hours='closed'`는 검색 후보와 최종 코스에서 제외한다. 유지할 장소와 모델 반환 결과에도 같은 검사를 적용한다. 운영 중단 표기가 없는 장소의 현재 영업을 보증하지는 않는다.
 - 관광 자료 검색과 기존 하루 코스 검색 모두 거리순으로 먼저 정렬한 뒤 최대 600곳을 선택한다. 이름·웹사이트 여부는 거리 동률의 보조 기준이다.
@@ -213,3 +213,7 @@ GET 전용 정책을 사용해 관광 추천 POST 집계를 건너뛰던 문제�
 ### 2026-10-01 관광 추천 화면 CI 편입
 
 관광 추천의 데스크톱·모바일 E2E 2개를 `quality`의 별도 `tourism-e2e` 작업에 편입했다. 각 테스트가 자기 가상 장소 5곳을 만들고 정리하여 실제 catalog/HARP 적재 없이 빈 PostGIS DB에서 실행된다. 출처·조건 변경·실제 429 뒤 목록/일정 보존·확정 PATCH를 검사하며, 실패 시 화면·trace·HTML 보고서를 7일 보관하도록 설정했다. 전체 E2E나 실제 발행 자료 검사를 CI에 모두 넣은 것은 아니다. 빈 DB의 Chromium 2개 통과와 의도한 실패의 로컬 캡처·정리, 전체 Vitest 224개·E2E 27개와 정적 검사를 확인했다. [검사 범위와 재현 기록](research/tourism-e2e-ci-20261001.md)에 로컬·원격 검증 경계를 기록했다.
+
+## 지역 행사 참고 목록 정책
+
+`referenceEvents`는 지역별 최대 20개이며 `evidence`·모델 입력·시설 인용·`READY` 판정에서 분리한다. 승인·활성·최신 snapshot·철회 여부·90일 수집·유효기간 검사를 동일하게 적용한다. 날짜가 없는 `recurring/unknown` 행사만 포함하고, 일정 날짜를 생성하거나 자동 배치하지 않는다. 화면에 반복 개최/날짜 미기재, 여행일 개최 미확인, 과거 소개 가능성, 원문 일정 표현·수집일·수정일 미제공·출처·라이선스를 표시한다. 빈 일정 응답은 `referenceEvents: []`이다.

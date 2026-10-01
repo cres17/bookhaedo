@@ -103,3 +103,7 @@ ALLOW_REMOTE_LOAD_TEST=true npm run test:load -- --url https://staging.example/a
 CI는 `npx playwright install --with-deps chromium`으로 Chromium과 시스템 의존성을 설치한다. `CI=true`이면 설치된 Playwright Chromium을 쓰고 기존 3001/5173 서버를 재사용하지 않으며 `test.only`를 거절한다. 로컬 기본 실행은 기존 macOS Chrome과 서버 재사용 설정을 유지한다. 캡처는 OS에 관계없이 각 테스트의 `test-results` 출력 경로에 저장한다.
 
 실패 시 `tourism-e2e-failure` artifact에 `playwright-report/`와 `test-results/`를 7일 보관한다. 오류 화면·trace·HTML 보고서를 내려받아 실패한 동작을 확인한다. CI는 실제 서비스 비밀값을 주입하지 않고 일회용 계정과 DB만 사용한다. artifacts와 로컬 캡처는 소스에 커밋하지 않는다. 실행 단계가 캡처 생성 전에 실패하면 artifact가 없을 수 있다.
+
+## 관광 추천의 경로 요청 상한
+
+자체 호스팅 Valhalla는 API 프로세스당 `VALHALLA_MAX_CONCURRENT=8`, `VALHALLA_MAX_QUEUE=128`을 기본으로 사용한다. 큐 대기를 포함해 10초 안에 응답하지 못하거나 큐가 차면 실제 시간 대신 직선거리만 반환한다. 여러 프로세스에서는 상한이 합산된다. 30회/사용자/분 추천 한도는 유지한다. [로컬 측정과 한계](research/tourism-load-20261001.md)를 참고하고 운영 지연·오류율로 재조정한다.
