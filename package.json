@@ -22,6 +22,7 @@
     "benchmark:providers:live": "node --import tsx scripts/benchmark-providers-live.ts",
     "benchmark:browser": "node --import tsx scripts/benchmark-browser.ts",
     "test:e2e": "playwright test",
+    "test:e2e:tourism": "playwright test tests/e2e/tourism-recommendations.spec.ts",
     "data:setup": "python3 -m venv .venv-data && .venv-data/bin/python -m pip install -r requirements-data.txt",
     "data:prepare": ".venv-data/bin/python scripts/prepare_hokkaido_data.py",
     "db:up": "docker compose up -d db",

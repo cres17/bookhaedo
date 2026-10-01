@@ -93,3 +93,13 @@ ALLOW_REMOTE_LOAD_TEST=true npm run test:load -- --url https://staging.example/a
 - 되돌리기 SQL은 자동 제공하지 않습니다. 호환 가능한 이전 앱 배포 또는 검증한 백업 복원·후속 수정 마이그레이션을 사용합니다. 신규 migration 후 이전 앱은 엄격한 이력 검사로 기동하지 않을 수 있으므로 배포 전 복구 절차를 시험해야 합니다.
 - `npx tsx scripts/verify-fresh-migrations.ts`는 고유 임시 DB를 생성해 신규 적용·재실행을 검사하고 삭제합니다. 테스트 계정에 CREATEDB 권한이 필요하며 운영 앱 계정으로 실행하지 않습니다.
 - 지출 분담 합계는 지연 constraint trigger가 COMMIT 시 검사합니다. 직접 SQL 변경도 지출과 모든 분담금을 한 트랜잭션으로 수정해야 합니다. 탈퇴 후 공동 정산의 payer/participant UUID는 FK 없이 보존하며 개인 지출은 계정 삭제 시 제거합니다.
+
+## 관광 추천 화면 CI
+
+`quality` workflow의 `tourism-e2e` 작업은 기존 `verify`와 별도의 PostGIS 17/3.5 서비스에서 실행한다. 카탈로그 없이 스키마만 초기화하고 `npm run test:e2e:tourism`으로 데스크톱 1440px·모바일 390px를 검사한다. 테스트마다 UUID로 가상 장소 5곳과 계정을 만들고 `finally`에서 자기 자료만 삭제한다. 기존 장소를 선택·수정하거나 HARP를 수집·발행하지 않는다.
+
+코스·근거·날씨·경로 표시 응답은 fixture이다. 계정 생성·여행 접근·일정 저장과 30회 이후 실제 추천 POST 429는 실제 API/DB를 사용한다. 출처·미확정 안내, 조건 변경, 오류 이후 코스 목록 유지·미리보기 제거·저장된 일정 보존 및 확정 PATCH를 검사한다. 실제 발행 HARP 검사와 Google·Valhalla 등 외부 연동을 쓰는 나머지 전체 E2E는 로컬 별도 검사로 유지한다.
+
+CI는 `npx playwright install --with-deps chromium`으로 Chromium과 시스템 의존성을 설치한다. `CI=true`이면 설치된 Playwright Chromium을 쓰고 기존 3001/5173 서버를 재사용하지 않으며 `test.only`를 거절한다. 로컬 기본 실행은 기존 macOS Chrome과 서버 재사용 설정을 유지한다. 캡처는 OS에 관계없이 각 테스트의 `test-results` 출력 경로에 저장한다.
+
+실패 시 `tourism-e2e-failure` artifact에 `playwright-report/`와 `test-results/`를 7일 보관한다. 오류 화면·trace·HTML 보고서를 내려받아 실패한 동작을 확인한다. CI는 실제 서비스 비밀값을 주입하지 않고 일회용 계정과 DB만 사용한다. artifacts와 로컬 캡처는 소스에 커밋하지 않는다. 실행 단계가 캡처 생성 전에 실패하면 artifact가 없을 수 있다.

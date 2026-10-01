@@ -1,0 +1,89 @@
+{
+  "recordedAt": "2026-10-01T10:17:07.330007+00:00",
+  "baseCommit": "87b74ed1716ee1dc02ef82f47b56e86e35788c88",
+  "ciScope": {
+    "job": "tourism-e2e",
+    "command": "npm run test:e2e:tourism",
+    "database": "separate empty PostGIS 17/3.5 service",
+    "viewports": [
+      1440,
+      390
+    ],
+    "failureArtifact": "tourism-e2e-failure",
+    "retentionDays": 7,
+    "uploadCondition": "failure()"
+  },
+  "localCiStyle": {
+    "emptyDatabase": {
+      "places": 0,
+      "records": 0,
+      "users": 0
+    },
+    "ciStyle": {
+      "viewports": [
+        1440,
+        390
+      ],
+      "passed": 2,
+      "browser": "Playwright bundled Chromium on macOS",
+      "afterPass": {
+        "places": 0,
+        "records": 0,
+        "users": 0
+      }
+    },
+    "failureProbe": {
+      "failedAsExpected": 1,
+      "afterFailure": {
+        "places": 0,
+        "records": 0,
+        "users": 0
+      },
+      "screenshotRetained": true,
+      "traceRetained": true,
+      "htmlReportGenerated": true
+    },
+    "limitations": [
+      "Linux execution and GitHub artifact upload are verified separately by the remote CI run."
+    ]
+  },
+  "localRegression": {
+    "vitest": {
+      "files": 34,
+      "passed": 224
+    },
+    "playwright": {
+      "passed": 27,
+      "publishedDataTests": 2
+    },
+    "build": "passed",
+    "lint": "passed",
+    "formatCheck": "passed",
+    "specCheck": {
+      "paths": 45,
+      "tables": 28
+    },
+    "workflowYaml": "parsed"
+  },
+  "finalLocalDataState": {
+    "places": 20810,
+    "records": 37,
+    "snapshots": 3,
+    "temporaryusers": 0,
+    "temporaryplaces": 0,
+    "postgresversion": "17.5 (Debian 17.5-1.pgdg110+1)",
+    "postgisversion": "3.5.2"
+  },
+  "sourceSha256": {
+    ".github/workflows/ci.yml": "289f42dde7f04c08cd83ebd7274d9323d3e5b2d2335b500ce3168a253d670a07",
+    "playwright.config.ts": "0421ee5f83d7df49337f99912c116b82335c4d4fefe16da01d7ed3019b51e8d1",
+    "package.json": "67270807bdd69eff75e4b7b8ae296f1199de959469f831af4ef8f644199deb38",
+    "tests/e2e/tourism-recommendations.spec.ts": "fe1d9ab0610514c1a37a9f3a039b8484110483f1ba6fa6a2c4a1450cdeeed72c"
+  },
+  "limits": [
+    "Only the two tourism recommendation fixture tests are added to CI, not every Playwright test.",
+    "Initial plans/evidence/provider display are fixtures; authentication, quota rejection, trip persistence and confirmation use real REST and PostgreSQL.",
+    "The failure probe verified local artifact generation and cleanup. No deliberately failing commit was pushed; remote artifact upload is configured but will be exercised on a genuine failing run.",
+    "Remote Linux execution is recorded by the commit-specific GitHub Actions run, separately from this local report."
+  ]
+}

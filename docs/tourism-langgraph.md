@@ -209,3 +209,7 @@ python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
 ### 2026-10-01 추천 POST 호출 제한 수정
 
 GET 전용 정책을 사용해 관광 추천 POST 집계를 건너뛰던 문제를 수정했다. 추천은 전용 정책으로 사용자당 60초에 30회이며 세션·여행·날짜가 한도를 공유한다. 실제 PostgreSQL·인증 경로에서 31~40번째 429, 동행자별 분리, GET 조회 한도 분리, 만료 초기화를 검증했다. 실제 429를 거치는 데스크톱·모바일 검사로 이전 코스와 일정 보존, 미리보기 제거도 확인했다. 전체 Vitest 224개·E2E 27개·CI 묶음 156개·Python 20개 및 build·lint·format:check·spec:check가 통과했다. [재현과 검증 범위](research/tourism-langgraph-review-6-20261001.md)에 fixture와 실제 API/DB의 경계를 기록했다.
+
+### 2026-10-01 관광 추천 화면 CI 편입
+
+관광 추천의 데스크톱·모바일 E2E 2개를 `quality`의 별도 `tourism-e2e` 작업에 편입했다. 각 테스트가 자기 가상 장소 5곳을 만들고 정리하여 실제 catalog/HARP 적재 없이 빈 PostGIS DB에서 실행된다. 출처·조건 변경·실제 429 뒤 목록/일정 보존·확정 PATCH를 검사하며, 실패 시 화면·trace·HTML 보고서를 7일 보관하도록 설정했다. 전체 E2E나 실제 발행 자료 검사를 CI에 모두 넣은 것은 아니다. 빈 DB의 Chromium 2개 통과와 의도한 실패의 로컬 캡처·정리, 전체 Vitest 224개·E2E 27개와 정적 검사를 확인했다. [검사 범위와 재현 기록](research/tourism-e2e-ci-20261001.md)에 로컬·원격 검증 경계를 기록했다.
