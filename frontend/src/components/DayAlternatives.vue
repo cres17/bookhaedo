@@ -355,7 +355,9 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
             <p v-if="evidence.startDate">
               자료 대상 기간: {{ evidence.startDate }}–{{ evidence.endDate }}
             </p>
-            <p v-if="evidence.dateStatus === 'tentative'">개최 미확정 · 변경 가능</p>
+            <p v-if="evidence.kind === 'event' && evidence.dateStatus === 'tentative'">
+              개최 미확정 · 변경 가능
+            </p>
             <p v-if="evidence.kind === 'event' && evidence.dateStatus === 'confirmed'">
               자료에 시작·종료일 기재 · 개최 확정 여부는 원문 확인
             </p>

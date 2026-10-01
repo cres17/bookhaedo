@@ -6,6 +6,7 @@ import {
   sourceRegistry,
   syncTourismSources,
 } from '../server/tourism-knowledge';
+import { auditTourismData } from '../server/tourism-quality';
 import { searchTourism } from '../server/tourism-search';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
 const sourceIds = ['furano-places', 'furano-events', 'eniwa-events'];
@@ -328,3 +329,52 @@ it.each(['withdrawn', 'disabled'])(
     }
   },
 );
+
+it('audits active facility linkage with explicit denominators and separate missing-coordinate reasons', async () => {
+  const published = await publish(
+    batch([
+      facility({ externalId: 'audit-linked' }),
+      facility({ externalId: 'audit-other-name', titleJa: '別施設' + randomUUID() }),
+      facility({
+        externalId: 'audit-no-coordinates',
+        latitude: null,
+        longitude: null,
+        locationStatus: 'missing',
+      }),
+    ]),
+  );
+  const before = (
+    await pool.query('SELECT active_snapshot_id FROM tourism_knowledge.source WHERE id=$1', [
+      'furano-places',
+    ])
+  ).rows[0];
+  const report = await auditTourismData(pool, '2026-10-01');
+  const profile = report.profile.find((r) => r.sourceId === 'furano-places')!;
+  expect(profile).toMatchObject({
+    snapshotId: published.snapshotId,
+    records: 3,
+    facilities: 3,
+    events: 0,
+    facilitiesWithCoordinates: 2,
+    linkedFacilities: 1,
+    coordinateMatchRatePct: 50,
+  });
+  expect(profile.facilityMatchRatePct).toBeCloseTo(100 / 3);
+  expect(
+    report.diagnostics
+      .filter((r) => r.sourceId === 'furano-places')
+      .map((r) => [r.externalId, r.reason]),
+  ).toEqual([
+    ['audit-linked', 'LINKED'],
+    ['audit-no-coordinates', 'MISSING_COORDINATES'],
+    ['audit-other-name', 'NAME_MISMATCH'],
+  ]);
+  expect(
+    (
+      await pool.query('SELECT active_snapshot_id FROM tourism_knowledge.source WHERE id=$1', [
+        'furano-places',
+      ])
+    ).rows[0],
+  ).toEqual(before);
+  await expect(auditTourismData(pool, '2026-02-30')).rejects.toThrow();
+});

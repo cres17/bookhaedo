@@ -189,3 +189,12 @@ python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
 보존 도구의 4개 DB 검사는 기본 미리보기의 무변경, 활성·최근·최신 3개 보존, 지정 출처만 적용, 삭제 record의 cascade, 오래된 fetchedAt/최근 publishedAt 구분, 잘못된 정책·출처 거절을 확인한다. 실제 정리 동작은 고유 출처 ID로 만든 테스트 snapshot에만 실행했다. 실제 DB 기본 명령은 dryRun이며 대상 0개를 확인했다.
 
 전체 Vitest 30개 파일·202개, 전체 Playwright 25개, build(타입 검사 포함)·lint·전체 format:check·spec:check(45 paths/28 tables)·git diff --check가 통과했다. 실제 HARP 수집·발행이나 운영 데이터 삭제·예약 실행은 수행하지 않았다. 재현 결과와 수정 코드 해시는 `docs/research/tourism-langgraph-review-4-20261001.json`에 보존한다.
+
+
+### 2026-10-01 실제 HARP 적재와 화면 검증
+
+승인 출처 3개의 CSV를 실제 수집·정제하여 로컬 관광 DB에 37건(시설 24·행사 13)을 발행했다. catalog 20,810곳은 보존했다. 시설 8건이 연결되어 연결률은 33.3%이며, 미연결 사유는 명칭 불일치 10건·250m 안 후보 없음 6건이다. 현재 운영·행사 개최·추천 정확도 검증으로 해석하지 않는다.
+
+`npm run tourism:audit -- --date 2026-10-01`은 읽기 전용으로 출처별 활성 snapshot, 시설 분모·연결률·미연결 사유, 행사 기간·원문 수정 시점 누락을 점검한다. 시설의 날짜 휴리스틱 때문에 행사 미확정 문구가 표시되는 문제를 수정하고, 수집 gate의 대기 후 기준 시각 재검사를 추가했다.
+
+전체 Vitest 203개·기존 E2E 25개·실제 발행 자료 E2E 2개·Python 20개와 build·lint·format:check·spec:check가 통과했다. 실제 자료 E2E는 `TOURISM_PUBLISHED_E2E=1`로 별도 활성화하며 기본 실행/CI에서 자동 수집이나 발행을 하지 않는다. 이전 절의 record 0개·fixture 설명은 해당 시점의 기록으로 보존한다. 현재 실제 적재 수치·해시·실행 노트북·제약은 [실제 적재 검증](research/tourism-data-ingestion-20261001.md)을 참고한다.

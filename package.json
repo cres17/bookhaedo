@@ -35,7 +35,8 @@
     "tourism:publish": "tsx scripts/tourism/publish.ts",
     "test:tourism": "vitest run --config vitest.config.ts tests/tourism-graph.test.ts tests/tourism-knowledge.test.ts tests/ai-recommendations.test.ts tests/tourism-search-distance.test.ts tests/tourism-maintenance.test.ts",
     "tourism:sync-sources": "tsx scripts/tourism/sync-sources.ts",
-    "tourism:prune": "tsx scripts/tourism/prune.ts"
+    "tourism:prune": "tsx scripts/tourism/prune.ts",
+    "tourism:audit": "tsx scripts/tourism/audit.ts"
   },
   "engines": {
     "node": "^22.13.0 || ^24.0.0 || >=26.0.0"

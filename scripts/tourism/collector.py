@@ -76,7 +76,10 @@ class Collector:
         # State directory has an exclusive process lock; timestamp survives restart.
         row = self.db.execute('SELECT last_start FROM gate WHERE origin=?', (origin,)).fetchone()
         if row:
-            time.sleep(max(0, row[0] + self.interval - time.time()))
+            deadline = row[0] + self.interval
+            # Recheck after waking; wall-clock adjustments or early wakes must not shorten the gate.
+            while (remaining := deadline - time.time()) > 0:
+                time.sleep(remaining)
         started = time.time()
         self.db.execute('INSERT OR REPLACE INTO gate VALUES (?,?)', (origin, started))
         self.db.commit()

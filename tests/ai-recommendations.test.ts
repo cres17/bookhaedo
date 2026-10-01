@@ -136,11 +136,11 @@ it('invalid confirmation counts do not leak database connections', async () => {
 });
 
 it('returns complete non-cacheable metadata for a day without an anchor', async () => {
-  const trip = (
-    await owner
-      .post('/api/trips')
-      .send({ title: 'empty tourism', startDate: '2026-10-01', days: 1 })
-  ).body.data.id;
+  const created = await owner
+    .post('/api/trips')
+    .send({ title: 'empty tourism', startDate: '2026-10-01', days: 1 });
+  expect(created.status, created.body.error).toBe(201);
+  const trip = created.body.data.id;
   const r = await owner
     .post(`/api/trips/${trip}/days/2026-10-01/ai-recommendations`)
     .send({ strategy: 'NEARBY' });
