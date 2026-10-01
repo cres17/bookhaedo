@@ -1,7 +1,11 @@
 import { beforeAll, afterAll, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { pool, migrate } from '../server/db';
-import { publishTourismBatch } from '../server/tourism-knowledge';
+import {
+  publishTourismBatch,
+  sourceRegistry,
+  syncTourismSources,
+} from '../server/tourism-knowledge';
 import { searchTourism } from '../server/tourism-search';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
 const sourceIds = ['furano-places', 'furano-events', 'eniwa-events'];
@@ -49,8 +53,17 @@ afterAll(async () => {
     const old = original.find((r) => r.id === id);
     if (old)
       await pool.query(
-        'UPDATE tourism_knowledge.source SET active_snapshot_id=$2,enabled=$3,rights_status=$4 WHERE id=$1',
-        [id, old.active_snapshot_id, old.enabled, old.rights_status],
+        'UPDATE tourism_knowledge.source SET active_snapshot_id=$2,enabled=$3,rights_status=$4,publisher=$5,source_url=$6,license_id=$7,license_url=$8 WHERE id=$1',
+        [
+          id,
+          old.active_snapshot_id,
+          old.enabled,
+          old.rights_status,
+          old.publisher,
+          old.source_url,
+          old.license_id,
+          old.license_url,
+        ],
       );
     else
       await pool.query('UPDATE tourism_knowledge.source SET active_snapshot_id=NULL WHERE id=$1', [
@@ -253,3 +266,65 @@ it('prioritizes linked facilities ahead of contextual events before applying the
   expect(found.evidence[0].placeId).toBe(place.id);
   expect(found.evidence[0].externalId).toBe('zz-linked');
 });
+
+it('refreshes registry attribution even when publishing the identical batch leaves the snapshot unchanged', async () => {
+  const raw = batch([facility()]);
+  const previous = await publish(raw);
+  await pool.query(`UPDATE tourism_knowledge.source SET publisher='old publisher',
+    source_url='https://example.test/old',license_id='old license',license_url='https://example.test/license'
+    WHERE id='furano-places'`);
+  const repeated = await publishTourismBatch(pool, raw);
+  expect(repeated).toMatchObject({ snapshotId: previous.snapshotId, unchanged: true });
+  const source = (await sourceRegistry()).find((s) => s.id === 'furano-places')!;
+  const stored = (
+    await pool.query("SELECT * FROM tourism_knowledge.source WHERE id='furano-places'")
+  ).rows[0];
+  expect(stored).toMatchObject({
+    publisher: source.publisher,
+    source_url: source.sourceUrl,
+    license_id: source.licenseId,
+    license_url: source.licenseUrl,
+    active_snapshot_id: previous.snapshotId,
+  });
+  const found = (await searchTourism(input())).evidence.find((e) => e.placeId === place.id)!;
+  expect(found).toMatchObject({
+    publisher: source.publisher,
+    sourceUrl: source.sourceUrl,
+    licenseId: source.licenseId,
+    licenseUrl: source.licenseUrl,
+  });
+});
+
+it.each(['withdrawn', 'disabled'])(
+  'syncs attribution without undoing the database %s override',
+  async (override) => {
+    const active = await publish(batch([facility()]));
+    await pool.query(
+      `UPDATE tourism_knowledge.source SET publisher='old publisher',
+    rights_status=$1,enabled=$2 WHERE id='furano-places'`,
+      [override === 'withdrawn' ? 'withdrawn' : 'approved', override !== 'disabled'],
+    );
+    try {
+      await syncTourismSources(pool);
+      const stored = (
+        await pool.query("SELECT * FROM tourism_knowledge.source WHERE id='furano-places'")
+      ).rows[0];
+      expect(stored).toMatchObject({
+        publisher: '富良野市',
+        rights_status: override === 'withdrawn' ? 'withdrawn' : 'approved',
+        enabled: override !== 'disabled',
+        active_snapshot_id: active.snapshotId,
+      });
+      expect(
+        (await searchTourism(input())).evidence.filter((e) => e.sourceId === 'furano-places'),
+      ).toEqual([]);
+      await expect(publishTourismBatch(pool, batch([facility()]))).rejects.toThrow(
+        'withdrawn or disabled',
+      );
+    } finally {
+      await pool.query(
+        "UPDATE tourism_knowledge.source SET rights_status='approved',enabled=true WHERE id='furano-places'",
+      );
+    }
+  },
+);

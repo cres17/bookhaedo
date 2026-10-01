@@ -41,6 +41,25 @@ npm run tourism:publish -- <state-dir>/curated/eniwa-events.json
 
 최신 수집 회차가 실패했거나 자료 일부가 실패했으면 정제를 중단한다. 원본 SHA가 다르거나 필수 열·날짜·좌표·ID 검증에 실패해도 이전 공개 버전을 유지한다. 수집과 정제·발행은 별도 명령이며 스케줄러를 등록하지 않았다.
 
+## 출처 표시 정보 동기화와 스냅샷 보존
+
+`ops/tourism/sources.json`의 승인·활성 출처는 발행 시 제공 기관·출처 URL·라이선스 ID/URL을 DB로 동기화한다. 내용과 fetchedAt이 동일해 snapshot 삽입을 생략하는 경우에도 표시 정보는 갱신한다. 기존 DB의 `enabled`, `rights_status`, `active_snapshot_id`는 메타데이터 동기화로 덮어쓰지 않으므로 운영자의 철회·비활성 설정이 유지된다. 새 snapshot 발행 없이 표시 정보만 갱신하려면 아래 명령을 사용한다. 허락 대기·비활성 등록부 항목은 등록하지 않는다.
+
+```bash
+npm run tourism:sync-sources
+```
+
+내용이 같아도 fetchedAt이 새로우면 별도 snapshot으로 발행하는 기존 동작은 유지한다. 비활성 snapshot 정리는 별도의 명령이며 기본 동작은 읽기 전용 미리보기다. 기본 보존 기준은 **활성 snapshot 전체 + 최근 발행 30일 전체 + 출처별 최신 3개**다. 어느 하나의 보호 조건에 해당하면 보존한다. 기간은 자료 수집 시각이 아닌 DB `published_at`을 기준으로 계산한다. 이 기준은 변경 가능한 도구 기본값이며 자동 삭제 정책이나 스케줄로 등록하지 않았다.
+
+```bash
+npm run tourism:prune
+npm run tourism:prune -- --source furano-places --days 90 --keep-latest 3
+```
+
+미리보기는 `dryRun`, 정책, 정리할 snapshot ID·출처·발행 시각, snapshot/record 건수를 반환한다. 실제 정리는 명령에 `--apply`를 명시할 때만 수행한다. 적용 시 출처 행을 잠근 뒤 정리 대상을 다시 계산하므로 발행·활성화와 동시에 실행돼도 활성 snapshot을 보호한다. 활성 snapshot의 외래키와 삭제한 snapshot의 record에 대한 `ON DELETE CASCADE`는 기존 마이그레이션 005의 제약을 사용한다. SQL 스키마·REST 계약은 변경하지 않는다. catalog/planner와 수집기 원본·SQLite 기록은 정리 대상에 포함되지 않는다.
+
+자동 갱신을 구성할 때 보존 기간과 DB 백업/복구 기준을 확정하고 미리보기를 확인한 뒤 정리 실행을 연결한다. 이 도구를 추가한 것만으로 갱신 스케줄이나 자동 삭제가 활성화되지는 않는다. 실제 HARP 적재 후에는 전체 시설 수·좌표 보유 수·canonical_place_id 연결 수와 미연결 사례를 측정해야 하며, fixture의 연결률을 실제 매칭 품질로 보고하지 않는다.
+
 ## API와 상태
 
 `POST /api/trips/:id/days/:date/ai-recommendations`
@@ -161,3 +180,12 @@ python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
 추가한 4개 회귀 사례는 유지 0·1·2·3개에서 기존 유지 순서, 총 방문 수 4곳, 먼 시설 근거 장소 포함, evidenceIds, 실제 선택 미리보기, READY 상태와 재검색 없이 1회 검색 완료를 확인한다. 수정 전 3개 실패·1개 통과였고 수정 후 4개 모두 통과했다. 기존 전부 유지 사례와 다른 그래프 검사까지 포함해 그래프 테스트 20개가 통과했다.
 
 전체 Vitest 29개 파일·195개와 Playwright 25개, build·lint·전체 format:check·spec:check·git diff --check가 통과했다. 관광 화면의 추천·근거·외부 경로는 fixture이고 확정은 실제 로컬 API/DB 검증이다. 이번 수정은 장소 선택과 이동 순서에 한정하며, 신호가 있는 동시 요청의 외부 호출량과 Valhalla 대기열 부하 측정은 후속 항목이다. 상세 재현과 코드 해시는 `docs/research/tourism-langgraph-review-3-20261001.json`에 보존한다.
+
+
+### 2026-10-01 발행 메타데이터와 보존 도구 보완
+
+동일 자료 재발행 시 DB의 오래된 표시 메타데이터가 유지되는 문제를 실제 PostgreSQL 테스트로 재현했다. 추가 테스트는 수정 전 1개 실패·기존 9개 통과였고, 수정 후 모두 통과했다. 별도 출처 동기화가 DB의 철회·비활성을 되돌리지 않고 활성 snapshot도 보존하는 2개 검사를 추가했다.
+
+보존 도구의 4개 DB 검사는 기본 미리보기의 무변경, 활성·최근·최신 3개 보존, 지정 출처만 적용, 삭제 record의 cascade, 오래된 fetchedAt/최근 publishedAt 구분, 잘못된 정책·출처 거절을 확인한다. 실제 정리 동작은 고유 출처 ID로 만든 테스트 snapshot에만 실행했다. 실제 DB 기본 명령은 dryRun이며 대상 0개를 확인했다.
+
+전체 Vitest 30개 파일·202개, 전체 Playwright 25개, build(타입 검사 포함)·lint·전체 format:check·spec:check(45 paths/28 tables)·git diff --check가 통과했다. 실제 HARP 수집·발행이나 운영 데이터 삭제·예약 실행은 수행하지 않았다. 재현 결과와 수정 코드 해시는 `docs/research/tourism-langgraph-review-4-20261001.json`에 보존한다.

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 import { dateOnly, regions } from './domain.js';
 
 const nullableDate = dateOnly.nullable();
@@ -76,6 +76,48 @@ export const sourceRegistry = async () =>
     kind?: string;
   }[];
 
+export type TourismSource = Awaited<ReturnType<typeof sourceRegistry>>[number];
+async function syncSourceMetadata(db: Pick<PoolClient, 'query'>, source: TourismSource) {
+  await db.query(
+    `INSERT INTO tourism_knowledge.source
+    (id,publisher,source_url,license_id,license_url,rights_status,enabled)
+    VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET
+    publisher=EXCLUDED.publisher,source_url=EXCLUDED.source_url,
+    license_id=EXCLUDED.license_id,license_url=EXCLUDED.license_url`,
+    [
+      source.id,
+      source.publisher,
+      source.sourceUrl,
+      source.licenseId,
+      source.licenseUrl,
+      source.rightsStatus,
+      source.enabled,
+    ],
+  );
+}
+export async function syncTourismSources(pool: Pool) {
+  const sources = (await sourceRegistry())
+    .filter((s) => s.enabled && s.rightsStatus === 'approved' && s.licenseId && s.licenseUrl)
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const db = await pool.connect();
+  try {
+    await db.query('BEGIN');
+    for (const source of sources) {
+      await db.query("SELECT pg_advisory_xact_lock(hashtext('tourism-publish:' || $1))", [
+        source.id,
+      ]);
+      await syncSourceMetadata(db, source);
+    }
+    await db.query('COMMIT');
+    return { syncedSourceIds: sources.map((s) => s.id) };
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  } finally {
+    db.release();
+  }
+}
+
 // Conservative match: exact normalized name AND 250m; multiple matches remain unlinked.
 export const normalizedTourismName = (name: string) =>
   name
@@ -113,20 +155,7 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
   try {
     await db.query('BEGIN');
     await db.query("SELECT pg_advisory_xact_lock(hashtext('tourism-publish:' || $1))", [source.id]);
-    await db.query(
-      `INSERT INTO tourism_knowledge.source
-      (id,publisher,source_url,license_id,license_url,rights_status,enabled)
-      VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING`,
-      [
-        source.id,
-        source.publisher,
-        source.sourceUrl,
-        source.licenseId,
-        source.licenseUrl,
-        source.rightsStatus,
-        source.enabled,
-      ],
-    );
+    await syncSourceMetadata(db, source);
     const active = await db.query(
       `SELECT s.enabled,s.rights_status,v.id,v.content_sha256,v.fetched_at
       FROM tourism_knowledge.source s LEFT JOIN tourism_knowledge.snapshot v ON v.id=s.active_snapshot_id
