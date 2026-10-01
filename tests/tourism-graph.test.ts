@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createTourismGraph,
+  formatTourismResult,
   validateTourismPlans,
   type GraphInput,
 } from '../server/ai/tourism-graph';
@@ -223,5 +224,97 @@ describe('LangGraph tourism workflow', () => {
     expect(s.plans.flatMap((p: any) => p.places.map((p: any) => p.id))).not.toContain('far');
     expect(s.plans.flatMap((p: any) => p.places.map((p: any) => p.id))).not.toContain('private');
     expect(s.plans.every((p: any) => p.evidenceIds.length === 0)).toBe(true);
+  });
+});
+
+describe('review regressions: budgets, retained order and relevant evidence', () => {
+  it('aborts both weather and route work at the graph budget', async () => {
+    const signals: AbortSignal[] = [];
+    const untilAbort = (signal: AbortSignal) =>
+      new Promise<any>((_resolve, reject) => {
+        signals.push(signal);
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      });
+    const s = await createTourismGraph(
+      dependencies({
+        weather: (_lat: number, _lon: number, _date: string, _request: any, signal: AbortSignal) =>
+          untilAbort(signal),
+        route: (
+          _a: any,
+          _b: any,
+          _mode: string,
+          _request: any,
+          _date: string,
+          signal: AbortSignal,
+        ) => untilAbort(signal),
+        timeoutMs: 5,
+      }),
+    ).invoke({ input: { ...input, strategy: 'KNOWLEDGE' } });
+    expect(signals).toHaveLength(3);
+    expect(signals.every((signal) => signal.aborted)).toBe(true);
+    expect(s.preview.durationSeconds).toBeNull();
+  });
+  it('keeps original relative order and starts additions from the last kept place', async () => {
+    const items = [place('keep-first'), place('keep-last', 43.09)];
+    const s = await createTourismGraph(
+      dependencies({
+        search: async () => ({
+          candidates: [place('south', 43.071), place('middle', 43.084), place('north', 43.092)],
+          evidence: [],
+          snapshotIds: [],
+        }),
+      }),
+    ).invoke({
+      input: {
+        ...input,
+        items,
+        count: 4,
+        keepPlaceIds: ['keep-last', 'keep-first'],
+        strategy: 'NEARBY',
+      },
+    });
+    expect(s.preview.plan.places.map((p: any) => p.id)).toEqual([
+      'keep-first',
+      'keep-last',
+      'north',
+      'middle',
+    ]);
+  });
+  it('keeps a cited knowledge plan when all requested stops are retained and explains the lack of additions', async () => {
+    const s = await createTourismGraph(dependencies()).invoke({
+      input: {
+        ...input,
+        items: candidates,
+        keepPlaceIds: candidates.map((p) => p.id),
+        strategy: 'KNOWLEDGE',
+      },
+    });
+    expect(s.preview.plan.places.map((p: any) => p.id)).toEqual(['a', 'b', 'c']);
+    expect(s.preview.plan.evidenceIds).toEqual(['source:a']);
+    expect(s.warnings.join(' ')).toContain('새 장소를 추가하지 않습니다');
+  });
+  it('returns only cited facility evidence while retaining contextual events and deriving status from citations', async () => {
+    const event = { ...evidence, id: 'event', kind: 'event' as const, placeId: null };
+    const unused = { ...evidence, id: 'unused', placeId: 'unused' };
+    const s = await createTourismGraph(
+      dependencies({
+        search: async () => ({
+          candidates,
+          evidence: [evidence, unused, event],
+          snapshotIds: ['snapshot'],
+        }),
+      }),
+    ).invoke({ input });
+    const cited = formatTourismResult(input, s);
+    expect(cited.status).toBe('READY');
+    expect(cited.evidence.map((e) => e.id)).toEqual(['source:a', 'event']);
+    const fallback = formatTourismResult(input, {
+      ...s,
+      plans: s.plans.map((p) => ({ ...p, evidenceIds: [] })),
+    });
+    expect(fallback.status).toBe('CATALOG_FALLBACK');
+    expect(fallback.evidence.map((e) => e.id)).toEqual(['event']);
+    expect(fallback.notice).toContain('행사 자료는 참고 정보');
+    expect(formatTourismResult(input, { ...s, plans: [] }).status).toBe('NO_CANDIDATES');
   });
 });

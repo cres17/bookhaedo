@@ -1,0 +1,84 @@
+{
+  "checked_at": "2026-10-01T06:05:34.213101+00:00",
+  "base_commit": "f07cb5cc1abcddd02dd300e95bbb5604bb1513a4",
+  "target_branch": "ver2",
+  "scope": "Code-verified follow-up review fixes and regressions",
+  "previous_verification": "docs/research/tourism-langgraph-review-fixes-20261001.json",
+  "code_sha256": {
+    "docs/Bookhaedo-API.yml": "d421420e08c58dd2f42438d51ba000101881ee522271221480daa9343397f2de",
+    "docs/openapi-rest.json": "269956070acfe31b49b78732454dcf487af5bd2a91c878fa8ff4cf391deaf71f",
+    "docs/tourism-langgraph.md": "4fcf300203e18a53dbbd35254cf13033f56c72d315747b74345f7e7afb1161d1",
+    "frontend/public/openapi.json": "269956070acfe31b49b78732454dcf487af5bd2a91c878fa8ff4cf391deaf71f",
+    "frontend/src/components/DayAlternatives.vue": "ae4c019d04811460b4283626ab9e3536cdedace3283381c54bbf908b8d71f12f",
+    "package.json": "ded9fff1a2cb7b55bf2e7e105175f1a792fc9d481f16f67e90e24e6d7c2aa137",
+    "scripts/tourism/collector.py": "dab0638f7f9e890b924456c89e2db424c1b10332884d28331c01f76f75cd0acc",
+    "scripts/tourism/normalize.py": "1a910754260c4e787ae91b263bfee8c05f50e3f8eb051b7aaef28d1ef018d203",
+    "scripts/tourism/publish.ts": "3b9e54acc1a6b042479c3fb36fc4dca4616a875966e1732e2059a4875ac598ce",
+    "scripts/tourism/test_collector.py": "3dac585e95037abcd305b02dabbc82eab989fe2f2a0d541ddd0bcab6c2ba1a84",
+    "scripts/write-api-spec.mjs": "b356e79d350320548bfdc759d73c992aa8a09022c67fe12e181fd842119af08c",
+    "server/ai/tourism-graph.ts": "41fcc1caca9dc22d15d2d7822450ce2213828bc6eb8202597147030cb264f2a5",
+    "server/day-alternatives.ts": "2b31c6275a535914afd1bf8e962c634f564a727dcbe767e686da80b7485363e8",
+    "server/provider-cache.ts": "6b8e40c22922919a79db88511dd79cdc27ace35334a559c6b3f3edeb35f103ac",
+    "server/providers.ts": "bd132232c167a59162ae74f65e0a025f45f951b952a13b4b7b4862580edcb54a",
+    "server/routes/ai-recommendations.ts": "f74588e2e3641b9dc106dc711997031c6b5e8b695c091b3ef0a8119545c29350",
+    "server/routing.ts": "b186f83aa358dccfb166664820401ca6047742b61faebf1b9a51344125cae221",
+    "server/tourism-search.ts": "587ec19f2a512a510d5b337d2aa2301d69f208d07707b90b17a7cc23168bf6e4",
+    "tests/ai-recommendations.test.ts": "4c824bc54e142a9fe3eb26fe11cc20c6882481cc79a8e91f5994280dc04d0ec6",
+    "tests/e2e/tourism-recommendations.spec.ts": "e3ff73c2176af5881516656cc9aada953bb97b1f73274e1ec016a2e00eef0bc7",
+    "tests/provider-performance.test.ts": "19272c7611d9ebc8082e09752ff5374bc8f12dd4a9bf2665660f6b572a7c8666",
+    "tests/tourism-graph.test.ts": "f70ebb1af44d699bf044d635af9d95d46aa900fe05b4ad072ae106c0a2786f02",
+    "tests/tourism-knowledge.test.ts": "4602f53f930f6b2b16dfea922fb78a27687056cb7d6323c1c431c9ff46d63851",
+    "tests/tourism-search-distance.test.ts": "f256d437669af422464de823d35f0685b4b2de499be8fa7350d7f79f3dffc90d"
+  },
+  "results": {
+    "vitest": {
+      "files": 29,
+      "passed": 191
+    },
+    "playwright": {
+      "passed": 25,
+      "tourism_viewports": [
+        1440,
+        390
+      ],
+      "failures_covered": [
+        "409",
+        "429",
+        "network"
+      ]
+    },
+    "python_unittest": {
+      "passed": 19
+    },
+    "build": "passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "full_format_check": "passed",
+    "spec_check": "passed: 45 paths and 28 DBML tables",
+    "git_diff_check": "passed",
+    "database_after_cleanup": {
+      "catalog_places": 20810,
+      "tourism_records": 0,
+      "remaining_test_places": 0,
+      "remaining_test_users": 0
+    }
+  },
+  "review_resolution": {
+    "preview_failure": "Preserve matching-condition cards/evidence; clear preview/confirmation; reject stale condition responses",
+    "distance_cap": "KNN distance ordering before LIMIT 600 in tourism and legacy candidate queries; real PostGIS 601-place regression",
+    "request_budget": "Propagate graph signals to forecast and routes, combine with native provider timeouts, cancel throttle waits, isolate signalled in-flight calls",
+    "evidence": "Retrieve linked candidate facilities and contextual events; return only plan-cited facilities plus contextual events",
+    "status": "READY requires cited facility evidence; unavailable strategy 422, no valid plans 200/NO_CANDIDATES",
+    "empty_day": "Complete metadata including searchAttempts=0, required OpenAPI fields; no-store was already provided by global request context",
+    "kept_order": "Preserve documented relative-order prefix, order additions from final kept stop; preserve cited all-kept knowledge plan and explain no additions",
+    "robots_404": "Retain conservative failure policy; document and test refresh rejection and stale-rule removal",
+    "date_status": "Keep conservative heuristic; neutral UI/docs make confirmed mean date presence rather than verified occurrence",
+    "publish_style": "Static stat import and expanded finally; scripts was not part of format:check"
+  },
+  "limits": [
+    "Tourism UI recommendations/evidence/provider responses use fixtures; confirmation uses actual local API/PostgreSQL",
+    "No live HARP collection, current facility operation verification, external LLM integration or production deployment",
+    "Existing desktop checkout and its uncommitted changes are preserved; fixes made in managed ver2 worktree",
+    "GitHub CI status is recorded separately in Actions for the pushed commit; local E2E is not in CI"
+  ]
+}

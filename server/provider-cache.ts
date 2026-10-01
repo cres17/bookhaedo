@@ -66,6 +66,12 @@ export class ProviderCache<T> {
   }
 }
 
+// Keep provider limits while also honoring the caller's request budget.
+export function providerSignal(timeoutMs: number, signal?: AbortSignal) {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
 // Isolate injected transports in tests and alternate clients without recording keys in metrics.
 const clients = new WeakMap<typeof fetch, number>();
 let nextClient = 0;

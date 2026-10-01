@@ -130,6 +130,9 @@ class Collector:
                 time.sleep(2 ** (attempt - 1))
 
     def robots(self):
+        # Conservative source policy: unavailable robots (including 404) stops collection.
+        # Do not infer permission or fall back to stale rules after a failed refresh.
+        self.robot = None
         url = urllib.parse.urlunsplit((self.origin.scheme, self.origin.netloc, '/robots.txt', '', ''))
         body, _ = self.fetch(url)
         self.robot = urllib.robotparser.RobotFileParser()

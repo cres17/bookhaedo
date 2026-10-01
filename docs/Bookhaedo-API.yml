@@ -2288,8 +2288,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '409':
-          description: 선택 코스 변경
+        '422':
+          description: 'STRATEGY_UNAVAILABLE: 다른 코스가 있지만 요청 전략은 생성 불가'
           content:
             application/json:
               schema:
@@ -2332,8 +2332,10 @@ paths:
                     - INDOOR
                     - NEARBY
       description: >-
-        소유자 또는 수락한 동행자만 접근. 첫 장소 지역과 현재 일정 중심의 직선 10→15→20km 범위에서 최대 2회 재검색. 승인된 최신 snapshot과 적용 날짜만 참고하고 미확정 행사는 별도 자료로
-        반환한다. 기본 생성은 규칙 기반이며 외부 LLM을 호출하지 않는다. strategy가 있으면 실제 인접 경로를 조회. 읽기 전용이며 확정은 기존 PATCH day-alternatives에
+        소유자 또는 수락한 동행자만 접근. 첫 장소 지역과 현재 일정 중심의 직선 10→15→20km 범위에서 거리순 후보를 최대 2회 재검색. 장소 근거는 반환 코스가 인용한 자료만, 행사 자료는 별도 참고
+        정보로 반환. READY는 시설 근거를 인용한 코스가 있을 때만 사용. 빈 일정은 NEEDS_ANCHOR와 searchAttempts=0, 유효 코스 없음은 NO_CANDIDATES로 200 응답.
+        다른 코스가 있지만 요청 전략이 없으면 422/STRATEGY_UNAVAILABLE. 승인된 최신 snapshot과 적용 날짜만 참고하고 미확정 행사는 별도 자료로 반환한다. 기본 생성은 규칙 기반이며
+        외부 LLM을 호출하지 않는다. strategy가 있으면 실제 인접 경로를 조회. 읽기 전용이며 확정은 기존 PATCH day-alternatives에
         placeIds,expectedPlaceIds,expectedRevision을 전달한다. 409/428 revision 계약 유지.
       tags:
         - 여행
@@ -4595,6 +4597,7 @@ components:
             - tentative
             - recurring
             - unknown
+          description: confirmed는 시작·종료일이 기재된 행을 뜻하며 실제 개최 확정을 보증하지 않는다. tentative는 일정 문구의 보수적인 휴리스틱 분류다.
         hoursStatus:
           type: string
           enum:
@@ -4645,7 +4648,7 @@ components:
           const: rules
         searchAttempts:
           type: integer
-          minimum: 1
+          minimum: 0
           maximum: 3
         weather:
           $ref: '#/components/schemas/Weather'
@@ -4787,6 +4790,24 @@ components:
             type: string
         notice:
           type: string
+      required:
+        - status
+        - requestId
+        - tripId
+        - date
+        - expectedRevision
+        - expectedPlaceIds
+        - snapshotIds
+        - engine
+        - generationMode
+        - searchAttempts
+        - weather
+        - weatherMode
+        - plans
+        - preview
+        - evidence
+        - warnings
+        - notice
     Member:
       type: object
       properties:
