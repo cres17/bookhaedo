@@ -46,6 +46,7 @@ for (const viewport of [
       };
       let previewFailure: number | 'network' | null = null;
       let saveRequests = 0;
+      let useRealLimiter = false;
       const recommendationRequests: any[] = [];
       await page.route('https://maps.googleapis.com/**', (r) => r.abort());
       await page.route('**/api/weather?*', (r) =>
@@ -69,6 +70,10 @@ for (const viewport of [
       await page.route('**/ai-recommendations', async (r) => {
         const body = r.request().postDataJSON();
         recommendationRequests.push(body);
+        if (useRealLimiter) {
+          useRealLimiter = false;
+          return r.continue();
+        }
         if (body.strategy && previewFailure) {
           const failure = previewFailure;
           previewFailure = null;
@@ -222,6 +227,46 @@ for (const viewport of [
         interests: '박물관',
         keepPlaceIds: [second.id],
       });
+      await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toBeVisible();
+      // Cards and provider responses above are fixtures. This 429 comes from the real POST limiter.
+      const emptyTripResponse = await page.request.post('/api/trips', {
+        data: { title: '실제 호출 제한 검증', startDate: '2026-10-01', days: 1 },
+      });
+      expect(emptyTripResponse.status()).toBe(201);
+      const emptyTrip = (await emptyTripResponse.json()).data.id;
+      for (let i = 0; i < 30; i++) {
+        const warmup = await page.request.post(
+          `/api/trips/${emptyTrip}/days/2026-10-01/ai-recommendations`,
+          { data: {} },
+        );
+        expect(warmup.status()).toBe(200);
+        expect((await warmup.json()).status).toBe('NEEDS_ANCHOR');
+      }
+      useRealLimiter = true;
+      const blockedResponse = page.waitForResponse((response) =>
+        response.url().endsWith(base + '/ai-recommendations'),
+      );
+      await page.getByRole('button', { name: '이 코스 동선 미리보기' }).click();
+      const blocked = await blockedResponse;
+      expect(blocked.status()).toBe(429);
+      expect((await blocked.json()).code).toBe('AI_RECOMMENDATION_RATE_LIMITED');
+      expect(Number(blocked.headers()['retry-after'])).toBeGreaterThan(0);
+      await expect(page.getByRole('alert')).toContainText(
+        '추천 요청이 많아요. 잠시 후 다시 조회해주세요.',
+      );
+      await expect(page.locator('.day-plan-card')).toHaveCount(1);
+      await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toHaveCount(0);
+      expect(saveRequests).toBe(0);
+      expect(
+        (await (await page.request.get('/api/trips/' + trip)).json()).data.days[0].items.map(
+          (p: any) => p.id,
+        ),
+      ).toEqual([first.id, second.id]);
+      await page.screenshot({
+        path: `/private/tmp/bookhaedo-tourism-real-429-${viewport.width}.png`,
+      });
+      // Resume fixture previews so the existing confirmation test remains independent of wall time.
+      await page.getByRole('button', { name: '다시 조회', exact: true }).click();
       await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toBeVisible();
       await page.screenshot({ path: `/private/tmp/bookhaedo-tourism-kept-${viewport.width}.png` });
       await page.getByRole('button', { name: '이 코스로 하루 교체' }).click();
