@@ -64,6 +64,7 @@ const State = Annotation.Root({
   input: Annotation<GraphInput>(),
   candidates: Annotation<any[]>(),
   evidence: Annotation<Evidence[]>(),
+  referenceEvents: Annotation<Evidence[]>(),
   snapshotIds: Annotation<string[]>(),
   weather: Annotation<any>(),
   plans: Annotation<Plan[]>(),
@@ -199,6 +200,7 @@ export function createTourismGraph(deps: GraphDependencies) {
       attempts: 0,
       candidates: [],
       evidence: [],
+      referenceEvents: [],
       snapshotIds: [],
       plans: [],
       preview: null,
@@ -222,6 +224,7 @@ export function createTourismGraph(deps: GraphDependencies) {
       });
       return {
         ...result,
+        referenceEvents: result.referenceEvents ?? [],
         candidates: result.candidates.filter(isUsable),
         attempts: s.attempts + 1,
       };
@@ -352,7 +355,7 @@ export function formatTourismResult(
   s: Pick<
     GraphState,
     'plans' | 'evidence' | 'snapshotIds' | 'weather' | 'attempts' | 'preview' | 'warnings'
-  >,
+  > & { referenceEvents?: Evidence[] },
 ) {
   const cited = new Set(s.plans.flatMap((p) => p.evidenceIds));
   const evidence = s.evidence.filter((e) => e.kind === 'event' || cited.has(e.id));
@@ -373,6 +376,7 @@ export function formatTourismResult(
     plans: s.plans,
     preview: s.preview,
     evidence,
+    referenceEvents: s.referenceEvents ?? [],
     warnings: s.warnings,
     notice: !s.plans.length
       ? '조건에 맞는 코스를 만들지 못했어요. 유지할 장소나 방문 수를 바꿔 다시 확인해주세요.'

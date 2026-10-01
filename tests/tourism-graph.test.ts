@@ -355,3 +355,30 @@ describe('review regressions: budgets, retained order and relevant evidence', ()
     expect(formatTourismResult(input, { ...s, plans: [] }).status).toBe('NO_CANDIDATES');
   });
 });
+
+it('keeps undated regional reading separate from generator evidence, KNOWLEDGE and READY', async () => {
+  const reference = {
+    ...evidence,
+    id: 'reference-event',
+    kind: 'event' as const,
+    placeId: null,
+    dateStatus: 'recurring',
+  };
+  const generate = vi.fn(async () => ({ placeIds: ['a', 'b', 'c'], evidenceIds: [] }));
+  const d = dependencies({
+    search: vi.fn(async () => ({
+      candidates,
+      evidence: [],
+      referenceEvents: [reference],
+      snapshotIds: ['snapshot'],
+    })),
+    generate,
+  });
+  const state = await createTourismGraph(d).invoke({ input });
+  const result = formatTourismResult(input, state);
+  expect(result.referenceEvents).toEqual([reference]);
+  expect(result.evidence).toEqual([]);
+  expect(result.status).toBe('CATALOG_FALLBACK');
+  expect(result.plans.some((p) => p.id === 'KNOWLEDGE')).toBe(false);
+  expect(generate.mock.calls[0][0].evidence).toEqual([]);
+});

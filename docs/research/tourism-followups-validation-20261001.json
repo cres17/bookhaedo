@@ -1,0 +1,67 @@
+{
+  "verifiedOn": "2026-10-01",
+  "baseCommit": "202954a1c847e316adf2221c2c3aecb933995b94",
+  "targetBranch": "ver2",
+  "checks": {
+    "vitest": {
+      "files": 38,
+      "tests": 250,
+      "result": "pass"
+    },
+    "testCi": {
+      "files": 32,
+      "tests": 182,
+      "result": "pass"
+    },
+    "playwright": {
+      "tests": 29,
+      "result": "pass",
+      "publishedE2eEnabled": true,
+      "providers": "local self-hosted Valhalla; existing live Google tests retained"
+    },
+    "python": {
+      "tests": 22,
+      "result": "pass"
+    },
+    "build": "pass",
+    "lint": "pass",
+    "typecheck": "pass (also part of build)",
+    "formatCheck": "pass",
+    "specCheck": {
+      "paths": 45,
+      "tables": 28,
+      "result": "pass"
+    }
+  },
+  "data": {
+    "catalogPlaces": 20810,
+    "activeRecords": 47,
+    "snapshots": 5,
+    "cumulativeRecords": 71,
+    "furanoLinkedFacilities": 9,
+    "furanoFacilities": 24,
+    "hokutoLinkedFacilities": 2,
+    "hokutoFacilities": 10,
+    "remainingTaskTestAccounts": 0
+  },
+  "fileSha256": {
+    "server/routing.ts": "d8d254617b041a7b163cf76ddb0a610cbe772efe3af5b6027442dfa8491e7a07",
+    "server/valhalla-gate.ts": "2ad8c175819c933cc623f9271435a4202cde76d634cd2b88e906061723bf93bf",
+    "server/tourism-matching.ts": "29a5ad69b1238e5f6c3e11121215c306b22e8c959e8e8f5d153fb04a85b43e02",
+    "server/tourism-search.ts": "e2015d5047ed815f9d9b9edc6542ac32a627a4160cd8db770acb295858316c16",
+    "server/ai/tourism-graph.ts": "3cd5c4571863f695cc2f3332f7ebc445eddd5bcac88d447f021146dd1ac1dcf1",
+    "ops/tourism/approved-aliases.json": "e47b703328731662112893fea1ef45c344d9a82a85b24acdb59914e941667346",
+    "ops/tourism/sources.json": "db6fad725a0da519b64c85b4ce30685680fec8060b66f228147029d2fb31f51c"
+  },
+  "validationRepairs": [
+    "Initial Hokuto UI test waited for evidence before explicitly keeping a facility already on the trip. Test ordering was corrected; both actual API assertions already passed.",
+    "First complete E2E run had 28 passes and one journey failure after an agent edit restarted the watch server. All changes were finished before rerunning; complete rerun passed 29/29."
+  ],
+  "remaining": [
+    "Local burst measurements do not establish production sustained-load capacity or an optimal per-user quota.",
+    "Hokuto has 8 unlinked facilities, Furano 15; no catalog coordinates were altered to improve the score.",
+    "9 of 12 app regions have no approved tourism knowledge source.",
+    "Recurring and undated events still require checking actual occurrence in the original source."
+  ],
+  "runtimeArtifactsCommitted": false
+}

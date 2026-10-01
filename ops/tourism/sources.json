@@ -1,6 +1,56 @@
 [
-  {"id":"furano-places","publisher":"富良野市","sourceUrl":"https://www.harp.lg.jp/opendata/dataset/2207.html","licenseId":"CC-BY-4.0","licenseUrl":"https://creativecommons.org/licenses/by/4.0/","rightsStatus":"approved","enabled":true,"regionId":"furano","kind":"place"},
-  {"id":"furano-events","publisher":"富良野市","sourceUrl":"https://www.harp.lg.jp/opendata/dataset/2208.html","licenseId":"CC-BY-4.0","licenseUrl":"https://creativecommons.org/licenses/by/4.0/","rightsStatus":"approved","enabled":true,"regionId":"furano","kind":"event"},
-  {"id":"eniwa-events","publisher":"恵庭市","sourceUrl":"https://www.harp.lg.jp/opendata/dataset/1823.html","licenseId":"CC-BY-4.0","licenseUrl":"https://creativecommons.org/licenses/by/4.0/","rightsStatus":"approved","enabled":true,"regionId":"new-chitose","kind":"event"},
-  {"id":"hokkaido-love","publisher":"北海道観光振興機構","sourceUrl":"https://www.visit-hokkaido.jp/","licenseId":null,"licenseUrl":null,"rightsStatus":"permission_pending","enabled":false}
+  {
+    "id": "furano-places",
+    "publisher": "富良野市",
+    "sourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207.html",
+    "licenseId": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "rightsStatus": "approved",
+    "enabled": true,
+    "regionId": "furano",
+    "kind": "place"
+  },
+  {
+    "id": "furano-events",
+    "publisher": "富良野市",
+    "sourceUrl": "https://www.harp.lg.jp/opendata/dataset/2208.html",
+    "licenseId": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "rightsStatus": "approved",
+    "enabled": true,
+    "regionId": "furano",
+    "kind": "event"
+  },
+  {
+    "id": "eniwa-events",
+    "publisher": "恵庭市",
+    "sourceUrl": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+    "licenseId": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "rightsStatus": "approved",
+    "enabled": true,
+    "regionId": "new-chitose",
+    "kind": "event"
+  },
+  {
+    "id": "hokuto-places",
+    "publisher": "北斗市",
+    "sourceUrl": "https://www.harp.lg.jp/opendata/dataset/1657.html",
+    "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/1657/resource/9136/012360_torurism_20260826.csv",
+    "licenseId": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "rightsStatus": "approved",
+    "enabled": true,
+    "regionId": "hakodate",
+    "kind": "place"
+  },
+  {
+    "id": "hokkaido-love",
+    "publisher": "北海道観光振興機構",
+    "sourceUrl": "https://www.visit-hokkaido.jp/",
+    "licenseId": null,
+    "licenseUrl": null,
+    "rightsStatus": "permission_pending",
+    "enabled": false
+  }
 ]

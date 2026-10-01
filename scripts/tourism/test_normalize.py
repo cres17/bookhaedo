@@ -89,6 +89,32 @@ class Normalize(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Incomplete collector run'):
                 normalize_report(root,'eniwa-events',2026)
 
+    def test_hokuto_resource_pin_and_existing_schema(self):
+        import hashlib
+        import sqlite3
+        import tempfile
+        source = next(s for s in json.loads((ROOT / 'ops/tourism/sources.json').read_text()) if s['id'] == 'hokuto-places')
+        body = 'ID,名称,説明,緯度,経度,利用可能日時特記事項\n0001,北斗施設fixture,,41.9,140.65,年中無休\n'.encode('cp932')
+        digest = hashlib.sha256(body).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blob = root / 'blobs' / digest / 'source.csv'
+            blob.parent.mkdir(parents=True); blob.write_bytes(body)
+            resource = {'url':source['resourceUrl'],'key':'012360_torurism_20260826.csv','sha256':digest}
+            report = {'source':'hokuto-places','started_at':'2026-10-01T00:00:00Z','resources_found':1,'resources':[resource],'errors':[]}
+            with sqlite3.connect(root / 'state.sqlite') as db:
+                db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY, source TEXT, report TEXT)')
+                db.execute('INSERT INTO runs(source,report) VALUES (?,?)',('hokuto-places',json.dumps(report)))
+            result = normalize_report(root,'hokuto-places')
+            self.assertEqual(result['records'][0]['externalId'],'0001')
+            self.assertEqual(result['records'][0]['regionId'],'hakodate')
+            self.assertIsNone(result['records'][0]['sourceUpdatedAt'])
+            report['resources'][0]['url'] = 'https://www.harp.lg.jp/opendata/dataset/1657/resource/old/old.csv'
+            with sqlite3.connect(root / 'state.sqlite') as db:
+                db.execute('INSERT INTO runs(source,report) VALUES (?,?)',('hokuto-places',json.dumps(report)))
+            with self.assertRaisesRegex(ValueError,'Resource version is not approved'):
+                normalize_report(root,'hokuto-places')
+
 
 if __name__ == '__main__':
     unittest.main()

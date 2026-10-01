@@ -1,0 +1,17 @@
+[
+  {
+    "sourceId": "furano-places",
+    "externalId": "TR0000000004",
+    "title": "ふらのワインハウス",
+    "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+    "regionId": "furano",
+    "placeId": "bde06de1-7710-56a9-977b-4166e4f7ad7a",
+    "catalogName": "富良野ワインハウス",
+    "catalogWebsite": "https://www.furano.ne.jp/winehouse/",
+    "verifiedOn": "2026-10-01",
+    "evidenceUrls": [
+      "https://www.furano.ne.jp/winehouse/"
+    ],
+    "reason": "Official name matches CSV; official address and website match catalog; distance 15.6m. Hiragana/kanji spelling alias only."
+  }
+]

@@ -111,6 +111,8 @@ def normalize_report(state_dir, source_id, year=None):
         url = urlsplit(resource['url'])
         if url.scheme != 'https' or url.netloc != 'www.harp.lg.jp' or not url.path.startswith('/opendata/dataset/'):
             raise ValueError('Resource URL outside allowlist')
+        if source.get('resourceUrl') and resource['url'] != source['resourceUrl']:
+            raise ValueError('Resource version is not approved')
         body = (root / 'blobs' / sha / 'source.csv').read_bytes()
         if hashlib.sha256(body).hexdigest() != sha:
             raise ValueError('Blob SHA mismatch')

@@ -1,5 +1,7 @@
+import { valhallaLimits } from './valhalla-gate.js';
 import { isPublicValhalla } from './valhalla-policy.js';
 export function validateProduction(env: NodeJS.ProcessEnv = process.env) {
+  valhallaLimits(env);
   if (env.NODE_ENV !== 'production') return;
   if (!env.DATABASE_URL) throw Error('DATABASE_URL is required in production');
   if (!env.METRICS_TOKEN || env.METRICS_TOKEN.length < 32)

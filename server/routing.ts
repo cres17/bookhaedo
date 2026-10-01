@@ -1,3 +1,4 @@
+import { getSelfHostedValhallaGate } from './valhalla-gate.js';
 import { isPublicValhalla, PUBLIC_VALHALLA_BASE_URL } from './valhalla-policy.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import { computeSegment } from './providers.js';
@@ -101,16 +102,20 @@ async function fetchRouteSegment(
       units: 'kilometers',
       language: 'en-US',
     };
-    const response = await request(
-      base + '/route?json=' + encodeURIComponent(JSON.stringify(payload)),
-      {
-        signal: providerSignal(10000, signal),
-        headers: { 'X-Client-Id': 'bookhaedo-local-educational-poc' },
-      },
-    );
-    if (!response.ok) throw Error('UNAVAILABLE');
-    const body = await response.json(),
-      t = body.trip;
+    const deadline = providerSignal(10000, signal);
+    const readRoute = async () => {
+      const response = await request(
+        base + '/route?json=' + encodeURIComponent(JSON.stringify(payload)),
+        { signal: deadline, headers: { 'X-Client-Id': 'bookhaedo-local-educational-poc' } },
+      );
+      if (!response.ok) throw Error('UNAVAILABLE');
+      return response.json();
+    };
+    // Hold the permit until the entire body is read, not just until headers arrive.
+    const body = isPublicValhalla(base)
+      ? await readRoute()
+      : await getSelfHostedValhallaGate().run(readRoute, deadline);
+    const t = body.trip;
     if (
       t?.status !== 0 ||
       !Number.isFinite(t.summary?.length) ||

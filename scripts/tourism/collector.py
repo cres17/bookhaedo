@@ -18,11 +18,10 @@ from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from pathlib import Path
 
-SOURCES = {
-    'eniwa-events': 'https://www.harp.lg.jp/opendata/dataset/1823.html',
-    'furano-places': 'https://www.harp.lg.jp/opendata/dataset/2207.html',
-    'furano-events': 'https://www.harp.lg.jp/opendata/dataset/2208.html',
-}
+REGISTRY = Path(__file__).resolve().parents[2] / 'ops/tourism/sources.json'
+REGISTERED = {s['id']: s for s in json.loads(REGISTRY.read_text()) if s['enabled'] and s['rightsStatus'] == 'approved'
+              and s['sourceUrl'].startswith('https://www.harp.lg.jp/opendata/dataset/')}
+SOURCES = {key: source['sourceUrl'] for key, source in REGISTERED.items()}
 AGENT = 'BookhaedoTourismCollector/0.1'
 
 
@@ -37,10 +36,11 @@ class Links(HTMLParser):
 
 
 class Collector:
-    def __init__(self, root, page, interval=60, attempts=3, min_year=2026):
+    def __init__(self, root, page, interval=60, attempts=3, min_year=2026, resource_url=None):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
         self.page = page
+        self.resource_url = resource_url
         self.origin = urllib.parse.urlsplit(page)
         if self.origin.scheme not in ('https', 'http'):
             raise ValueError('Unsupported URL scheme')
@@ -156,6 +156,7 @@ class Collector:
             if split.netloc != self.origin.netloc or split.scheme != self.origin.scheme: continue
             name = urllib.parse.unquote(split.path.rsplit('/', 1)[-1]).strip()
             if not name.lower().endswith('.csv'): continue
+            if self.resource_url and url != self.resource_url: continue
             years = re.findall(r'(?<!\d)(20\d{2})(?!\d)', name)
             year = int(years[-1]) if years else None
             if year is not None and year < self.min_year: continue
@@ -225,7 +226,8 @@ def main():
         try: fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             print(json.dumps({'status': 'already_running'})); return 2
-        c = Collector(root, SOURCES[args.source], min_year=args.min_year)
+        c = Collector(root, SOURCES[args.source], min_year=args.min_year,
+                      resource_url=REGISTERED[args.source].get('resourceUrl'))
         try:
             reports = []
             for i in range(args.rounds):

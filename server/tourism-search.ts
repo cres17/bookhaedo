@@ -25,7 +25,12 @@ export type Evidence = {
   locationStatus: string;
   scheduleRaw: string;
 };
-export type SearchResult = { candidates: any[]; evidence: Evidence[]; snapshotIds: string[] };
+export type SearchResult = {
+  candidates: any[];
+  evidence: Evidence[];
+  snapshotIds: string[];
+  referenceEvents?: Evidence[];
+};
 export type TourismSearchInput = {
   anchor: { latitude: number; longitude: number };
   regionId: string;
@@ -80,7 +85,22 @@ export async function searchTourism(input: TourismSearchInput): Promise<SearchRe
       approvedSources,
     ],
   );
-  const evidence: Evidence[] = knowledge.rows.map((r) => ({
+  // Undated/recurring rows are regional reading only, never plan evidence or dated events.
+  const reference = await pool.query(
+    `SELECT r.*,to_char(r.start_date,'YYYY-MM-DD') AS start_date,to_char(r.end_date,'YYYY-MM-DD') AS end_date,
+    s.id AS source_id,s.publisher,s.source_url,s.license_id,s.license_url,v.fetched_at
+    FROM tourism_knowledge.record r JOIN tourism_knowledge.snapshot v ON v.id=r.snapshot_id
+    JOIN tourism_knowledge.source s ON s.id=v.source_id
+    WHERE r.snapshot_id=ANY($1::uuid[]) AND s.active_snapshot_id=r.snapshot_id
+    AND s.id=ANY($4::text[]) AND s.enabled AND s.rights_status='approved'
+    AND r.withdrawn_at IS NULL AND r.region_id=$2 AND v.fetched_at>=now()-interval '90 days'
+    AND (r.valid_from IS NULL OR r.valid_from<=$3::date) AND (r.valid_until IS NULL OR r.valid_until>=$3::date)
+    AND r.kind='event' AND r.date_status IN ('recurring','unknown')
+    AND r.start_date IS NULL AND r.end_date IS NULL
+    ORDER BY s.id,r.external_id LIMIT 20`,
+    [snapshots, input.regionId, input.date, approvedSources],
+  );
+  const toEvidence = (r: any): Evidence => ({
     id: `${r.source_id}:${r.external_id}`,
     snapshotId: r.snapshot_id,
     sourceId: r.source_id,
@@ -103,6 +123,11 @@ export async function searchTourism(input: TourismSearchInput): Promise<SearchRe
     hoursStatus: r.hours_status,
     locationStatus: r.location_status,
     scheduleRaw: r.schedule_raw,
-  }));
-  return { candidates: candidates.rows, evidence, snapshotIds: snapshots };
+  });
+  return {
+    candidates: candidates.rows,
+    evidence: knowledge.rows.map(toEvidence),
+    referenceEvents: reference.rows.map(toEvidence),
+    snapshotIds: snapshots,
+  };
 }

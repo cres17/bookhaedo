@@ -125,6 +125,21 @@ for (const viewport of [
                   durationSeconds: null,
                 }
               : null,
+            referenceEvents: ['recurring', 'unknown'].map((dateStatus) => ({
+              id: 'reference-' + dateStatus,
+              kind: 'event',
+              placeId: null,
+              dateStatus,
+              title: dateStatus === 'recurring' ? '반복 행사 자료' : '날짜 없는 행사 자료',
+              excerpt: '과거 소개일 수 있는 CSV',
+              scheduleRaw: '매년 7월 (원문 표현)',
+              publisher: '富良野市',
+              resourceUrl: 'https://www.harp.lg.jp/opendata/dataset/2208.html',
+              licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+              licenseId: 'CC-BY-4.0',
+              fetchedAt: '2026-10-01T00:00:00Z',
+              sourceUpdatedAt: null,
+            })),
             evidence: [
               {
                 id: 'facility',
@@ -191,6 +206,20 @@ for (const viewport of [
       await expect(
         page.getByText('자료에 시작·종료일 기재 · 개최 확정 여부는 원문 확인'),
       ).toBeVisible();
+      const reference = page.getByRole('region', { name: '지역 행사 참고 목록' });
+      await expect(
+        reference.getByRole('heading', { name: '일정 확인이 필요한 행사' }),
+      ).toBeVisible();
+      await expect(reference.getByText(/여행일에 열리는지 확인한 정보가 아니며/)).toBeVisible();
+      const summary = reference.locator('summary').first();
+      await summary.focus();
+      await summary.press('Enter');
+      await expect(reference.getByText(/올해 개최 여부·정확한 날짜·장소/).first()).toBeVisible();
+      await expect(reference.locator('button')).toHaveCount(0);
+      expect(saveRequests).toBe(0);
+      expect(await reference.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      await reference.locator('h3').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath('tourism-reference.png') });
       expect(await page.evaluate(() => !!(window as any).__tourismInjected)).toBe(false);
       const source = page.getByRole('link', { name: '恵庭市 원문 CSV' });
       await expect(source).toHaveAttribute(
