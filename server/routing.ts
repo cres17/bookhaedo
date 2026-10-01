@@ -1,3 +1,4 @@
+import { isPublicValhalla, PUBLIC_VALHALLA_BASE_URL } from './valhalla-policy.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import { computeSegment } from './providers.js';
 import { straightDistance } from './domain.js';
@@ -49,9 +50,10 @@ export async function routeSegment(
   signal?: AbortSignal,
 ) {
   if (mode === 'TRANSIT') return computeSegment(a, b, mode, request, departureTime, signal);
+  const base = (process.env.VALHALLA_BASE_URL || PUBLIC_VALHALLA_BASE_URL).replace(/\/+$/, '');
   const key = providerKey(request, [
     process.env.NODE_ENV,
-    process.env.VALHALLA_BASE_URL,
+    base,
     a.id,
     a.latitude,
     a.longitude,
@@ -63,7 +65,7 @@ export async function routeSegment(
   ]);
   return providerCaches.valhalla.get(
     key,
-    () => fetchRouteSegment(a, b, mode, request, signal),
+    () => fetchRouteSegment(a, b, mode, request, signal, base),
     (result) => !signal?.aborted && result.source === 'valhalla',
     !signal,
   );
@@ -74,7 +76,8 @@ async function fetchRouteSegment(
   b: Point,
   mode: string,
   request: typeof fetch,
-  signal?: AbortSignal,
+  signal: AbortSignal | undefined,
+  base: string,
 ) {
   const costing = (
     { DRIVE: 'auto', TAXI: 'auto', WALK: 'pedestrian', BICYCLE: 'bicycle' } as Record<
@@ -85,9 +88,9 @@ async function fetchRouteSegment(
   try {
     signal?.throwIfAborted();
     if (!costing) throw Error('BAD_MODE');
-    if (process.env.NODE_ENV === 'production' && !process.env.VALHALLA_BASE_URL)
+    if (process.env.NODE_ENV === 'production' && isPublicValhalla(base))
       throw Error('SELF_HOST_REQUIRED');
-    if (request === fetch) await throttle(signal);
+    if (request === fetch && isPublicValhalla(base)) await throttle(signal);
     signal?.throwIfAborted();
     const payload = {
       locations: [
@@ -98,7 +101,6 @@ async function fetchRouteSegment(
       units: 'kilometers',
       language: 'en-US',
     };
-    const base = process.env.VALHALLA_BASE_URL || 'https://valhalla1.openstreetmap.de';
     const response = await request(
       base + '/route?json=' + encodeURIComponent(JSON.stringify(payload)),
       {

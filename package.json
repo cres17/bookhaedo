@@ -16,7 +16,7 @@
     "spec:generate": "node scripts/write-api-spec.mjs",
     "spec:check": "node scripts/write-api-spec.mjs --check && node scripts/check-dbml.mjs",
     "db:init": "tsx scripts/init-db.ts",
-    "test:ci": "vitest run --config vitest.config.ts tests/domain.test.ts tests/bookhaedo.test.ts tests/improvements.test.ts tests/map-focus.test.ts tests/place-dedupe.test.ts tests/website-check.test.ts tests/reliability.test.ts tests/concurrency.test.ts tests/search-assist.test.ts tests/platform.test.ts tests/migrations.test.ts tests/api-contract.test.ts tests/expense-export.test.ts tests/schedule.test.ts tests/rate-limit.test.ts tests/observability.test.ts tests/security.test.ts tests/provider-performance.test.ts tests/boot-performance.test.ts tests/tourism-graph.test.ts tests/tourism-knowledge.test.ts tests/ai-recommendations.test.ts tests/tourism-search-distance.test.ts tests/tourism-maintenance.test.ts",
+    "test:ci": "vitest run --config vitest.config.ts tests/domain.test.ts tests/bookhaedo.test.ts tests/improvements.test.ts tests/map-focus.test.ts tests/place-dedupe.test.ts tests/website-check.test.ts tests/reliability.test.ts tests/concurrency.test.ts tests/search-assist.test.ts tests/platform.test.ts tests/migrations.test.ts tests/api-contract.test.ts tests/expense-export.test.ts tests/schedule.test.ts tests/rate-limit.test.ts tests/observability.test.ts tests/security.test.ts tests/provider-performance.test.ts tests/boot-performance.test.ts tests/tourism-graph.test.ts tests/tourism-knowledge.test.ts tests/ai-recommendations.test.ts tests/tourism-search-distance.test.ts tests/tourism-maintenance.test.ts tests/routing-policy.test.ts tests/tourism-matching.test.ts tests/tourism-comparison.test.ts",
     "test": "vitest run --config vitest.config.ts",
     "benchmark:providers": "node --import tsx scripts/benchmark-providers.ts",
     "benchmark:providers:live": "node --import tsx scripts/benchmark-providers-live.ts",
@@ -36,7 +36,9 @@
     "test:tourism": "vitest run --config vitest.config.ts tests/tourism-graph.test.ts tests/tourism-knowledge.test.ts tests/ai-recommendations.test.ts tests/tourism-search-distance.test.ts tests/tourism-maintenance.test.ts",
     "tourism:sync-sources": "tsx scripts/tourism/sync-sources.ts",
     "tourism:prune": "tsx scripts/tourism/prune.ts",
-    "tourism:audit": "tsx scripts/tourism/audit.ts"
+    "tourism:audit": "tsx scripts/tourism/audit.ts",
+    "tourism:compare": "tsx scripts/tourism/compare.ts",
+    "tourism:benchmark-routing": "tsx scripts/tourism/benchmark-routing.ts"
   },
   "engines": {
     "node": "^22.13.0 || ^24.0.0 || >=26.0.0"

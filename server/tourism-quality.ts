@@ -1,6 +1,28 @@
 import type { Pool } from 'pg';
 import { dateOnly } from './domain.js';
-import { normalizedTourismName, sourceRegistry } from './tourism-knowledge.js';
+import { sourceRegistry } from './tourism-knowledge.js';
+import {
+  matchTourismFacility,
+  normalizedTourismName,
+  TOURISM_MATCH_RADIUS_METERS,
+  tourismNearbySql,
+  type TourismMatchCandidate,
+} from './tourism-matching.js';
+
+type FacilityRow = {
+  sourceId: string;
+  externalId: string;
+  title: string;
+  placeId: string | null;
+  regionId: string;
+  latitude: number | null;
+  longitude: number | null;
+  snapshotId: string;
+  resourceUrl: string;
+  contentSha256: string;
+  evidencePointer: string;
+};
+type SameNameCandidate = Pick<TourismMatchCandidate, 'id' | 'name' | 'regionId' | 'distanceMeters'>;
 
 export const tourismProfileSql = `SELECT s.id AS "sourceId",v.id AS "snapshotId",
 v.content_sha256 AS "contentSha256",v.fetched_at AS "fetchedAt",v.published_at AS "publishedAt",
@@ -44,9 +66,10 @@ export async function auditTourismData(
         : null,
     }));
     const facilities = (
-      await db.query(
+      await db.query<FacilityRow>(
         `SELECT s.id AS "sourceId",r.external_id AS "externalId",
-      r.title_ja AS title,r.canonical_place_id AS "placeId",r.region_id AS "regionId",r.latitude,r.longitude
+      r.title_ja AS title,r.canonical_place_id AS "placeId",r.region_id AS "regionId",r.latitude,r.longitude,
+      r.snapshot_id AS "snapshotId",r.resource_url AS "resourceUrl",r.content_sha256 AS "contentSha256",r.evidence_pointer AS "evidencePointer"
       FROM tourism_knowledge.record r JOIN tourism_knowledge.source s ON s.active_snapshot_id=r.snapshot_id
       WHERE s.id=ANY($1::text[]) AND r.kind='place' ORDER BY s.id,r.external_id`,
         [approved],
@@ -60,43 +83,30 @@ export async function auditTourismData(
     const diagnostics = [];
     for (const r of facilities) {
       let reason = 'LINKED';
-      let nearby: any[] = [];
-      let sameName: any[] = [];
+      let nearby: TourismMatchCandidate[] = [];
+      let sameName: SameNameCandidate[] = [];
       if (!r.placeId) {
-        if (r.latitude === null || r.longitude === null) reason = 'MISSING_COORDINATES';
-        else {
-          nearby = (
-            await db.query(
-              `SELECT id,name_ja AS name,ST_Distance(location,
-            ST_SetSRID(ST_MakePoint($2,$3),4326)::geography) AS "distanceMeters"
-            FROM geo_data.place WHERE region_id=$1 AND ST_DWithin(location,
-            ST_SetSRID(ST_MakePoint($2,$3),4326)::geography,250) ORDER BY "distanceMeters",id`,
-              [r.regionId, r.longitude, r.latitude],
-            )
-          ).rows;
+        const match = await matchTourismFacility(db, { ...r, kind: 'place' });
+        reason = match.placeId ? 'ELIGIBLE_BUT_UNLINKED' : match.reason;
+        nearby = match.nearby;
+        if (match.reason !== 'MISSING_COORDINATES') {
           sameName = (
-            await db.query(
+            await db.query<SameNameCandidate>(
               `SELECT id,name_ja AS name,region_id AS "regionId",
             ST_Distance(location,ST_SetSRID(ST_MakePoint($2,$3),4326)::geography) AS "distanceMeters"
             FROM geo_data.place WHERE id=ANY($1::text[]) ORDER BY "distanceMeters",id`,
               [names.get(normalizedTourismName(r.title)) ?? [], r.longitude, r.latitude],
             )
           ).rows;
-          const exact = nearby.filter(
-            (p) => normalizedTourismName(p.name) === normalizedTourismName(r.title),
-          );
-          reason =
-            exact.length > 1
-              ? 'AMBIGUOUS_MATCH'
-              : exact.length === 1
-                ? 'ELIGIBLE_BUT_UNLINKED'
-                : sameName.some((p) => p.regionId === r.regionId)
-                  ? 'DISTANCE_EXCEEDS_250M'
-                  : sameName.length
-                    ? 'REGION_MISMATCH'
-                    : nearby.length
-                      ? 'NAME_MISMATCH'
-                      : 'NO_CATALOG_PLACE_WITHIN_250M';
+          reason = match.placeId
+            ? 'ELIGIBLE_BUT_UNLINKED'
+            : match.reason === 'AMBIGUOUS_MATCH'
+              ? match.reason
+              : sameName.some((p) => p.regionId === r.regionId)
+                ? 'DISTANCE_EXCEEDS_250M'
+                : sameName.length
+                  ? 'REGION_MISMATCH'
+                  : match.reason;
         }
       }
       diagnostics.push({ ...r, reason, nearby, sameName });
@@ -111,12 +121,13 @@ export async function auditTourismData(
       checkedAt: new Date().toISOString(),
       targetDate: date,
       grain: 'sourceId + externalId in the active snapshot',
-      matchingRule:
-        'Exact NFKC/punctuation-normalized name + unique same-region catalog candidate within 250m',
+      matchingRule: `Exact NFKC/punctuation-normalized name + unique same-region catalog candidate within ${TOURISM_MATCH_RADIUS_METERS}m`,
       counts,
       profile,
       diagnostics,
       sql: tourismProfileSql,
+      matchingSql: tourismNearbySql,
+      matchingRadiusMeters: TOURISM_MATCH_RADIUS_METERS,
       limits: [
         'Automatic linkage is not a ground-truth identity validation',
         'Events are not automatically linked; facility rates exclude events',
