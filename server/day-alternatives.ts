@@ -149,9 +149,9 @@ export async function dayContext(tripId: string, date: string, lock = false, db:
   );
   return { dayId: day.rows[0].id, revision: day.rows[0].revision, items: items.rows };
 }
-async function candidatesAround(anchor: Point, db: any = pool) {
+export async function candidatesAround(anchor: Point, db: any = pool) {
   const q = await db.query(
-    `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND COALESCE(osm_tags->>'access','') NOT IN ('private','no') AND COALESCE(osm_tags->>'disused','')<>'yes' AND COALESCE(osm_tags->>'abandoned','')<>'yes' ORDER BY (name_ko IS NOT NULL) DESC,(osm_tags ? 'wikidata') DESC,(website IS NOT NULL) DESC LIMIT 600`,
+    `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND COALESCE(osm_tags->>'access','') NOT IN ('private','no') AND COALESCE(osm_tags->>'disused','')<>'yes' AND COALESCE(osm_tags->>'abandoned','')<>'yes' ORDER BY location <-> ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,(name_ko IS NOT NULL) DESC,(osm_tags ? 'wikidata') DESC,(website IS NOT NULL) DESC,id LIMIT 600`,
     [anchor.longitude, anchor.latitude],
   );
   return q.rows;

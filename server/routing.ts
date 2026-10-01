@@ -1,13 +1,15 @@
+import { setTimeout as delay } from 'node:timers/promises';
 import { computeSegment } from './providers.js';
 import { straightDistance } from './domain.js';
-import { providerCaches, providerKey } from './provider-cache.js';
+import { providerCaches, providerKey, providerSignal } from './provider-cache.js';
 type Point = { id: string; latitude: number; longitude: number };
 export type ValhallaSegment = Awaited<ReturnType<typeof fetchRouteSegment>>;
 let queue = Promise.resolve(),
   last = 0;
-async function throttle() {
+async function throttle(signal?: AbortSignal) {
   const next = queue.then(async () => {
-    await new Promise((r) => setTimeout(r, Math.max(0, 1100 - (Date.now() - last))));
+    signal?.throwIfAborted();
+    await delay(Math.max(0, 1100 - (Date.now() - last)), undefined, { signal });
     last = Date.now();
   });
   queue = next.catch(() => {});
@@ -44,8 +46,9 @@ export async function routeSegment(
   mode: string,
   request: typeof fetch = fetch,
   departureTime?: string,
+  signal?: AbortSignal,
 ) {
-  if (mode === 'TRANSIT') return computeSegment(a, b, mode, request, departureTime);
+  if (mode === 'TRANSIT') return computeSegment(a, b, mode, request, departureTime, signal);
   const key = providerKey(request, [
     process.env.NODE_ENV,
     process.env.VALHALLA_BASE_URL,
@@ -60,12 +63,19 @@ export async function routeSegment(
   ]);
   return providerCaches.valhalla.get(
     key,
-    () => fetchRouteSegment(a, b, mode, request),
-    (result) => result.source === 'valhalla',
+    () => fetchRouteSegment(a, b, mode, request, signal),
+    (result) => !signal?.aborted && result.source === 'valhalla',
+    !signal,
   );
 }
 
-async function fetchRouteSegment(a: Point, b: Point, mode: string, request: typeof fetch) {
+async function fetchRouteSegment(
+  a: Point,
+  b: Point,
+  mode: string,
+  request: typeof fetch,
+  signal?: AbortSignal,
+) {
   const costing = (
     { DRIVE: 'auto', TAXI: 'auto', WALK: 'pedestrian', BICYCLE: 'bicycle' } as Record<
       string,
@@ -73,10 +83,12 @@ async function fetchRouteSegment(a: Point, b: Point, mode: string, request: type
     >
   )[mode];
   try {
+    signal?.throwIfAborted();
     if (!costing) throw Error('BAD_MODE');
     if (process.env.NODE_ENV === 'production' && !process.env.VALHALLA_BASE_URL)
       throw Error('SELF_HOST_REQUIRED');
-    if (request === fetch) await throttle();
+    if (request === fetch) await throttle(signal);
+    signal?.throwIfAborted();
     const payload = {
       locations: [
         { lat: a.latitude, lon: a.longitude },
@@ -90,7 +102,7 @@ async function fetchRouteSegment(a: Point, b: Point, mode: string, request: type
     const response = await request(
       base + '/route?json=' + encodeURIComponent(JSON.stringify(payload)),
       {
-        signal: AbortSignal.timeout(10000),
+        signal: providerSignal(10000, signal),
         headers: { 'X-Client-Id': 'bookhaedo-local-educational-poc' },
       },
     );

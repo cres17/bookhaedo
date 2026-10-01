@@ -32,6 +32,8 @@ class Integration(unittest.TestCase):
             def do_GET(self):
                 state['calls'].append({'path': self.path, 'start': time.time()})
                 if self.path == '/robots.txt':
+                    if state.get('robots_status'):
+                        self.send_response(state['robots_status']); self.end_headers(); return
                     body = state['robots'].encode()
                     tag = state['robots']
                 elif self.path == '/dataset.html':
@@ -68,6 +70,16 @@ class Integration(unittest.TestCase):
 
     def collector(self):
         return module.Collector(self.root, self.page, interval=0.04, min_year=2026)
+
+    def test_robots_404_stops_before_discovery_and_drops_stale_rules(self):
+        c = self.collector(); c.robots()
+        self.state['robots_status'] = 404
+        with self.assertRaises(module.urllib.error.HTTPError):
+            c.robots()
+        self.assertIsNone(c.robot)
+        self.assertTrue(all(call['path'] == '/robots.txt' for call in self.state['calls']))
+        self.assertEqual(len(self.state['calls']), 2)
+        c.db.close()
 
     def test_repeated_run_discovery_new_year_and_changed_file(self):
         c = self.collector(); c.robots()

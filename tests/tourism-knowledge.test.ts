@@ -4,7 +4,7 @@ import { pool, migrate } from '../server/db';
 import { publishTourismBatch } from '../server/tourism-knowledge';
 import { searchTourism } from '../server/tourism-search';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
-const sourceIds = ['furano-places', 'eniwa-events'];
+const sourceIds = ['furano-places', 'furano-events', 'eniwa-events'];
 const snapshots: string[] = [];
 let original: any[] = [];
 let place: any;
@@ -177,11 +177,15 @@ it('enforces live rights revocation even with pinned snapshots and blocks public
 });
 it('does not link name-only facilities with missing coordinates', async () => {
   await publish(batch([facility({ latitude: null, longitude: null, locationStatus: 'missing' })]));
-  expect(
-    (await searchTourism(input())).evidence.find((e) => e.sourceId === 'furano-places')!.placeId,
-  ).toBeNull();
+  const found = await searchTourism(input());
+  expect(found.evidence.filter((e) => e.sourceId === 'furano-places')).toEqual([]);
+  const record = await pool.query(
+    'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+    [snapshots.at(-1)],
+  );
+  expect(record.rows[0].canonical_place_id).toBeNull();
 });
-it('keeps linked candidate evidence ahead of 120 unlinked records before limiting results', async () => {
+it('excludes unlinked facilities while retaining linked candidate evidence', async () => {
   await publish(
     batch([
       ...Array.from({ length: 120 }, (_, i) =>
@@ -198,7 +202,7 @@ it('keeps linked candidate evidence ahead of 120 unlinked records before limitin
   const found = await searchTourism(input());
   expect(found.candidates.some((p) => p.id === place.id)).toBe(true);
   const evidence = found.evidence.filter((e) => e.sourceId === 'furano-places');
-  expect(evidence).toHaveLength(120);
+  expect(evidence).toHaveLength(1);
   expect(evidence[0].externalId).toBe('zz-linked');
   expect(evidence[0].placeId).toBe(place.id);
 });
@@ -222,4 +226,30 @@ it('excludes both explicit closed flags from spatial catalog candidates', async 
     );
   }
   expect((await searchTourism(input())).candidates.some((p) => p.id === place.id)).toBe(true);
+});
+
+it('prioritizes linked facilities ahead of contextual events before applying the 120 record limit', async () => {
+  await publish(batch([facility({ externalId: 'zz-linked' })]));
+  await publish(
+    batch(
+      Array.from({ length: 120 }, (_, i) =>
+        tourismRecord({
+          externalId: `event-${i}`,
+          kind: 'event',
+          resourceUrl: 'https://www.harp.lg.jp/opendata/dataset/2208/resource/8258/events.csv',
+          latitude: null,
+          longitude: null,
+          locationStatus: 'missing',
+          startDate: '2026-10-01',
+          endDate: '2026-10-02',
+          dateStatus: 'confirmed',
+        }),
+      ),
+      'furano-events',
+    ),
+  );
+  const found = await searchTourism(input());
+  expect(found.evidence).toHaveLength(120);
+  expect(found.evidence[0].placeId).toBe(place.id);
+  expect(found.evidence[0].externalId).toBe('zz-linked');
 });

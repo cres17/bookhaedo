@@ -87,10 +87,11 @@ async function load(strategy = '') {
   const requestedConditions = conditions.value;
   busy.value = true;
   conditionsChanged.value = false;
-  resultConditions = '';
+  const previous = resultConditions === requestedConditions ? result.value : null;
+  resultConditions = previous ? requestedConditions : '';
   error.value = '';
   selected.value = strategy;
-  result.value = null;
+  result.value = previous ? { ...previous, preview: null } : null;
   emit('preview', null);
   try {
     const q = new URLSearchParams({
@@ -355,6 +356,9 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
               자료 대상 기간: {{ evidence.startDate }}–{{ evidence.endDate }}
             </p>
             <p v-if="evidence.dateStatus === 'tentative'">개최 미확정 · 변경 가능</p>
+            <p v-if="evidence.kind === 'event' && evidence.dateStatus === 'confirmed'">
+              자료에 시작·종료일 기재 · 개최 확정 여부는 원문 확인
+            </p>
             <p v-if="evidence.locationStatus === 'missing'">
               자료에 좌표 없음 · 자동 일정 배치 제외
             </p>

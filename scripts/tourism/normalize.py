@@ -63,6 +63,8 @@ def normalize_csv(body, source, resource, fetched_at):
         if start and end and start > end:
             raise ValueError('Reversed event dates')
         schedule = '\n'.join(row.get(k, '') for k in ['開催パターン', '開始日時特記事項', '備考', '利用可能日時特記事項']).strip()
+        # These statuses describe date completeness and conservative text heuristics,
+        # not a verified announcement that an event will take place.
         uncertain = bool(re.search(r'未確定|未定|変更|予定|調整中', schedule))
         status = 'tentative' if uncertain else 'confirmed' if start and end else 'recurring' if '毎年' in schedule else 'unknown'
         records.append({

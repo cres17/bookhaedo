@@ -44,6 +44,7 @@ for (const viewport of [
         distanceMeters: 1000,
         evidenceIds: ['facility'],
       };
+      let previewFailure: number | 'network' | null = null;
       let saveRequests = 0;
       const recommendationRequests: any[] = [];
       await page.route('https://maps.googleapis.com/**', (r) => r.abort());
@@ -68,6 +69,12 @@ for (const viewport of [
       await page.route('**/ai-recommendations', async (r) => {
         const body = r.request().postDataJSON();
         recommendationRequests.push(body);
+        if (body.strategy && previewFailure) {
+          const failure = previewFailure;
+          previewFailure = null;
+          if (failure === 'network') return r.abort('failed');
+          return r.fulfill({ status: failure, json: { error: `미리보기 실패 ${failure}` } });
+        }
         const kept = [first, second].filter((p) => body.keepPlaceIds.includes(p.id));
         const requestedPlan = {
           ...plan,
@@ -125,6 +132,21 @@ for (const viewport of [
                 dateStatus: 'tentative',
                 locationStatus: 'missing',
               },
+              {
+                id: 'dated-event',
+                kind: 'event',
+                placeId: null,
+                title: '期間が記載された行事',
+                excerpt: '日付あり',
+                publisher: '富良野市',
+                resourceUrl: 'https://www.harp.lg.jp/opendata/dataset/2208.html',
+                licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+                licenseId: 'CC-BY-4.0',
+                fetchedAt: '2026-10-01T00:00:00Z',
+                startDate: '2026-10-01',
+                endDate: '2026-10-02',
+                dateStatus: 'confirmed',
+              },
             ],
             notice: '확정 전에는 일정이 바뀌지 않아요.',
           },
@@ -139,12 +161,26 @@ for (const viewport of [
       await page.getByText('행사 참고 자료 · 행사 참고', { exact: true }).click();
       await expect(page.getByText('개최 미확정 · 변경 가능')).toBeVisible();
       await expect(page.getByText('자료에 좌표 없음')).toBeVisible();
+      await page.getByText('期間が記載された行事 · 행사 참고', { exact: true }).click();
+      await expect(
+        page.getByText('자료에 시작·종료일 기재 · 개최 확정 여부는 원문 확인'),
+      ).toBeVisible();
       expect(await page.evaluate(() => !!(window as any).__tourismInjected)).toBe(false);
       const source = page.getByRole('link', { name: '恵庭市 원문 CSV' });
       await expect(source).toHaveAttribute(
         'href',
         'https://www.harp.lg.jp/opendata/dataset/1823.html',
       );
+      for (const failure of [409, 429, 'network'] as const) {
+        previewFailure = failure;
+        await page.getByRole('button', { name: '이 코스 동선 미리보기' }).click();
+        await expect(page.getByRole('alert')).toBeVisible();
+        await expect(page.locator('.day-plan-card')).toHaveCount(1);
+        await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toHaveCount(0);
+        expect(saveRequests).toBe(0);
+        await page.getByRole('button', { name: '다시 조회', exact: true }).click();
+        await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toBeVisible();
+      }
       await page.getByRole('button', { name: '이 코스 동선 미리보기' }).click();
       await expect(page.getByText('일부 구간의 실제 경로를 확인하지 못했어요.')).toBeVisible();
       expect(

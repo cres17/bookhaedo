@@ -134,3 +134,55 @@ it('invalid confirmation counts do not leak database connections', async () => {
     ).toBe(400);
   expect(pool.idleCount).toBe(pool.totalCount);
 });
+
+it('returns complete non-cacheable metadata for a day without an anchor', async () => {
+  const trip = (
+    await owner
+      .post('/api/trips')
+      .send({ title: 'empty tourism', startDate: '2026-10-01', days: 1 })
+  ).body.data.id;
+  const r = await owner
+    .post(`/api/trips/${trip}/days/2026-10-01/ai-recommendations`)
+    .send({ strategy: 'NEARBY' });
+  expect(r.status).toBe(200);
+  expect(r.headers['cache-control']).toBe('no-store');
+  expect(r.body.requestId).toBe(r.headers['x-request-id']);
+  expect(r.body).toMatchObject({
+    status: 'NEEDS_ANCHOR',
+    tripId: trip,
+    date: '2026-10-01',
+    expectedRevision: 0,
+    expectedPlaceIds: [],
+    snapshotIds: [],
+    engine: 'langgraph',
+    generationMode: 'rules',
+    searchAttempts: 0,
+    weather: { available: false },
+    weatherMode: 'UNKNOWN',
+    plans: [],
+    preview: null,
+    evidence: [],
+    warnings: [],
+  });
+});
+it('distinguishes an unavailable strategy from empty or rejected plans', async () => {
+  const unavailable = await owner
+    .post(base() + '/ai-recommendations')
+    .send({ strategy: 'KNOWLEDGE' });
+  expect(unavailable.status).toBe(422);
+  expect(unavailable.body.code).toBe('STRATEGY_UNAVAILABLE');
+  expect(unavailable.body.availableStrategies).toContain('NEARBY');
+  await pool.query("UPDATE geo_data.place SET opening_hours='closed' WHERE id=$1", [ids[0]]);
+  try {
+    const empty = await owner
+      .post(base() + '/ai-recommendations')
+      .send({ strategy: 'NEARBY', keepPlaceIds: [ids[0]] });
+    expect(empty.status).toBe(200);
+    expect(empty.body.status).toBe('NO_CANDIDATES');
+    expect(empty.body.plans).toEqual([]);
+    expect(empty.body.preview).toBeNull();
+    expect(empty.body.notice).not.toContain('변경됐어요');
+  } finally {
+    await pool.query('UPDATE geo_data.place SET opening_hours=NULL WHERE id=$1', [ids[0]]);
+  }
+});

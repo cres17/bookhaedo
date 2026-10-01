@@ -109,8 +109,11 @@ function evidenceFor(places: any[], evidence: Evidence[]) {
 }
 function attachKept(plan: any, s: GraphState): Plan {
   const kept = s.input.items.filter((p) => s.input.keepPlaceIds.includes(p.id));
-  const additions = plan.places.filter((p: any) => !kept.some((k) => k.id === p.id));
-  const places = [...kept, ...additions].slice(0, s.input.count);
+  const additions = nearestOrder(
+    plan.places.filter((p: any) => !kept.some((k) => k.id === p.id)),
+    kept.at(-1) ?? center(s.input.items),
+  ).slice(0, s.input.count - kept.length);
+  const places = [...kept, ...additions];
   return {
     ...plan,
     places,
@@ -126,18 +129,19 @@ function rules(s: GraphState): Plan[] {
     (p: any) => attachKept(p, s),
   );
   const current = new Set(s.input.items.map((p) => p.id));
+  const linked = new Set(
+    s.evidence.filter((e) => e.kind === 'place' && e.placeId).map((e) => e.placeId),
+  );
+  const kept = s.input.items.filter((p) => s.input.keepPlaceIds.includes(p.id));
+  const anchor = center(s.input.items);
   const ranked = s.candidates
     .filter((p) => !current.has(p.id) && (!adverseWeather(s.weather) || indoorEvidence(p)))
     .sort(
       (a, b) =>
-        Number(s.evidence.some((e) => e.kind === 'place' && e.placeId === b.id)) -
-          Number(s.evidence.some((e) => e.kind === 'place' && e.placeId === a.id)) ||
-        straightDistance(center(s.input.items), a) - straightDistance(center(s.input.items), b),
+        Number(linked.has(b.id)) - Number(linked.has(a.id)) ||
+        straightDistance(anchor, a) - straightDistance(anchor, b),
     );
-  if (
-    ranked.length &&
-    s.evidence.some((e) => e.kind === 'place' && ranked.some((p) => p.id === e.placeId))
-  ) {
+  if ((ranked.length || kept.length >= 2) && [...ranked, ...kept].some((p) => linked.has(p.id))) {
     const places = nearestOrder(ranked.slice(0, s.input.count), center(s.input.items));
     standard.unshift(
       attachKept(
@@ -198,7 +202,12 @@ export function createTourismGraph(deps: GraphDependencies) {
       plans: [],
       preview: null,
       valid: false,
-      warnings: [],
+      warnings:
+        s.input.keepPlaceIds.length === s.input.count
+          ? [
+              '유지할 장소로 방문 수가 채워져 새 장소를 추가하지 않습니다. 기존 장소의 경로와 출처를 확인해주세요.',
+            ]
+          : [],
       input: { ...s.input, interests: s.input.interests.trim().slice(0, 200) },
     }))
     .addNode('retrieve', async (s) => {
@@ -218,11 +227,13 @@ export function createTourismGraph(deps: GraphDependencies) {
     })
     .addNode('weather_lookup', async (s) => ({
       weather: await bounded(
-        () =>
+        (signal) =>
           deps.weather(
             center(s.input.items).latitude,
             center(s.input.items).longitude,
             s.input.date,
+            fetch,
+            signal,
           ),
         timeout,
         { available: false, notice: '예보를 확인하지 못해 거리와 장소 자료를 참고합니다.' } as any,
@@ -286,6 +297,7 @@ export function createTourismGraph(deps: GraphDependencies) {
               s.input.transportMode,
               fetch,
               new Date(s.input.date + 'T09:00:00+09:00').toISOString(),
+              signal,
             ),
           timeout,
           {
@@ -334,8 +346,16 @@ export function createTourismGraph(deps: GraphDependencies) {
     .compile();
 }
 const graph = createTourismGraph({ search: searchTourism, weather: forecast, route: routeSegment });
-export async function proposeTourism(input: GraphInput) {
-  const s = await graph.invoke({ input }, { recursionLimit: 20 });
+export function formatTourismResult(
+  input: GraphInput,
+  s: Pick<
+    GraphState,
+    'plans' | 'evidence' | 'snapshotIds' | 'weather' | 'attempts' | 'preview' | 'warnings'
+  >,
+) {
+  const cited = new Set(s.plans.flatMap((p) => p.evidenceIds));
+  const evidence = s.evidence.filter((e) => e.kind === 'event' || cited.has(e.id));
+  const hasPlaceEvidence = evidence.some((e) => e.kind === 'place' && cited.has(e.id));
   return {
     requestId: input.requestId,
     tripId: input.tripId,
@@ -343,7 +363,7 @@ export async function proposeTourism(input: GraphInput) {
     expectedRevision: input.revision,
     expectedPlaceIds: input.items.map((p) => p.id),
     snapshotIds: s.snapshotIds,
-    status: !s.plans.length ? 'NO_CANDIDATES' : s.evidence.length ? 'READY' : 'CATALOG_FALLBACK',
+    status: !s.plans.length ? 'NO_CANDIDATES' : hasPlaceEvidence ? 'READY' : 'CATALOG_FALLBACK',
     engine: 'langgraph',
     generationMode: 'rules',
     searchAttempts: s.attempts,
@@ -351,10 +371,18 @@ export async function proposeTourism(input: GraphInput) {
     weatherMode: adverseWeather(s.weather) ? 'ADVERSE' : s.weather?.available ? 'FAIR' : 'UNKNOWN',
     plans: s.plans,
     preview: s.preview,
-    evidence: s.evidence,
+    evidence,
     warnings: s.warnings,
-    notice: s.evidence.length
-      ? '수집 시점과 자료 적용 기간은 다릅니다. 미확정 행사는 참고 정보이며 현재 운영 여부는 원문에서 확인해주세요. 확정 전에는 일정이 바뀌지 않아요.'
-      : '이 지역·날짜의 유효한 공개 자료가 없어 기존 장소와 예보를 바탕으로 추천합니다. 확정 전에는 일정이 바뀌지 않아요.',
+    notice: !s.plans.length
+      ? '조건에 맞는 코스를 만들지 못했어요. 유지할 장소나 방문 수를 바꿔 다시 확인해주세요.'
+      : hasPlaceEvidence
+        ? '수집 시점과 자료 적용 기간은 다릅니다. 미확정 행사는 참고 정보이며 현재 운영 여부는 원문에서 확인해주세요. 확정 전에는 일정이 바뀌지 않아요.'
+        : evidence.some((e) => e.kind === 'event')
+          ? '행사 자료는 참고 정보이며 코스는 기존 장소와 예보로 구성했습니다. 개최 여부는 원문에서 확인해주세요. 확정 전에는 일정이 바뀌지 않아요.'
+          : '코스에 연결할 유효한 공개 자료가 없어 기존 장소와 예보를 바탕으로 추천합니다. 확정 전에는 일정이 바뀌지 않아요.',
   };
+}
+export async function proposeTourism(input: GraphInput) {
+  const s = await graph.invoke({ input }, { recursionLimit: 20 });
+  return formatTourismResult(input, s);
 }

@@ -55,7 +55,8 @@ export async function searchTourism(input: TourismSearchInput): Promise<SearchRe
     AND category<>'LODGING' AND COALESCE(osm_tags->>'access','') NOT IN ('private','no')
     AND COALESCE(osm_tags->>'disused','')<>'yes' AND COALESCE(osm_tags->>'abandoned','')<>'yes'
     AND COALESCE(opening_hours,'')<>'closed' AND COALESCE(osm_tags->>'opening_hours','')<>'closed'
-    ORDER BY (name_ko IS NOT NULL) DESC,(website IS NOT NULL) DESC,id LIMIT 600`,
+    ORDER BY location <-> ST_SetSRID(ST_MakePoint($2,$3),4326)::geography,
+    (name_ko IS NOT NULL) DESC,(website IS NOT NULL) DESC,id LIMIT 600`,
     [input.regionId, input.anchor.longitude, input.anchor.latitude, input.radius],
   );
   const knowledge = await pool.query(
@@ -66,6 +67,7 @@ export async function searchTourism(input: TourismSearchInput): Promise<SearchRe
     AND s.id=ANY($6::text[]) AND s.enabled AND s.rights_status='approved' AND r.withdrawn_at IS NULL AND r.region_id=$2
     AND v.fetched_at>=now()-interval '90 days'
     AND (r.valid_from IS NULL OR r.valid_from<=$3::date) AND (r.valid_until IS NULL OR r.valid_until>=$3::date)
+    AND (r.kind='event' OR r.canonical_place_id=ANY($5::text[]))
     AND (r.kind='place' OR (r.date_status IN ('confirmed','tentative') AND r.start_date<=$3::date AND r.end_date>=$3::date))
     ORDER BY (r.canonical_place_id=ANY($5::text[])) DESC NULLS LAST,
     ts_rank(r.search_text,plainto_tsquery('simple',$4)) DESC,r.external_id LIMIT 120`,
