@@ -142,7 +142,8 @@ function rules(s: GraphState): Plan[] {
         straightDistance(anchor, a) - straightDistance(anchor, b),
     );
   if ((ranked.length || kept.length >= 2) && [...ranked, ...kept].some((p) => linked.has(p.id))) {
-    const places = nearestOrder(ranked.slice(0, s.input.count), center(s.input.items));
+    // Select by evidence rank before attachKept orders the remaining stops by distance.
+    const places = ranked.slice(0, s.input.count - kept.length);
     standard.unshift(
       attachKept(
         {
