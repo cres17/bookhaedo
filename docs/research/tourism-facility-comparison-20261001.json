@@ -1,0 +1,860 @@
+{
+  "checkedAt": "2026-10-01T07:55:15.825Z",
+  "scope": "Active unlinked facilities; candidate proximity is not proof of identity",
+  "matchingRadiusMeters": 250,
+  "summary": {
+    "NAME_MISMATCH": 10,
+    "NO_CATALOG_PLACE_WITHIN_250M": 6
+  },
+  "rows": [
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000003",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "富良野ロープウェー",
+      "regionId": "furano",
+      "latitude": 43.32544,
+      "longitude": 142.35396,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000003;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "497082f8-1470-5cff-bda5-22e0febaf5b9",
+          "name": "新富良野プリンスホテル",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 237.91551969,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "7ec7c047-2080-5d46-af53-41f95c08aa09",
+          "name": "Shin Furano Prince hotel bakery",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 246.45875506,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000004",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "ふらのワインハウス",
+      "regionId": "furano",
+      "latitude": 43.35594,
+      "longitude": 142.37276,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000004;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "bde06de1-7710-56a9-977b-4166e4f7ad7a",
+          "name": "富良野ワインハウス",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": "〒076-0048 北海道富良野市清水山",
+          "website": "https://www.furano.ne.jp/winehouse/",
+          "distanceMeters": 15.56432081,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000005",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "アンパンマンショップ",
+      "regionId": "furano",
+      "latitude": 43.30502,
+      "longitude": 142.56432,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000005;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NO_CATALOG_PLACE_WITHIN_250M",
+      "candidates": [],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000006",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "ふらのジャム園",
+      "regionId": "furano",
+      "latitude": 43.30532,
+      "longitude": 142.56407,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000006;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NO_CATALOG_PLACE_WITHIN_250M",
+      "candidates": [],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000007",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "麓郷展望台",
+      "regionId": "furano",
+      "latitude": 43.30195,
+      "longitude": 142.5731,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000007;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NO_CATALOG_PLACE_WITHIN_250M",
+      "candidates": [],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000009",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "芦別岳登山口",
+      "regionId": "furano",
+      "latitude": 43.24622,
+      "longitude": 142.3409,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000009;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "c7baea22-7291-50e2-8be2-a331f8b0c93f",
+          "name": "山部自然公園太陽の里キャンプ場",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 83.5961896,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000010",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "原始ヶ原・富良野岳登山口",
+      "regionId": "furano",
+      "latitude": 43.35456,
+      "longitude": 142.59571,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000010;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "9c2c7574-e909-591d-bf9f-3170d5892f0a",
+          "name": "ニングルの森管理棟",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 52.38703707,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000011",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "東大演習林樹木園",
+      "regionId": "furano",
+      "latitude": 43.21853,
+      "longitude": 142.38241,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000011;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NO_CATALOG_PLACE_WITHIN_250M",
+      "candidates": [],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000014",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "ふらのワインハウスラベンダー園",
+      "regionId": "furano",
+      "latitude": 43.3599535,
+      "longitude": 142.3731494,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000014;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "290e0bfe-8b36-585a-a6dd-3f98df29ad97",
+          "name": "ふらのワイン工場",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": "〒076-0048 北海道富良野市清水山",
+          "website": "https://www.furanowine.jp/winery",
+          "distanceMeters": 160.77651154,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000015",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "へそ神社",
+      "regionId": "furano",
+      "latitude": 43.34642,
+      "longitude": 142.38966,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000015;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "28b3ea16-96ad-503f-b0e9-011cc8874188",
+          "name": "富良野侘助",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": "http://furanobokujo.com/wabisuke.html",
+          "distanceMeters": 44.41255892,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "4cb7b79e-604f-513d-bf63-d0f2e67b4d69",
+          "name": "リンコントロ",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 80.34826805,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "2eebbe74-2f72-5f20-81d0-8baf44c6fdae",
+          "name": "Robata",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 132.81432224,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "586ca4bd-0f44-5908-a4c7-7dfd653eee79",
+          "name": "ラベンダーショップもりや",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 134.78426002,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "99f98b6b-3ba8-5016-b4b9-0ff3cb3f2d91",
+          "name": "Natulux Hotel Furano",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 134.8753282,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "3bcc64bf-e32c-55f3-be4d-d23f5604f16e",
+          "name": "そば春",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 151.47390735,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "f544e9c6-73fc-5dd0-bd48-f294e49eb824",
+          "name": "ふらのコンシェルジュ",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 151.69349192,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "1d5c51ca-7be5-59a2-a49c-96e1aa46cf58",
+          "name": "Hostel Tomar",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 163.84109467,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "f9cbcef9-4f50-5070-9469-e151f1996b68",
+          "name": "唯我独尊",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 171.87594567,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "1ec72371-cda4-5aec-bad9-97d38caed6ca",
+          "name": "Sushi / sashimi restaurant",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 172.21071601,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "3e541899-bc01-5cad-ba10-b312ce5d8dbc",
+          "name": "くまげら",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 181.77215771,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "0f88b0c7-294b-5aff-8654-6179669a09ae",
+          "name": "となりの独尊",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 185.64358216,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "88b3196d-50c3-5c45-8972-84b34b6f1755",
+          "name": "つぼ八",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 193.42379425,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "e076f348-81a2-55b5-a9b5-be586e5a4cb6",
+          "name": "寿司処たかはし",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 196.49651448,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "3f2cd960-cdb2-5c74-87df-0f63191852ae",
+          "name": "K-Sports",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": "相生通",
+          "website": null,
+          "distanceMeters": 198.54794929,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "a46bd924-2971-5256-96db-012a6368fd53",
+          "name": "恵比寿田じま",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 211.29618406,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "418f4888-51b4-5758-be73-477658437ce7",
+          "name": "お茶の店桑名園",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 219.73961751,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "a87e82e2-9fc5-59a2-b3c8-77142a93a30c",
+          "name": "鉄板焼きまさ屋",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": "11-15",
+          "website": "https://furanomasaya.com/",
+          "distanceMeters": 230.6366021,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "dfdd6e32-585b-5a8e-ab41-e2bb2db6fabb",
+          "name": "鎌田靴店",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 248.29866125,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000016",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "北海道中心標",
+      "regionId": "furano",
+      "latitude": 43.34465,
+      "longitude": 142.38307,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000016;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "26a4f9b7-c482-5b7e-b240-2b7307019c1e",
+          "name": "富良野神社",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 128.65543974,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "ed68853f-3f72-582b-ace3-598b4620d542",
+          "name": "飛躍",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 144.27471601,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "ad9e001c-76c2-5544-9194-c5c25c2f0dc7",
+          "name": "マクドナルド",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 155.28261544,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "0c80e551-ecef-54f9-9fd5-27d4a1a6af4d",
+          "name": "Kaiten Sushi Tropical",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 162.53624789,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "03d0be22-97ef-52a7-a99b-35cec6eead67",
+          "name": "フォレスト",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 165.04016429,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "d74cc211-fa72-57fd-8285-7216edf058d4",
+          "name": "カレーの ふらのや",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 189.50024618,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "fdd5efa8-7f05-56ce-91b6-dd1328912a09",
+          "name": "ラーメン山岡家",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 205.14091462,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "ec8f7a89-87ae-5901-b653-f61cfbf4efa5",
+          "name": "富良野五郎ラーメン",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 227.57815966,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "237ab128-edda-5596-b8a0-9cf4fa85bfd4",
+          "name": "富良野地方卸売市場",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 241.97187062,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000017",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "山部自然公園太陽の里",
+      "regionId": "furano",
+      "latitude": 43.24838,
+      "longitude": 142.34036,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000017;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NO_CATALOG_PLACE_WITHIN_250M",
+      "candidates": [],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000019",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "グラス・フォレスト in 富良野（ふらの硝子）",
+      "regionId": "furano",
+      "latitude": 43.3028,
+      "longitude": 142.52583,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000019;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "2c39ce2e-1843-529d-98b1-e7058da4df26",
+          "name": "とみ川",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 155.70013712,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000020",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "富良野演劇工場",
+      "regionId": "furano",
+      "latitude": 43.32607,
+      "longitude": 142.37045,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000020;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NO_CATALOG_PLACE_WITHIN_250M",
+      "candidates": [],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000021",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "富良野スキー場",
+      "regionId": "furano",
+      "latitude": 43.32463,
+      "longitude": 142.35412,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000021;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "497082f8-1470-5cff-bda5-22e0febaf5b9",
+          "name": "新富良野プリンスホテル",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 147.71648023,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "7ec7c047-2080-5d46-af53-41f95c08aa09",
+          "name": "Shin Furano Prince hotel bakery",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 159.65227948,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "4048525d-9714-5f2a-8013-5dc8a51c7354",
+          "name": "ニングルテラス",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": "https://www.princehotels.co.jp/furano-area/summer/ningle/",
+          "distanceMeters": 223.92445494,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000024",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "title": "フラノマルシェ２",
+      "regionId": "furano",
+      "latitude": 43.34268,
+      "longitude": 142.3876,
+      "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "evidencePointer": "csv:観光施設一覧.csv:ID=TR0000000024;columns=ID,名称,説明,緯度,経度,利用可能日時特記事項",
+      "reason": "NAME_MISMATCH",
+      "candidates": [
+        {
+          "id": "4d4f2b7c-5b2e-5c99-98a6-029464724dd2",
+          "name": "翠月",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 34.53280672,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "57be9163-2f20-565c-83c4-1b4a7fab660d",
+          "name": "ビーグル",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 65.21888461,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "4f336e3b-63f2-572e-8763-acb46804de2c",
+          "name": "テン・フォー",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 74.85947763,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "d8df08a8-0f5e-5ade-b29d-9811c2221ebc",
+          "name": "フラノマルシェ",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": "https://marche.furano.jp/",
+          "distanceMeters": 85.6906994,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "7dbdcb1b-59d9-524d-b0d4-2620d9f59916",
+          "name": "小玉家",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 101.108501,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "9ac2617c-dd28-55f5-837b-87577f00ef39",
+          "name": "支那虎",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 123.75050542,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "b1ac21d6-a677-516d-961c-4d1ddd627de4",
+          "name": "熊ッ子ラーメン",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 127.59667559,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "7d7758fd-1931-5f32-a2e2-44ee1b43e12f",
+          "name": "興仁寺",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 154.09790188,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "bbacb661-e189-5f13-b821-85b881bca7da",
+          "name": "お好み焼 鮮弥",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": "2-22",
+          "website": null,
+          "distanceMeters": 187.02584683,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "bd0b3961-5dc4-5df8-8724-d0e4145b1505",
+          "name": "Sunfuraton Hotel",
+          "regionId": "furano",
+          "category": "LODGING",
+          "address": null,
+          "website": null,
+          "distanceMeters": 203.61993177,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "5cba06e3-16fd-5a2d-a7b8-4c914b7e4899",
+          "name": "大滝写真館",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 207.0718581,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "a87e82e2-9fc5-59a2-b3c8-77142a93a30c",
+          "name": "鉄板焼きまさ屋",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": "11-15",
+          "website": "https://furanomasaya.com/",
+          "distanceMeters": 226.28850193,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "dfdd6e32-585b-5a8e-ab41-e2bb2db6fabb",
+          "name": "鎌田靴店",
+          "regionId": "furano",
+          "category": "ATTRACTION",
+          "address": null,
+          "website": null,
+          "distanceMeters": 227.13093299,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "ec8f7a89-87ae-5901-b653-f61cfbf4efa5",
+          "name": "富良野五郎ラーメン",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 228.36600826,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "af1172f5-d327-50b5-a9c9-59acffa565c8",
+          "name": "小玉家 (Soba restaurant)",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 236.11128888,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "418f4888-51b4-5758-be73-477658437ce7",
+          "name": "お茶の店桑名園",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 237.48018005,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "88680862-8146-5eaf-9774-6a132af2eb5e",
+          "name": "まさ屋",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": "11-15",
+          "website": "https://furanomasaya.com/",
+          "distanceMeters": 240.9606556,
+          "normalizedNameEqual": false
+        },
+        {
+          "id": "fdd5efa8-7f05-56ce-91b6-dd1328912a09",
+          "name": "ラーメン山岡家",
+          "regionId": "furano",
+          "category": "RESTAURANT",
+          "address": null,
+          "website": null,
+          "distanceMeters": 249.82075042,
+          "normalizedNameEqual": false
+        }
+      ],
+      "sameNameOutsideRadiusOrRegion": [],
+      "decision": "PENDING",
+      "approvedPlaceId": null
+    }
+  ],
+  "matchingSql": "SELECT id,name_ja AS name,region_id AS \"regionId\",category,address,website,\nST_Distance(location,ST_SetSRID(ST_MakePoint($2,$3),4326)::geography) AS \"distanceMeters\"\nFROM geo_data.place WHERE region_id=$1 AND ST_DWithin(location,\nST_SetSRID(ST_MakePoint($2,$3),4326)::geography,$4) ORDER BY \"distanceMeters\",id",
+  "limits": [
+    "Read-only comparison: no approved mapping or active snapshot is modified",
+    "All decisions remain PENDING until source identity is reviewed and approved",
+    "Nearby hotels, shops or related facilities may be different places",
+    "No automatic alias, fuzzy-name or distance-only match is applied"
+  ]
+}

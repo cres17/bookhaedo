@@ -6,6 +6,8 @@ import {
   sourceRegistry,
   syncTourismSources,
 } from '../server/tourism-knowledge';
+import { matchTourismFacility } from '../server/tourism-matching';
+import { buildTourismComparison } from '../server/tourism-comparison';
 import { auditTourismData } from '../server/tourism-quality';
 import { searchTourism } from '../server/tourism-search';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
@@ -377,4 +379,67 @@ it('audits active facility linkage with explicit denominators and separate missi
     ).rows[0],
   ).toEqual(before);
   await expect(auditTourismData(pool, '2026-02-30')).rejects.toThrow();
+});
+
+it('publishes and audits the same unique normalized match without silently relinking an active snapshot', async () => {
+  const record = facility({ titleJa: place.name_ja + '・' });
+  const match = await matchTourismFacility(pool, { ...record, title: record.titleJa });
+  expect(match.placeId).toBe(place.id);
+  const published = await publish(batch([record]));
+  expect(
+    (
+      await pool.query(
+        'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+        [published.snapshotId],
+      )
+    ).rows[0].canonical_place_id,
+  ).toBe(match.placeId);
+  // Only the newly created test snapshot is changed to simulate an older unlinked publication.
+  await pool.query(
+    'UPDATE tourism_knowledge.record SET canonical_place_id=NULL WHERE snapshot_id=$1',
+    [published.snapshotId],
+  );
+  const audit = await auditTourismData(pool, '2026-10-01');
+  expect(audit.diagnostics.find((r) => r.snapshotId === published.snapshotId)?.reason).toBe(
+    'ELIGIBLE_BUT_UNLINKED',
+  );
+  const comparison = buildTourismComparison(audit, 'furano-places');
+  expect(comparison.rows).toHaveLength(1);
+  expect(comparison.rows[0]).toMatchObject({
+    decision: 'PENDING',
+    approvedPlaceId: null,
+    candidates: expect.arrayContaining([
+      expect.objectContaining({ id: place.id, normalizedNameEqual: true }),
+    ]),
+  });
+  expect(
+    (
+      await pool.query(
+        'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+        [published.snapshotId],
+      )
+    ).rows[0].canonical_place_id,
+  ).toBeNull();
+});
+it('keeps ambiguous nearby names unlinked in publication, audit and comparison', async () => {
+  const duplicateId = randomUUID();
+  try {
+    await pool.query(
+      `INSERT INTO geo_data.place(id,region_id,category,name_ja,normalized_name,latitude,longitude,location,region_distance_km)
+      VALUES($1,'furano','ATTRACTION',$2,$2,43.34001,142.39,ST_SetSRID(ST_MakePoint(142.39,43.34001),4326)::geography,0)`,
+      [duplicateId, place.name_ja],
+    );
+    const published = await publish(batch([facility()]));
+    const audit = await auditTourismData(pool, '2026-10-01');
+    const diagnostic = audit.diagnostics.find((r) => r.snapshotId === published.snapshotId)!;
+    expect(diagnostic).toMatchObject({ placeId: null, reason: 'AMBIGUOUS_MATCH' });
+    expect(diagnostic.nearby.filter((p) => p.name === place.name_ja)).toHaveLength(2);
+    expect(buildTourismComparison(audit, 'furano-places').rows[0]).toMatchObject({
+      decision: 'PENDING',
+      approvedPlaceId: null,
+      reason: 'AMBIGUOUS_MATCH',
+    });
+  } finally {
+    await pool.query('DELETE FROM geo_data.place WHERE id=$1', [duplicateId]);
+  }
 });

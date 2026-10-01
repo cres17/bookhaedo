@@ -1,0 +1,282 @@
+{
+  "checkedAt": "2026-10-01T07:57:41.348285+00:00",
+  "baseCommit": "1db9b3090407639240b6332e7f0acbb8af94e603",
+  "implementationSha256": {
+    "server/routing.ts": "38ab4eb0b67ae1b824d06d835948c6cdf7b786d41338b175d65e6cd4bb8c0640",
+    "server/valhalla-policy.ts": "42f94871c21adf4a81b5d0debf3c39ff6bcae291ac92378f106cf63249ddacf0",
+    "server/tourism-matching.ts": "38f5a9797f8d9b3c0c336020ebcb760668270b238a787883010b7589038e0907",
+    "server/tourism-knowledge.ts": "917efc490a211f668a2be2b29c742d257509b3e420d9d35793431359252f966b",
+    "server/tourism-quality.ts": "0368436eb171dfeb04577a72589e553bc29b66b32772cf2f4f237c16d492b11b",
+    "server/tourism-comparison.ts": "9a14f16b65835a0f6968b4d55b6a4f8b3a3b2869f39505685a7b93d21940a805",
+    "scripts/tourism/benchmark-routing.ts": "07850b3926d565c7fe75fc28603322c8af45182daa70fb52b6153c8f25aec3a2"
+  },
+  "benchmark": {
+    "before": {
+      "measuredAt": "2026-10-01T07:41:27.343Z",
+      "label": "before",
+      "backend": "Loopback HTTP fixture with 30ms response delay and synthetic route values",
+      "scope": "Two concurrent three-segment previews using the recorded four-place course, with per-caller cancellation signals and cold route cache keys; loopback Valhalla only",
+      "points": [
+        {
+          "id": "c75e9dfb-6abf-571e-b444-1eababbfdf18",
+          "latitude": 43.3151052,
+          "longitude": 142.5632526
+        },
+        {
+          "id": "a8a4d5db-2e46-5052-a683-92bd00fa6252",
+          "latitude": 43.3126645,
+          "longitude": 142.5399953
+        },
+        {
+          "id": "2c39ce2e-1843-529d-98b1-e7058da4df26",
+          "latitude": 43.3019835,
+          "longitude": 142.5242704
+        },
+        {
+          "id": "35682f98-63b3-54a4-a6f1-67599a48b6b4",
+          "latitude": 43.3409292,
+          "longitude": 142.4351809
+        }
+      ],
+      "callers": 2,
+      "segmentsPerCaller": 3,
+      "requests": 6,
+      "peakRequests": 2,
+      "elapsedMs": 6074.498167,
+      "requestStartOffsetsMs": [
+        1.8505830000000003,
+        1104.05075,
+        2204.928083,
+        3306.611917,
+        4407.561667,
+        5508.338292
+      ],
+      "results": [
+        {
+          "complete": true,
+          "sources": [
+            "valhalla",
+            "valhalla",
+            "valhalla"
+          ],
+          "distanceMeters": [
+            1000,
+            1000,
+            1000
+          ],
+          "durationSeconds": [
+            90,
+            90,
+            90
+          ]
+        },
+        {
+          "complete": true,
+          "sources": [
+            "valhalla",
+            "valhalla",
+            "valhalla"
+          ],
+          "distanceMeters": [
+            1000,
+            1000,
+            1000
+          ],
+          "durationSeconds": [
+            90,
+            90,
+            90
+          ]
+        }
+      ],
+      "limits": [
+        "Single local six-request run, not a production throughput or queue saturation test",
+        "Signalled calls remain independent in flight; completed cache reuse is unchanged",
+        "No weather or API/UI flow is exercised by this benchmark"
+      ]
+    },
+    "after": {
+      "measuredAt": "2026-10-01T07:46:12.477Z",
+      "label": "after",
+      "backend": "Loopback HTTP fixture with 30ms response delay and synthetic route values",
+      "scope": "Two concurrent three-segment previews using the recorded four-place course, with per-caller cancellation signals and cold route cache keys; loopback Valhalla only",
+      "points": [
+        {
+          "id": "c75e9dfb-6abf-571e-b444-1eababbfdf18",
+          "latitude": 43.3151052,
+          "longitude": 142.5632526
+        },
+        {
+          "id": "a8a4d5db-2e46-5052-a683-92bd00fa6252",
+          "latitude": 43.3126645,
+          "longitude": 142.5399953
+        },
+        {
+          "id": "2c39ce2e-1843-529d-98b1-e7058da4df26",
+          "latitude": 43.3019835,
+          "longitude": 142.5242704
+        },
+        {
+          "id": "35682f98-63b3-54a4-a6f1-67599a48b6b4",
+          "latitude": 43.3409292,
+          "longitude": 142.4351809
+        }
+      ],
+      "callers": 2,
+      "segmentsPerCaller": 3,
+      "requests": 6,
+      "peakRequests": 6,
+      "elapsedMs": 47.97270800000001,
+      "requestStartOffsetsMs": [
+        0.5433749999999975,
+        4.0573750000000075,
+        4.401375000000002,
+        4.636707999999999,
+        4.841165999999987,
+        5.012458000000009
+      ],
+      "results": [
+        {
+          "complete": true,
+          "sources": [
+            "valhalla",
+            "valhalla",
+            "valhalla"
+          ],
+          "distanceMeters": [
+            1000,
+            1000,
+            1000
+          ],
+          "durationSeconds": [
+            90,
+            90,
+            90
+          ]
+        },
+        {
+          "complete": true,
+          "sources": [
+            "valhalla",
+            "valhalla",
+            "valhalla"
+          ],
+          "distanceMeters": [
+            1000,
+            1000,
+            1000
+          ],
+          "durationSeconds": [
+            90,
+            90,
+            90
+          ]
+        }
+      ],
+      "limits": [
+        "Single local six-request run, not a production throughput or queue saturation test",
+        "Signalled calls remain independent in flight; completed cache reuse is unchanged",
+        "No weather or API/UI flow is exercised by this benchmark"
+      ]
+    },
+    "configuredRuntime": {
+      "valhallaBaseConfigured": false,
+      "publicDemo": true,
+      "selfHostedLiveBenchmarkPerformed": false
+    }
+  },
+  "dataState": {
+    "catalogPlaces": 20810,
+    "snapshots": 3,
+    "records": 37
+  },
+  "facilityProfile": {
+    "sourceId": "furano-places",
+    "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+    "contentSha256": "662bd95effae934b2c6d206e6b7b864c84664f842bc95c6e43882933f00a5c39",
+    "fetchedAt": "2026-10-01T06:58:43.962Z",
+    "publishedAt": "2026-10-01T07:00:47.948Z",
+    "enabled": true,
+    "rightsStatus": "approved",
+    "declaredRecords": 24,
+    "records": 24,
+    "facilities": 24,
+    "events": 0,
+    "facilitiesWithCoordinates": 24,
+    "linkedFacilities": 8,
+    "eventsWithCoordinates": 0,
+    "eligibleEventsOnDate": 0,
+    "endedEventsBeforeDate": 0,
+    "eventsWithoutExplicitPeriod": 0,
+    "tentative": 2,
+    "datesProvided": 0,
+    "recurring": 0,
+    "unknownDates": 22,
+    "historicalHours": 5,
+    "unknownSourceUpdatedAt": 24,
+    "withdrawn": 0,
+    "facilityMatchRatePct": 33.333333333333336,
+    "coordinateMatchRatePct": 33.333333333333336
+  },
+  "comparison": {
+    "summary": {
+      "NAME_MISMATCH": 10,
+      "NO_CATALOG_PLACE_WITHIN_250M": 6
+    },
+    "pendingDecisions": 16,
+    "approvedMappingsApplied": 0,
+    "notes": {
+      "ALIAS_CANDIDATE": 1,
+      "KEEP_SEPARATE": 1,
+      "NEEDS_IDENTITY_EVIDENCE": 8
+    }
+  },
+  "validation": {
+    "vitest": {
+      "files": 33,
+      "passed": 221
+    },
+    "routingRegressionBeforeFix": {
+      "failed": 1,
+      "observedFetchesIn500ms": 1,
+      "expected": 3
+    },
+    "routingRegressionAfterFix": "passed",
+    "build": "passed",
+    "lint": "passed",
+    "formatCheck": "passed",
+    "specCheck": {
+      "paths": 45,
+      "tables": 28
+    },
+    "python": {
+      "passed": 20,
+      "observation": "One ResourceWarning about an unclosed SQLite connection occurred during the existing Python test suite; tests passed."
+    },
+    "e2e": {
+      "passed": 27,
+      "publishedDataCasesIncluded": 2,
+      "recommendationEvidenceProviderMocksInPublishedCases": false
+    },
+    "ciBundle": {
+      "files": 27,
+      "passed": 153
+    },
+    "finalDataState": {
+      "checkedAt": "2026-10-01T08:03:35.791Z",
+      "counts": {
+        "catalogPlaces": 20810,
+        "snapshots": 3,
+        "records": 37
+      },
+      "activeSnapshotIdsPreserved": true,
+      "linkedFacilities": 8
+    }
+  },
+  "limits": [
+    "No approved aliases are applied; no active snapshot is relinked",
+    "Fixture timing is not production throughput, real route speed, or self-hosted service capacity",
+    "Signalled in-flight requests remain separate; this change removes spacing only for non-public endpoints",
+    "Scheduler, operational deletion, new regional sources and undated-event product behavior are outside this change"
+  ]
+}

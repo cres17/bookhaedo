@@ -1,0 +1,152 @@
+{
+  "reviewedOn": "2026-10-01",
+  "scope": "Manual comparison notes, not approved publication mappings",
+  "rows": [
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000003",
+      "title": "富良野ロープウェー",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "로프웨이 자료에 호텔·베이커리 후보가 잡힌다. 같은 단지 안 별도 시설일 수 있어 동일 장소로 연결할 근거가 없다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000004",
+      "title": "ふらのワインハウス",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "ALIAS_CANDIDATE",
+      "proposedPlaceId": "bde06de1-7710-56a9-977b-4166e4f7ad7a",
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "catalog의 웹사이트가 공식 와인하우스 사이트와 같고 공식 사이트의 시설명은 CSV의 ふらのワインハウス와 일치한다. 공식 주소도 catalog의 北海道富良野市清水山과 일치한다. 15.6m 거리와 함께 별칭 승인 검토 후보로 기록한다.",
+      "officialEvidence": [
+        {
+          "url": "https://www.furano.ne.jp/winehouse/",
+          "observation": "CSV 시설명과 공식 표기 일치; catalog 웹사이트와 공식 주소 일치"
+        }
+      ]
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000009",
+      "title": "芦別岳登山口",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "등산로 입구와 캠핑장 후보의 시설 범위가 다를 수 있다. 접근점 관계를 추가 확인해야 한다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000010",
+      "title": "原始ヶ原・富良野岳登山口",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "등산로 입구와 관리동 후보의 관계가 확인되지 않았다. 가까움만으로 같은 장소로 연결하지 않는다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000014",
+      "title": "ふらのワインハウスラベンダー園",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "라벤더원 자료에 와인 공장 후보가 잡힌다. 시설 일부와 별도 방문 지점의 관계가 불명확하다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000015",
+      "title": "へそ神社",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "신사 자료 주변에 음식점·숙박·상점 후보가 있다. 동일 시설을 뒷받침하는 명칭이나 독립 근거가 없다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000016",
+      "title": "北海道中心標",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "중심표와 주변 신사·상점은 다른 방문 지점일 수 있다. 별칭으로 처리할 근거가 없다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000019",
+      "title": "グラス・フォレスト in 富良野（ふらの硝子）",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "유리공방 자료의 가까운 후보는 とみ川 음식점이다. 동일 시설로 승인할 근거가 없다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000021",
+      "title": "富良野スキー場",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "NEEDS_IDENTITY_EVIDENCE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "스키장 자료 주변에 호텔·베이커리·닝구르테라스가 있다. 같은 리조트 안 별도 시설일 가능성이 있어 자동 연결을 보류한다.",
+      "officialEvidence": []
+    },
+    {
+      "sourceId": "furano-places",
+      "externalId": "TR0000000024",
+      "title": "フラノマルシェ２",
+      "snapshotId": "ecf488b7-d91a-4bfe-abcc-133a25eb1db3",
+      "contentSha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2",
+      "recommendation": "KEEP_SEPARATE",
+      "proposedPlaceId": null,
+      "decision": "PENDING",
+      "approvedPlaceId": null,
+      "note": "공식 FAQ는 마르셰 1과 2가 도로를 사이에 두고 마주 선다고 설명한다. HARP도 TR0000000023/24를 따로 기록한다. 기존 フラノマルシェ를 2의 별칭으로 합치지 않는 보수적 판단을 기록한다.",
+      "officialEvidence": [
+        {
+          "url": "https://marche.furano.jp/?page_id=1340",
+          "observation": "FAQ는 마르셰 1과 2를 도로 양편으로 구분"
+        }
+      ]
+    }
+  ],
+  "approvedMappingsApplied": 0,
+  "limitations": [
+    "Official identity evidence checked for the winehouse and Marche cases only",
+    "Remaining eight cases have no independent identity confirmation",
+    "Facility linkage remains 8/24; no active snapshot or catalog row is relinked"
+  ]
+}

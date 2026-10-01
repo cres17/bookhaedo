@@ -1,3 +1,5 @@
+import { matchTourismFacility } from './tourism-matching.js';
+export { normalizedTourismName } from './tourism-matching.js';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
@@ -118,12 +120,6 @@ export async function syncTourismSources(pool: Pool) {
   }
 }
 
-// Conservative match: exact normalized name AND 250m; multiple matches remain unlinked.
-export const normalizedTourismName = (name: string) =>
-  name
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[\p{P}\p{Z}\p{S}\s]/gu, '');
 export async function publishTourismBatch(pool: Pool, raw: unknown) {
   const batch = tourismBatchInput.parse(raw);
   const source = (await sourceRegistry()).find((s) => s.id === batch.sourceId);
@@ -181,18 +177,7 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
       [snapshotId, source.id, hash, batch.parserVersion, batch.fetchedAt, batch.records.length],
     );
     for (const r of batch.records) {
-      let placeId: string | null = null;
-      if (r.latitude !== null && r.kind === 'place') {
-        const matches = await db.query(
-          `SELECT id,name_ja FROM geo_data.place
-          WHERE region_id=$1 AND ST_DWithin(location,ST_SetSRID(ST_MakePoint($2,$3),4326)::geography,250)`,
-          [r.regionId, r.longitude, r.latitude],
-        );
-        const exact = matches.rows.filter(
-          (p) => normalizedTourismName(p.name_ja) === normalizedTourismName(r.titleJa),
-        );
-        if (exact.length === 1) placeId = exact[0].id;
-      }
+      const { placeId } = await matchTourismFacility(db, { ...r, title: r.titleJa });
       await db.query(
         `INSERT INTO tourism_knowledge.record
         (snapshot_id,external_id,kind,region_id,canonical_place_id,title_ja,description_ja,resource_url,

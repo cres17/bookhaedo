@@ -198,3 +198,10 @@ python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
 `npm run tourism:audit -- --date 2026-10-01`은 읽기 전용으로 출처별 활성 snapshot, 시설 분모·연결률·미연결 사유, 행사 기간·원문 수정 시점 누락을 점검한다. 시설의 날짜 휴리스틱 때문에 행사 미확정 문구가 표시되는 문제를 수정하고, 수집 gate의 대기 후 기준 시각 재검사를 추가했다.
 
 전체 Vitest 203개·기존 E2E 25개·실제 발행 자료 E2E 2개·Python 20개와 build·lint·format:check·spec:check가 통과했다. 실제 자료 E2E는 `TOURISM_PUBLISHED_E2E=1`로 별도 활성화하며 기본 실행/CI에서 자동 수집이나 발행을 하지 않는다. 이전 절의 record 0개·fixture 설명은 해당 시점의 기록으로 보존한다. 현재 실제 적재 수치·해시·실행 노트북·제약은 [실제 적재 검증](research/tourism-data-ingestion-20261001.md)을 참고한다.
+
+
+### 2026-10-01 공용 Valhalla 간격 분리와 시설 대조
+
+자체 호스팅/별도 경로 서버에는 전역 1.1초 대기를 적용하지 않고, 명시적으로 설정한 공용 주소에도 공용 간격을 유지한다. 운영의 공용 서버 거절도 같은 주소 판별 함수를 사용한다. 발행과 감사의 명칭·250m·유일 후보 연결 규칙은 `tourism-matching.ts`로 통합했다.
+
+`npm run tourism:compare`는 활성 미연결 시설의 원문 근거와 모든 근접 후보를 읽기 전용으로 출력한다. 실제 명칭 불일치 10건의 대조 메모, 다른 주변 후보 없음 6건의 목록과 승인 대기 상태를 보존했으며 실제 연결을 변경하지 않았다. 전체 Vitest 221개·실제 자료 2개 포함 E2E 27개·Python 20개 및 build·lint·format:check·spec:check를 검증했다. 변경·측정 제약·재실행 명령은 [후속 검증](research/tourism-langgraph-review-5-20261001.md)을 참고한다.
