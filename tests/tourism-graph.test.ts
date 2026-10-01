@@ -280,6 +280,43 @@ describe('review regressions: budgets, retained order and relevant evidence', ()
       'middle',
     ]);
   });
+  it.each([0, 1, 2, 3])(
+    'selects evidence-ranked additions before routing with %i retained stops',
+    async (retainedCount) => {
+      const items = [
+        old,
+        ...Array.from({ length: Math.max(0, retainedCount - 1) }, (_, i) => place(`kept-${i}`)),
+      ];
+      const kept = items.slice(0, retainedCount).map((p) => p.id);
+      const d = dependencies({
+        search: vi.fn(async () => ({
+          candidates: [
+            place('b', 43.061),
+            place('c', 43.062),
+            place('d', 43.063),
+            place('a', 43.11),
+          ],
+          evidence: [evidence],
+          snapshotIds: ['snapshot'],
+        })),
+      });
+      const request = { ...input, items, count: 4, keepPlaceIds: kept, strategy: 'KNOWLEDGE' };
+      const s = await createTourismGraph(d).invoke({ input: request });
+      const plan = s.plans.find((p: any) => p.id === 'KNOWLEDGE');
+      expect(plan).toBeDefined();
+      expect(plan!.places.map((p: any) => p.id)).toEqual([
+        ...kept,
+        ...['b', 'c', 'd'].slice(0, 3 - retainedCount),
+        'a',
+      ]);
+      expect(plan!.places).toHaveLength(4);
+      expect(plan!.evidenceIds).toEqual(['source:a']);
+      expect(s.preview.plan).toEqual(plan);
+      expect(s.valid).toBe(true);
+      expect(d.search).toHaveBeenCalledTimes(1);
+      expect(formatTourismResult(request, s).status).toBe('READY');
+    },
+  );
   it('keeps a cited knowledge plan when all requested stops are retained and explains the lack of additions', async () => {
     const s = await createTourismGraph(dependencies()).invoke({
       input: {

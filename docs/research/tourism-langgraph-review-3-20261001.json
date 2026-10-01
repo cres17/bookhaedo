@@ -1,0 +1,69 @@
+{
+  "checked_at": "2026-10-01T06:25:19.026924+00:00",
+  "base_commit": "74d46afdf5106e2d1fe744036146b0a9719fc4e6",
+  "target_branch": "ver2",
+  "scope": "Evidence-ranked additions retained before route ordering",
+  "code_sha256": {
+    "server/ai/tourism-graph.ts": "8ff5140b32ee293ee9c15ac25742734213df28ce9e73f08aeef9d7a7e635b220",
+    "tests/tourism-graph.test.ts": "f2196329a9d29e59abfe2dc11367676daf24774cc5d9d2a7d040731701ef8b76",
+    "docs/tourism-langgraph.md": "846566ed2e73a57c0535fb7c97251fd1459c031ec9522cc5cb0f831d1d42077b"
+  },
+  "reproduction": {
+    "count": 4,
+    "evidence_place": "a at latitude 43.11",
+    "uncited_nearby_places": [
+      "b at 43.061",
+      "c at 43.062",
+      "d at 43.063"
+    ],
+    "kept_counts": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "before_fix": {
+      "passed": 1,
+      "failed": 3,
+      "failure": "KNOWLEDGE missing for retained counts 1, 2 and 3"
+    },
+    "after_fix": {
+      "passed": 4,
+      "failed": 0
+    },
+    "assertions": [
+      "evidence place retained",
+      "kept relative order",
+      "total stops 4",
+      "evidenceIds source:a",
+      "requested preview available",
+      "READY",
+      "one search without retries"
+    ]
+  },
+  "change": "Select ranked.slice(0, count - kept.length) before attachKept calculates distance order; other strategy policies remain unchanged",
+  "results": {
+    "graph_tests": {
+      "passed": 20
+    },
+    "vitest": {
+      "files": 29,
+      "passed": 195
+    },
+    "playwright": {
+      "passed": 25
+    },
+    "build": "passed (includes typecheck)",
+    "lint": "passed",
+    "full_format_check": "passed",
+    "spec_check": "passed: 45 paths and 28 DBML tables",
+    "git_diff_check": "passed"
+  },
+  "limits": [
+    "Graph reproduction uses synthetic catalog places and evidence without PostgreSQL",
+    "Tourism E2E recommendation/evidence/provider responses are fixtures; confirmation uses real local API/PostgreSQL",
+    "No live HARP collection, publication or production deployment in this follow-up",
+    "Concurrent external call count and Valhalla queue load remain unmeasured follow-up items",
+    "GitHub Actions status is available separately for the pushed commit"
+  ]
+}
