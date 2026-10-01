@@ -305,6 +305,8 @@ npm run test:load:ci
 
 `npm test`의 기존 통합 테스트는 홋카이도 카탈로그가 적재된 로컬 DB를 사용합니다. `npm run test:ci`는 외부 키 없이 실행하는 단위 테스트와 자체 임시 데이터를 사용하는 동시성 테스트입니다. CI는 별도 PostGIS 서비스에서 이 검증을 실행합니다.
 
+`quality` CI의 `tourism-e2e` 작업은 별도 빈 PostGIS DB와 Playwright Chromium에서 `npm run test:e2e:tourism`을 실행합니다. 관광 추천 화면의 데스크톱·모바일 2개 검사는 직접 만든 가상 장소만 사용해 실제 HARP 적재·외부 API 키 없이 실행됩니다. 코스·근거·날씨·경로 표시에는 fixture를 쓰고, 인증·실제 POST 429·일정 확정은 실제 REST/DB로 검증합니다. 실패하면 화면 캡처·trace·HTML 보고서를 Actions artifact에 7일 보관합니다. 실제 발행 자료 검사는 `TOURISM_PUBLISHED_E2E=1`로 별도 실행하며 이 CI 작업에는 포함하지 않습니다.
+
 Chrome E2E에는 실제 Google·Valhalla·Open-Meteo 연결 테스트가 포함되어 외부 설정과 사용량이 필요합니다. macOS는 설치된 Chrome을 사용하며, Linux에서는 `npx playwright install --with-deps chromium`으로 브라우저를 준비합니다. 회귀 테스트는 임시 계정만 만들고 완료 후 정리합니다.
 
 [2026-09-28 통합 검증](docs/release-verification-20260928.md)에서 이번 코드의 검사 결과를 확인할 수 있습니다. 이전 기능 검증과 외부 연동 범위는 [기존 검증 기록](docs/quality-v2.md)에 구분해 보존했습니다.

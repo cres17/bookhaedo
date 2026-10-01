@@ -36,3 +36,42 @@ jobs:
       - run: npm run test:load:ci
       - run: npm run spec:check
       - run: npm run build
+  tourism-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: bookhaedo_test
+          POSTGRES_PASSWORD: ci_test_only
+          POSTGRES_DB: bookhaedo_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U bookhaedo_test -d bookhaedo_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://bookhaedo_test:ci_test_only@127.0.0.1:5432/bookhaedo_test
+      TOURISM_PUBLISHED_E2E: '0'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+      - run: npm run db:init
+      - name: Tourism recommendations on desktop and mobile
+        run: npm run test:e2e:tourism
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: tourism-e2e-failure
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

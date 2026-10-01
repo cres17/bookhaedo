@@ -5,9 +5,12 @@ for (const viewport of [
   { width: 1440, height: 960 },
   { width: 390, height: 844 },
 ]) {
-  test(`공개 관광 자료 출처·미확정 표시와 확정 저장 (${viewport.width}px)`, async ({ page }) => {
+  test(`공개 관광 자료 출처·미확정 표시와 확정 저장 (${viewport.width}px)`, async ({
+    page,
+  }, testInfo) => {
     await page.setViewportSize(viewport);
     const email = `tourism-ui-${randomUUID()}@example.test`;
+    const fixtureIds = Array.from({ length: 5 }, () => randomUUID());
     const db = new pg.Pool({
       connectionString:
         process.env.DATABASE_URL ||
@@ -16,26 +19,42 @@ for (const viewport of [
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     try {
+      // Seed only this test's synthetic places; no imported catalog or HARP data is required.
+      for (const [index, id] of fixtureIds.entries()) {
+        await db.query(
+          `INSERT INTO geo_data.place(id,region_id,category,name_ja,name_ko,normalized_name,latitude,longitude,location,region_distance_km,osm_tags)
+          VALUES($1,'sapporo','ATTRACTION',$2,$3,$1,$4,141.35,ST_SetSRID(ST_MakePoint(141.35,$4),4326)::geography,0,'{"tourism":"museum"}')`,
+          [
+            id,
+            `観光テスト博物館 ${index + 1}`,
+            `관광 테스트 박물관 ${index + 1}`,
+            43.06 + index * 0.001,
+          ],
+        );
+      }
       const places = (
-        await db.query(`SELECT id,COALESCE(name_ko,name_ja) AS name,name_ja AS "nameJa",category,latitude,longitude,osm_tags AS tags
-        FROM geo_data.place WHERE region_id='sapporo' AND category<>'LODGING'
-        ORDER BY (name_ko IS NOT NULL) DESC,(website IS NOT NULL) DESC LIMIT 5`)
+        await db.query(
+          `SELECT id,COALESCE(name_ko,name_ja) AS name,name_ja AS "nameJa",category,latitude,longitude,osm_tags AS tags
+        FROM geo_data.place WHERE id=ANY($1::text[]) ORDER BY array_position($1::text[],id)`,
+          [fixtureIds],
+        )
       ).rows;
+      expect(places).toHaveLength(5);
       const [first, second, ...additional] = places;
-      await page.request.post('/api/auth/register', {
+      const registered = await page.request.post('/api/auth/register', {
         data: { email, name: '관광 추천 UI', password: 'tourism-ui-password' },
       });
-      const trip = (
-        await (
-          await page.request.post('/api/trips', {
-            data: { title: '공개 관광 자료 검증', startDate: '2026-10-01', days: 1 },
-          })
-        ).json()
-      ).data.id;
+      expect(registered.status(), await registered.text()).toBe(201);
+      const created = await page.request.post('/api/trips', {
+        data: { title: '공개 관광 자료 검증', startDate: '2026-10-01', days: 1 },
+      });
+      expect(created.status(), await created.text()).toBe(201);
+      const trip = (await created.json()).data.id;
       const base = `/api/trips/${trip}/days/2026-10-01`;
-      await page.request.put(base + '/items', {
+      const initialItems = await page.request.put(base + '/items', {
         data: { placeIds: [first.id, second.id], expectedRevision: 0 },
       });
+      expect(initialItems.status(), await initialItems.text()).toBe(200);
       const plan = {
         id: 'KNOWLEDGE',
         label: '공개 자료를 참고한 코스',
@@ -195,7 +214,7 @@ for (const viewport of [
           (p: any) => p.id,
         ),
       ).toEqual([first.id, second.id]);
-      await page.screenshot({ path: `/private/tmp/bookhaedo-tourism-${viewport.width}.png` });
+      await page.screenshot({ path: testInfo.outputPath('tourism-evidence.png') });
       await page.getByLabel('관심 주제', { exact: true }).fill('박물관');
       await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toHaveCount(0);
       await expect(page.getByText('추천 조건이 바뀌었어요.', { exact: false })).toBeVisible();
@@ -213,7 +232,7 @@ for (const viewport of [
       await expect(page.getByText('추천 조건이 바뀌었어요.', { exact: false })).toBeVisible();
       expect(saveRequests).toBe(0);
       await page.screenshot({
-        path: `/private/tmp/bookhaedo-tourism-conditions-${viewport.width}.png`,
+        path: testInfo.outputPath('tourism-conditions.png'),
       });
       expect(
         (await (await page.request.get('/api/trips/' + trip)).json()).data.days[0].items.map(
@@ -263,12 +282,12 @@ for (const viewport of [
         ),
       ).toEqual([first.id, second.id]);
       await page.screenshot({
-        path: `/private/tmp/bookhaedo-tourism-real-429-${viewport.width}.png`,
+        path: testInfo.outputPath('tourism-real-429.png'),
       });
       // Resume fixture previews so the existing confirmation test remains independent of wall time.
       await page.getByRole('button', { name: '다시 조회', exact: true }).click();
       await expect(page.getByRole('button', { name: '이 코스로 하루 교체' })).toBeVisible();
-      await page.screenshot({ path: `/private/tmp/bookhaedo-tourism-kept-${viewport.width}.png` });
+      await page.screenshot({ path: testInfo.outputPath('tourism-kept.png') });
       await page.getByRole('button', { name: '이 코스로 하루 교체' }).click();
       await expect(page.locator('.stop-name')).toHaveCount(3);
       expect(
@@ -279,8 +298,12 @@ for (const viewport of [
       expect(saveRequests).toBe(1);
       expect(errors).toEqual([]);
     } finally {
-      await db.query('DELETE FROM planner.app_user WHERE email=$1', [email]);
-      await db.end();
+      try {
+        await db.query('DELETE FROM planner.app_user WHERE email=$1', [email]);
+        await db.query('DELETE FROM geo_data.place WHERE id=ANY($1::text[])', [fixtureIds]);
+      } finally {
+        await db.end();
+      }
     }
   });
 }
