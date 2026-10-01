@@ -27,13 +27,13 @@ function quality(p: any) {
     (p.tags?.wikipedia ? 1 : 0)
   );
 }
-function center(items: any[]): Point {
+export function center(items: any[]): Point {
   return {
     latitude: items.reduce((n, p) => n + p.latitude, 0) / items.length,
     longitude: items.reduce((n, p) => n + p.longitude, 0) / items.length,
   };
 }
-function nearestOrder(places: any[], anchor: Point) {
+export function nearestOrder(places: any[], anchor: Point) {
   const left = [...places],
     ordered: any[] = [];
   let cursor = anchor;
@@ -136,7 +136,7 @@ export function buildDayPlans(candidates: any[], items: any[], weather: any, cou
     .filter(Boolean);
 }
 
-async function dayContext(tripId: string, date: string, lock = false, db: any = pool) {
+export async function dayContext(tripId: string, date: string, lock = false, db: any = pool) {
   const suffix = lock ? ' FOR UPDATE' : '';
   const day = await db.query(
     `SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2${suffix}`,
@@ -241,10 +241,10 @@ dayAlternatives.patch(
     const date = dateOnly.parse(req.params.date),
       input = orderInput
         .extend({ expectedPlaceIds: z.array(z.string().uuid()).max(30) })
-        .parse(req.body),
-      db = await pool.connect();
+        .parse(req.body);
     if (input.placeIds.length < 2 || input.placeIds.length > 6)
       return res.status(400).json({ error: '하루 코스는 2곳부터 6곳까지 저장할 수 있어요.' });
+    const db = await pool.connect();
     try {
       await db.query('BEGIN');
       const context = await dayContext(req.params.id, date, true, db);

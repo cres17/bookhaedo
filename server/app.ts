@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.js';
 import { catalogRoutes } from './routes/catalog.js';
 import { healthRoutes, probeRoutes } from './routes/health.js';
 import { providerRoutes } from './routes/providers.js';
+import { aiRecommendations } from './routes/ai-recommendations.js';
 import { tripRoutes } from './routes/trips.js';
 
 export function createApp() {
@@ -46,7 +47,7 @@ export function createApp() {
   app.use(authRoutes, catalogRoutes);
   app.use('/api/trips', requireAuth);
   app.use('/api/trips/:id', requireTrip);
-  app.use(tripRoutes, providerRoutes);
+  app.use(tripRoutes, providerRoutes, aiRecommendations);
   app.use('/api', (_req, res) => res.status(404).json({ error: 'API 경로를 찾을 수 없습니다.' }));
   app.use(errorHandler);
   return app;

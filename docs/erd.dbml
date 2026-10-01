@@ -287,3 +287,52 @@ Table planner.rate_limit_bucket {
   reset_at
  }
 }
+
+Table tourism_knowledge.source {
+  id text [pk]
+  publisher text [not null]
+  source_url text [not null]
+  license_id text [not null]
+  license_url text [not null]
+  rights_status text [not null, note: 'approved / permission_pending / withdrawn']
+  enabled boolean [not null, default: false]
+  active_snapshot_id uuid
+}
+Table tourism_knowledge.snapshot {
+  id uuid [pk]
+  source_id text [not null, ref: > tourism_knowledge.source.id]
+  content_sha256 text [not null]
+  parser_version text [not null]
+  fetched_at timestamptz [not null]
+  published_at timestamptz [not null, default: `now()`]
+  record_count integer [not null]
+  indexes { (source_id,id) [unique] }
+}
+Ref: tourism_knowledge.source.(id,active_snapshot_id) > tourism_knowledge.snapshot.(source_id,id)
+Table tourism_knowledge.record {
+  snapshot_id uuid [not null, ref: > tourism_knowledge.snapshot.id]
+  external_id text [not null]
+  kind text [not null, note: 'place / event']
+  region_id text [not null]
+  canonical_place_id text [ref: > geo_data.place.id]
+  title_ja text [not null]
+  description_ja text [not null]
+  resource_url text [not null]
+  content_sha256 text [not null]
+  source_updated_at timestamptz
+  evidence_pointer text [not null]
+  latitude double
+  longitude double
+  location_status text [not null, note: 'provided / missing']
+  start_date date
+  end_date date
+  timezone text [not null, default: 'Asia/Tokyo']
+  date_status text [not null, note: 'confirmed / tentative / recurring / unknown']
+  schedule_raw text [not null]
+  hours_status text [not null, note: 'historical / unknown']
+  valid_from date
+  valid_until date
+  withdrawn_at timestamptz
+  search_text tsvector [note: 'Generated simple full-text vector from title and description; GIN index']
+  indexes { (snapshot_id,external_id) [pk] }
+}

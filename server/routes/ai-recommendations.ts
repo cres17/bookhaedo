@@ -1,0 +1,59 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { dateOnly } from '../domain.js';
+import { dayContext } from '../day-alternatives.js';
+import { wrap } from '../http/async-handler.js';
+import { rateLimits } from '../http/rate-limit.js';
+import { proposeTourism } from '../ai/tourism-graph.js';
+export const aiRecommendations = Router();
+export const recommendationInput = z
+  .object({
+    count: z.number().int().min(3).max(6).default(4),
+    keepPlaceIds: z.array(z.string().uuid()).max(5).default([]),
+    interests: z.string().trim().max(200).default(''),
+    strategy: z.enum(['KNOWLEDGE', 'AUTO', 'INDOOR', 'NEARBY']).optional(),
+  })
+  .strict()
+  .refine(
+    (i) =>
+      new Set(i.keepPlaceIds).size === i.keepPlaceIds.length && i.keepPlaceIds.length <= i.count,
+    '유지할 장소는 중복 없이 방문 장소 수 이내로 선택해주세요.',
+  );
+// createApp applies requireAuth and requireTrip before this router.
+aiRecommendations.post(
+  '/api/trips/:id/days/:date/ai-recommendations',
+  rateLimits.provider(),
+  wrap(async (req, res) => {
+    const date = dateOnly.parse(req.params.date),
+      input = recommendationInput.parse(req.body);
+    const context = await dayContext(req.params.id as string, date);
+    if (!context) return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
+    if (!context.items.length)
+      return res.json({
+        status: 'NEEDS_ANCHOR',
+        plans: [],
+        preview: null,
+        evidence: [],
+        notice: '첫 장소를 담으면 해당 지역의 공개 자료를 함께 확인할 수 있어요.',
+      });
+    if (input.keepPlaceIds.some((id) => !context.items.some((p: any) => p.id === id)))
+      return res.status(400).json({ error: '현재 일정에 있는 장소만 유지할 수 있어요.' });
+    const result = await proposeTourism({
+      requestId: res.locals.requestId,
+      userId: res.locals.user.id,
+      tripId: req.params.id as string,
+      dayId: context.dayId,
+      date,
+      revision: context.revision,
+      items: context.items,
+      regionId: context.items[0].regionId,
+      transportMode: res.locals.trip.transportMode,
+      ...input,
+    });
+    if (input.strategy && !result.preview)
+      return res
+        .status(409)
+        .json({ error: '추천 후보가 변경됐어요. 새 코스를 다시 확인해주세요.' });
+    res.set('Cache-Control', 'no-store').json(result);
+  }),
+);

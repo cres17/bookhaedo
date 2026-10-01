@@ -3554,6 +3554,145 @@
         "operationId": "patch__trips_id_days_date_day_alternatives"
       }
     },
+    "/trips/{id}/days/{date}/ai-recommendations": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "date",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      ],
+      "post": {
+        "summary": "공개 관광 자료와 LangGraph를 이용한 읽기 전용 추천",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIRecommendation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·유지 조건 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "여행 접근 권한·날짜 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "선택 코스 변경",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "요청 제한. Retry-After 후 재시도",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "maximum": 6,
+                    "default": 4
+                  },
+                  "keepPlaceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 5,
+                    "uniqueItems": true
+                  },
+                  "interests": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "default": ""
+                  },
+                  "strategy": {
+                    "type": "string",
+                    "enum": [
+                      "KNOWLEDGE",
+                      "AUTO",
+                      "INDOOR",
+                      "NEARBY"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "소유자 또는 수락한 동행자만 접근. 첫 장소 지역과 현재 일정 중심의 직선 10→15→20km 범위에서 최대 2회 재검색. 승인된 최신 snapshot과 적용 날짜만 참고하고 미확정 행사는 별도 자료로 반환한다. 기본 생성은 규칙 기반이며 외부 LLM을 호출하지 않는다. strategy가 있으면 실제 인접 경로를 조회. 읽기 전용이며 확정은 기존 PATCH day-alternatives에 placeIds,expectedPlaceIds,expectedRevision을 전달한다. 409/428 revision 계약 유지.",
+        "tags": [
+          "여행"
+        ],
+        "operationId": "post__trips_id_days_date_ai_recommendations"
+      }
+    },
     "/places/search-assist": {
       "get": {
         "summary": "한국어 이름을 Google 검색으로 수집 장소에 연결",
@@ -7017,6 +7156,379 @@
             "type": "integer",
             "minimum": 0,
             "description": "조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가"
+          }
+        }
+      },
+      "TourismEvidence": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "snapshotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "placeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "place",
+              "event"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "resourceUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "licenseId": {
+            "type": "string"
+          },
+          "licenseUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceUpdatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "evidencePointer": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "endDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "dateStatus": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "tentative",
+              "recurring",
+              "unknown"
+            ]
+          },
+          "hoursStatus": {
+            "type": "string",
+            "enum": [
+              "historical",
+              "unknown"
+            ]
+          },
+          "locationStatus": {
+            "type": "string",
+            "enum": [
+              "provided",
+              "missing"
+            ]
+          },
+          "scheduleRaw": {
+            "type": "string"
+          }
+        }
+      },
+      "AIRecommendation": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "CATALOG_FALLBACK",
+              "NO_CANDIDATES",
+              "NEEDS_ANCHOR"
+            ]
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expectedPlaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "snapshotIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "engine": {
+            "const": "langgraph"
+          },
+          "generationMode": {
+            "const": "rules"
+          },
+          "searchAttempts": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "weather": {
+            "$ref": "#/components/schemas/Weather"
+          },
+          "weatherMode": {
+            "type": "string",
+            "enum": [
+              "FAIR",
+              "ADVERSE",
+              "UNKNOWN"
+            ]
+          },
+          "plans": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "enum": [
+                    "AUTO",
+                    "INDOOR",
+                    "NEARBY",
+                    "KNOWLEDGE"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "places": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Place"
+                  }
+                },
+                "distanceMeters": {
+                  "type": "number"
+                },
+                "evidenceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "preview": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "enum": [
+                          "AUTO",
+                          "INDOOR",
+                          "NEARBY",
+                          "KNOWLEDGE"
+                        ]
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "reason": {
+                        "type": "string"
+                      },
+                      "places": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Place"
+                        }
+                      },
+                      "distanceMeters": {
+                        "type": "number"
+                      },
+                      "evidenceIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "segments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "from": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "to": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "distanceMeters": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "durationSeconds": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "estimatedCost": {
+                          "type": "null"
+                        },
+                        "costNotice": {
+                          "type": "string"
+                        },
+                        "mode": {
+                          "type": "string"
+                        },
+                        "transitFare": {
+                          "type": [
+                            "string",
+                            "object",
+                            "null"
+                          ]
+                        },
+                        "tolls": {
+                          "type": [
+                            "object",
+                            "null"
+                          ]
+                        },
+                        "costs": {
+                          "type": [
+                            "object",
+                            "null"
+                          ]
+                        },
+                        "polyline": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "valhalla",
+                            "google",
+                            "straight-line",
+                            "unavailable"
+                          ]
+                        },
+                        "notice": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "distanceMeters": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "durationSeconds": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TourismEvidence"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notice": {
+            "type": "string"
           }
         }
       },

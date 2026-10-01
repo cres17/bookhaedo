@@ -1,0 +1,430 @@
+{
+  "checked_at": "2026-10-01T02:41:31.308071+00:00",
+  "sources": [
+    {
+      "source": "furano_places",
+      "page": "https://www.harp.lg.jp/opendata/dataset/2207.html",
+      "resources": [
+        {
+          "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+          "status": 200,
+          "bytes": 31639,
+          "encoding": "utf-8-sig",
+          "rows": 24,
+          "columns": [
+            "全国地方公共団体コード",
+            "ID",
+            "地方公共団体名",
+            "名称",
+            "名称_カナ",
+            "名称_英語",
+            "POIコード",
+            "所在地_全国地方公共団体コード",
+            "所在地_連結表記",
+            "所在地_都道府県",
+            "所在地_市区町村",
+            "所在地_町字",
+            "所在地_番地以下",
+            "建物名等(方書)",
+            "緯度",
+            "経度",
+            "開始時間",
+            "終了時間",
+            "利用可能日時特記事項",
+            "料金(基本)",
+            "料金(詳細)",
+            "説明",
+            "説明_英語",
+            "アクセス方法",
+            "駐車場情報",
+            "車椅子可",
+            "車椅子貸出"
+          ],
+          "sample": [
+            [
+              "012297",
+              "TR0000000001",
+              "北海道富良野市",
+              "五郎の石の家",
+              "ゴロウノイシノイエ",
+              "Goro's Stone House",
+              "1001",
+              "012297",
+              "富良野市東麓郷",
+              "北海道",
+              "富良野市",
+              "東麓郷",
+              "",
+              "",
+              "43.31508",
+              "142.56324",
+              "9:30",
+              "18:00",
+              "2024年度\n2024年4/14(日) ～ 11月24日予定\n4/14(日)～9/30(月) 　9:30～18：00（最終入場17:30）\n10/1(火)～11/24(日) 9:30～16:00 （最終入場15:30）\n※期間中無休\n※11/25より翌年の4月中旬まで冬期間閉鎖\n※日時は変更する場合がございます",
+              "500",
+              "入場料　大人　500円　小学生　300円　\n障がい者手帳提示の方　300円\n3施設共通券1,200円　小学生600円（拾って来た家/麓郷の森/五郎の石の家）\n※入場券は上記３施設のみで購入可能。直接お越しください",
+              "ドラマ「北の国から」「89帰郷」の中で黒板五郎が建てた石の家。富良野岳の過去の活火山のため、畑から大量に出る石を使ったエコロジカルな家です。07年に最初の家が移築されました。この家は黒板一家が最初に住んだ家とされています。最初の家では純と蛍が寝泊まりしていた2階もある。",
+              "Buildings preserved in the locations of the drama \"From the\nNorthern Country\" that was televised for 21 years from 1981.\nYou can enter the houses and see the interior decorations\ncompletely reproduced. The Recycled House was given an\naward of one of the 100 ecological architectural structures\naround the world in 2010 supervised by Public Style\nInstitute(RIPS) Ritsumeikan University College of Science and\nEngineering Professor Takeda Shiro's study, of the recycled\nhouse division. This is an ingeniously contrived house under\nthe concept \"mottainai\". This is a Japanese word used\nworldwide which means ecological ideas that give a new life to\nold things under the concept of recycling.",
+              "ＪＲ富良野駅より約21キロ　バス「麓郷線」終点下車　徒歩40分",
+              "駐車場　乗用車100台・大型バス可",
+              "",
+              ""
+            ],
+            [
+              "012297",
+              "TR0000000002",
+              "北海道富良野市",
+              "ニングルテラス",
+              "ニングルテラス",
+              "Ningle Terrace",
+              "2613",
+              "012297",
+              "富良野市中御料",
+              "北海道",
+              "富良野市",
+              "中御料",
+              "",
+              "新富良野プリンスホテル内",
+              "43.32326",
+              "142.35633",
+              "",
+              "",
+              "2024年度\n4/15(月)～6/30日(日) 11:00 ～ 19:45\n7/1(月)～8/31(土)　 10:00 ～ 20:45\n9/1(日)～11/3（日祝) 11:00 ～ 19:45\n11/30(土)～3/31(月)　12:00 ～ 20:45",
+              "",
+              "",
+              "ニングルとは、脚本家倉本聰氏の舞台「ニングル」に登場する、北海道の森に住む身長15cmくらいの「森の知恵者」。\nニングルテラスは倉本聰氏がプロデュースした、森の中のクラフトマンの村です。\nオリジナル作品を手作りする小さなクラフトショップが14軒あり、ロウソクやペーパークラフトなどの、手作り体験も出来ます。",
+              "Ninguru Terrace is a beautiful collection of boutique cottages, housing specialty arts and crafts along with their creators. The creators sit there in the shops displaying and making more of their products as you wander around. Located just below the New Furano Prince Hotel, Ningle Terrace has been created using natural materials with timber buildings and a beautiful plank walkway around the waterfalls and trees. The forest gives off a beautiful scent with pine trees and the waterfall creating a wonderful atmosphere for wandering around or stopping in the cafe.\nThe cafe serves a range of products including hot and cold drinks, baked milk, cakes and cheese platter and some delicious ice creams.\nWith winter comes a stunning blanket of soft white snow which lines the walkways and leaves huge snow hats on the cottages and snow mushrooms on the trees.\nNinguru Terrace is a different experience again at night with the walkways and buildings lined with fairy lights.\nNinguru Terrace is the perfect place for wandering around and enjoying the sightseeing and beauty, or for getting some perfect souvenirs with a touch of nature and Furano.",
+              "JR富良野駅より車で10分",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "sha256": "ec89f655b76710525e8718ca63d6bf81b224d1e323ec67f4c7fe15e459b48dd2"
+        }
+      ],
+      "api_probe_status": 404
+    },
+    {
+      "source": "furano_events",
+      "page": "https://www.harp.lg.jp/opendata/dataset/2208.html",
+      "resources": [
+        {
+          "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8258/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7.csv",
+          "status": 200,
+          "bytes": 7452,
+          "encoding": "utf-8-sig",
+          "rows": 10,
+          "columns": [
+            "全国地方公共団体コード",
+            "ID",
+            "地方公共団体名",
+            "イベント名",
+            "イベント名_カナ",
+            "コンテンツURL",
+            "キーワード",
+            "開催パターン",
+            "説明",
+            "連絡先名称",
+            "連絡先電話番号",
+            "主催者",
+            "場所名称"
+          ],
+          "sample": [
+            [
+              "012297",
+              "EV0000000001",
+              "北海道富良野市",
+              "富良野岳・原始が原登山会",
+              "フラノダケ・ゲンシガハラトザンカイ",
+              "",
+              "富良野岳原始が原 イベント",
+              "毎年6月に開催",
+              "富良野岳の山開きに合わせて行う登山会。原始ヶ原〜富良野岳〜十勝岳温泉下山の「富良野岳縦走」「滝コース」の上級者コースと、子どもから大人まで参加できる「原始ヶ原探訪」の3コースから選べます。どちらもJR富良野駅前から登山口・ニングルの森までバスで移動。「富良野岳縦走」コースは十勝岳温泉で入浴することができます。\nＪＲ富良野駅前で受付して、バスにて移動となります。",
+              "ふらの観光協会",
+              "0167-23-3388",
+              "",
+              ""
+            ],
+            [
+              "012297",
+              "EV0000000002",
+              "北海道富良野市",
+              "GREAT EARTH 北海道富良野ライド",
+              "グレートアースホッカイドウフラノライド",
+              "https://great-earth.jp/furano_ride/",
+              "アースライド イベント 自転車 サイクリング",
+              "毎年6月に開催",
+              "自転車に乗って雄大な富良野・美瑛エリアの大自然を体感するイベント。自然や文化を楽しみながら、自分のペースでゆったりと参加できます。\n\nロングコース(106km・4エイド)\n富良野市麓郷、上富良野、美瑛エリアを巡る、\n全長 110kmにおよぶダイナミックなロングコース\nショートコース(60km・2エイド)\n富良野市麓郷、上富良野エリアを巡る、全長64kmのショートコース",
+              "GREAT EARTH事務局",
+              "0570-039-846",
+              "富良野ライド実行委員会",
+              ""
+            ]
+          ],
+          "sha256": "862aeace9cad37ba3fe40268f3ac0682494bee4b886cd36f0739a323a9a3127d"
+        }
+      ],
+      "api_probe_status": 404
+    },
+    {
+      "source": "eniwa_events",
+      "page": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+      "resources": [
+        {
+          "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+          "status": 200,
+          "bytes": 2449,
+          "encoding": "cp932",
+          "rows": 19,
+          "columns": [
+            "市区町村コード",
+            "NO",
+            "都道府県名",
+            "市区町村名",
+            "イベント名",
+            "イベント名_カナ",
+            "イベント名_英語",
+            "開始日",
+            "終了日",
+            "開始時間",
+            "終了時間",
+            "開始日時特記事項",
+            "説明",
+            "料金(基本)",
+            "料金(詳細)",
+            "連絡先名称",
+            "連絡先電話番号",
+            "連絡先内線番号",
+            "主催者",
+            "場所名称",
+            "住所",
+            "方書",
+            "緯度",
+            "経度",
+            "アクセス方法",
+            "駐車場情報",
+            "定員",
+            "参加申込終了日",
+            "参加申込終了時間",
+            "参加申込方法",
+            "URL",
+            "備考"
+          ],
+          "sample": [
+            [
+              "012319",
+              "0000000001",
+              "北海道",
+              "恵庭市",
+              "えにわん産業祭",
+              "エニワンサンギョウサイ",
+              "eniwan industry festival",
+              "2026-09-05",
+              "2026-09-05",
+              "10:00",
+              "15:00",
+              "",
+              "恵庭市の農畜産物等の地域資源を活用した商品や、ものづくり企業による優れた製品・技術をＰＲするためのイベントです。市内の企業や飲食店が出店し、恵庭の産業や食を楽しめるほか、子ども用イベントなども開催しております。",
+              "無し",
+              "",
+              "恵庭市経済部商工労働課",
+              "0123-33-3131",
+              "3932",
+              "恵庭市",
+              "花の拠点はなふる",
+              "北海道恵庭市南島松828‐3",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "012319",
+              "0000000002",
+              "北海道",
+              "恵庭市",
+              "えにわマルシェ本開催",
+              "エニワマルシェホンカイサイ",
+              "Eniwa Marche",
+              "2026-08-16",
+              "2026-08-16",
+              "09:00",
+              "18:00",
+              "日時は未確定のため変更の可能性あり。",
+              "えにわマルシェ登録店舗が集まり、オリジナルハンドメイド作品やフード等が販売されます。",
+              "",
+              "",
+              "恵庭市花と緑・観光課",
+              "(0123)33-3131",
+              "2521",
+              "えにわマルシェ実行委員会",
+              "緑と語らいの広場　えにあす",
+              "北海道恵庭市緑町2丁目1番1号",
+              "",
+              "42.879190",
+              "141.582320",
+              "JR恵庭駅から徒歩で約12分",
+              "約110台",
+              "",
+              "",
+              "",
+              "",
+              "https://eniwa-marche.jp/",
+              ""
+            ]
+          ],
+          "sha256": "0d88e1bada43fffa3cb27879f1143def167deb2d02af99139502f15d11a0e3b4"
+        }
+      ],
+      "api_probe_status": 404
+    },
+    {
+      "source": "harp_robots",
+      "url": "https://www.harp.lg.jp/robots.txt",
+      "status": 200,
+      "body": "User-agent: *\nCrawl-delay: 60\n"
+    },
+    {
+      "source": "geofabrik_checksum",
+      "url": "https://download.geofabrik.de/asia/japan/hokkaido-latest.osm.pbf.md5",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "source": "wikivoyage_api",
+      "url": "https://en.wikivoyage.org/w/api.php?action=query&prop=revisions&titles=Hokkaido&rvprop=ids%7Ctimestamp%7Ccontent&rvslots=main&format=json&formatversion=2",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "content_length": null,
+      "revision": {
+        "revid": 5327889,
+        "parentid": 5322420,
+        "timestamp": "2026-08-13T10:47:38Z"
+      },
+      "text_length": 25913
+    },
+    {
+      "source": "commons_imageinfo",
+      "url": "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&titles=File%3AOtaru+Canal01s3.jpg&iiprop=url%7Cextmetadata%7Ctimestamp%7Csha1&format=json&formatversion=2",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "content_length": null,
+      "metadata": [
+        {
+          "timestamp": "2011-12-15T15:34:55Z",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Otaru_Canal01s3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "descriptionurl": "https://commons.wikimedia.org/wiki/File:Otaru_Canal01s3.jpg",
+          "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=17684658",
+          "sha1": "d01ff4bc816f0c6b4ffdb4f7a8f0d975c5695737",
+          "extmetadata": {
+            "DateTime": {
+              "value": "2011-12-15 15:34:55",
+              "source": "mediawiki-metadata",
+              "hidden": ""
+            },
+            "ObjectName": {
+              "value": "Otaru Canal01s3",
+              "source": "mediawiki-metadata"
+            },
+            "CommonsMetadataExtension": {
+              "value": 1.2,
+              "source": "extension",
+              "hidden": ""
+            },
+            "Categories": {
+              "value": "GFDL|Taken with Sony SLT-A55V|License migration redundant|Self-published work|Files with coordinates missing SDC location of creation|Japan photographs taken on 2011-11-25|Otaru Canal at night|Warehouses along the Otaru Canal",
+              "source": "commons-categories",
+              "hidden": ""
+            },
+            "Assessments": {
+              "value": "",
+              "source": "commons-categories",
+              "hidden": ""
+            },
+            "GPSLatitude": {
+              "value": "43.199805",
+              "source": "commons-desc-page"
+            },
+            "GPSLongitude": {
+              "value": "141.001541",
+              "source": "commons-desc-page"
+            },
+            "GPSMapDatum": {
+              "value": "WGS-84",
+              "source": "commons-desc-page",
+              "hidden": ""
+            },
+            "ImageDescription": {
+              "value": "<b><a href=\"https://en.wikipedia.org/wiki/Otaru_Canal\" class=\"extiw\" title=\"en:Otaru Canal\">Otaru_Canal</a></b> in <a href=\"//commons.wikimedia.org/w/index.php?title=Otaru&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"Otaru (page does not exist)\">Otaru</a>, <a href=\"//commons.wikimedia.org/wiki/Hokkaido_prefecture\" class=\"mw-redirect\" title=\"Hokkaido prefecture\">Hokkaido prefecture</a>, Japan",
+              "source": "commons-desc-page"
+            },
+            "DateTimeOriginal": {
+              "value": "2011-11-25",
+              "source": "commons-desc-page"
+            },
+            "Credit": {
+              "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+              "source": "commons-desc-page"
+            },
+            "Artist": {
+              "value": "<a href=\"https://ja.wikipedia.org/wiki/user:663highland\" class=\"extiw\" title=\"ja:user:663highland\">663highland</a>",
+              "source": "commons-desc-page"
+            },
+            "Permission": {
+              "value": "GFDL+creative commons2.5",
+              "source": "commons-desc-page",
+              "hidden": ""
+            },
+            "LicenseShortName": {
+              "value": "CC BY 2.5",
+              "source": "commons-desc-page",
+              "hidden": ""
+            },
+            "UsageTerms": {
+              "value": "Creative Commons Attribution 2.5",
+              "source": "commons-desc-page"
+            },
+            "AttributionRequired": {
+              "value": "true",
+              "source": "commons-desc-page",
+              "hidden": ""
+            },
+            "LicenseUrl": {
+              "value": "https://creativecommons.org/licenses/by/2.5",
+              "source": "commons-desc-page"
+            },
+            "Copyrighted": {
+              "value": "True",
+              "source": "commons-desc-page",
+              "hidden": ""
+            },
+            "Restrictions": {
+              "value": "",
+              "source": "commons-desc-page",
+              "hidden": ""
+            },
+            "License": {
+              "value": "cc-by-2.5",
+              "source": "commons-templates",
+              "hidden": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "source": "geofabrik_pbf_head",
+      "url": "https://download.geofabrik.de/asia/japan/hokkaido-latest.osm.pbf",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "content_length": "189322513"
+    }
+  ]
+}

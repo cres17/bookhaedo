@@ -77,7 +77,7 @@ it('pending migrations block startup and failed DDL rolls back without recording
   try {
     for (const file of await migrationFiles()) await writeFile(dir + '/' + file.name, file.sql);
     await writeFile(
-      dir + '/005_failure.sql',
+      dir + '/' + String((await migrationFiles()).length + 1).padStart(3, '0') + '_failure.sql',
       'CREATE TABLE planner.migration_failure_probe(id integer); SELECT 1/0;',
     );
     await expect(runMigrations(pool, pathToFileURL(dir + '/'), true)).rejects.toThrow(
