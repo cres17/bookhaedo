@@ -1,0 +1,64 @@
+{
+  "checked_at": "2026-10-01T06:48:02.189248+00:00",
+  "base_commit": "3b76cbe8deb6b839dc6961f0aa8efa4ce9f21490",
+  "target_branch": "ver2",
+  "scope": "Registry display metadata synchronization and opt-in snapshot retention tools",
+  "code_sha256": {
+    "server/tourism-knowledge.ts": "9292c8c2bd25ba978106e6bf1536f09586374b5344e9d0acdafaed8e3fe9aa14",
+    "server/tourism-maintenance.ts": "7eeb97392c0651d46b01732315f1120f93f0cb56340fbaa466f5c02c448a7018",
+    "scripts/tourism/sync-sources.ts": "8e6c74da33b93aac6c43681cd4ec99b027d6168232a2be1f911b446e5858481e",
+    "scripts/tourism/prune.ts": "7ddf8193970f34e0e8e7f18ec35c73276f76efe3a8251bf9dd2f38909ffbcf0a",
+    "tests/tourism-knowledge.test.ts": "7d5413eaa08f3d3a85b9ca466790146623739fecab13697a4636bea784fffa2b",
+    "tests/tourism-maintenance.test.ts": "7fcf45948f2ae7d4626276187f29024e2e74afc8fffcae747ffc20deabed885c",
+    "package.json": "467c34969f1bf127e64edda1cc0b9bfe2c624b736749962016090fcd82e7f395",
+    "docs/tourism-langgraph.md": "dcecdc4fcb88c1678f18bb5bc6e2230df11197e335b8e5621815f5a50d349cdc"
+  },
+  "metadata_regression": {
+    "before_fix": {
+      "failed": 1,
+      "passed": 9
+    },
+    "after_fix_knowledge_tests": 12,
+    "preserved_overrides": [
+      "rights_status",
+      "enabled",
+      "active_snapshot_id"
+    ]
+  },
+  "retention_policy": {
+    "default_days": 30,
+    "default_keep_latest_per_source": 3,
+    "always_keep_active": true,
+    "age_column": "published_at",
+    "default_dry_run": true,
+    "automatic_schedule_configured": false
+  },
+  "results": {
+    "vitest": {
+      "files": 30,
+      "passed": 202
+    },
+    "playwright": {
+      "passed": 25
+    },
+    "build": "passed (includes typecheck)",
+    "lint": "passed",
+    "full_format_check": "passed",
+    "spec_check": "passed: 45 paths and 28 DBML tables",
+    "git_diff_check": "passed",
+    "retention_database_tests": 4,
+    "actual_database_cli_preview": {
+      "dryRun": true,
+      "snapshotCount": 0,
+      "recordCount": 0
+    }
+  },
+  "limits": [
+    "Applied retention is tested only on uniquely named fixture sources/snapshots; actual DB uses preview only",
+    "30-day plus latest-three is a configurable tool default; no user-approved automatic deletion schedule is installed",
+    "Database schema and REST responses are unchanged; existing snapshot/record foreign keys provide deletion safeguards",
+    "No live HARP collection/publication, actual-data match-rate measurement or production deployment in this follow-up",
+    "Tourism E2E recommendation/evidence/provider responses are fixtures; confirmation uses real local API/PostgreSQL",
+    "GitHub CI status is recorded separately in Actions for the pushed commit"
+  ]
+}
