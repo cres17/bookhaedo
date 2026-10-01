@@ -3634,11 +3634,32 @@
             }
           },
           "429": {
-            "description": "요청 제한. Retry-After 후 재시도",
+            "description": "추천 POST는 사용자당 60초에 30회. 모든 여행·날짜·로그인 세션이 한도를 공유하며 수락한 동행자는 별도 한도. 초과 시 AI_RECOMMENDATION_RATE_LIMITED. 전역 API 제한이 먼저 적용되면 RATE_LIMITED. Retry-After(초) 이후 재시도. 제한 응답은 추천·경로 생성 전에 반환하며 일정을 변경하지 않는다.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "다시 요청할 때까지 기다릴 초",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "RateLimit": {
+                "description": "현재 적용된 한도·남은 횟수·초 단위 초기화 시간 (draft-7)",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "RateLimit-Policy": {
+                "description": "추천 제한 정책은 30;w=60. 전역 API 제한이 먼저 적용되면 해당 정책을 반환",
+                "schema": {
+                  "type": "string"
                 }
               }
             }

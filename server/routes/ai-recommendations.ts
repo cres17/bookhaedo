@@ -22,7 +22,7 @@ export const recommendationInput = z
 // createApp applies requireAuth and requireTrip before this router.
 aiRecommendations.post(
   '/api/trips/:id/days/:date/ai-recommendations',
-  rateLimits.provider(),
+  rateLimits.aiRecommendation(),
   wrap(async (req, res) => {
     const date = dateOnly.parse(req.params.date),
       input = recommendationInput.parse(req.body);

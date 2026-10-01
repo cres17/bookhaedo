@@ -1,0 +1,82 @@
+{
+  "recordedAt": "2026-10-01T08:44:14.707866+00:00",
+  "baseCommit": "b541ac1fae08105feed7c5890b98cf137828360f",
+  "scope": "Dedicated user-scoped POST AI recommendation budget; GET provider policy unchanged",
+  "policy": {
+    "namespace": "ai-recommendation",
+    "limit": 30,
+    "windowMs": 60000,
+    "key": "authenticated user",
+    "code": "AI_RECOMMENDATION_RATE_LIMITED"
+  },
+  "before": {
+    "newTests": 3,
+    "failed": 3,
+    "firstUnexpectedResponse": {
+      "request": 31,
+      "expected": 429,
+      "actual": 200
+    }
+  },
+  "after": {
+    "newTests": 3,
+    "passed": 3,
+    "allowedRequests": 30,
+    "blockedRequestsVerified": 10,
+    "blockedRange": [
+      31,
+      40
+    ],
+    "verified": [
+      "real authentication and trip membership",
+      "PostgreSQL counter",
+      "shared quota across sessions and trips",
+      "separate accepted-member quota",
+      "independent GET provider quota",
+      "Retry-After, RateLimit, RateLimit-Policy, no-store and requestId",
+      "no dayContext or graph invocation after quota exceeded",
+      "allowance reset after simulated PostgreSQL window expiry"
+    ]
+  },
+  "validation": {
+    "vitest": {
+      "files": 34,
+      "passed": 224
+    },
+    "ciBundle": {
+      "files": 28,
+      "passed": 156
+    },
+    "playwright": {
+      "passed": 27,
+      "publishedDataTests": 2,
+      "real429Viewports": [
+        1440,
+        390
+      ]
+    },
+    "pythonUnittest": {
+      "passed": 20
+    },
+    "build": "passed",
+    "lint": "passed after const declaration correction",
+    "formatCheck": "passed",
+    "specCheck": {
+      "paths": 45,
+      "tables": 28
+    }
+  },
+  "limits": [
+    "The initial UI cards and preview responses in tourism-recommendations.spec.ts are fixtures; the quota warmups, rejection and confirmation use the real REST API and database.",
+    "API limiter tests use empty days to avoid external providers; a call-through spy observes real day lookup and a graph mock detects invocation.",
+    "Actual published-data E2E is opt-in; Playwright is still not a GitHub Actions step.",
+    "No production load or Valhalla process-wide concurrency measurement."
+  ],
+  "sourceSha256": {
+    "server/http/rate-limit.ts": "bf83472be6c99dbccb929df5c469e5bf383960ffbfa0a811962e167398f68972",
+    "server/routes/ai-recommendations.ts": "b1d8b716816cfd7a3a7bff7a24c14128e17aeeddbf5d5b60f40cce5250657033",
+    "tests/ai-recommendation-rate-limit.test.ts": "0627d3a3b09615612a6a0ae4f505a77df4765e26e1ad4e707ca0b16ffba89d3d",
+    "tests/e2e/tourism-recommendations.spec.ts": "98b54435e763053d47d46e62ae7544bbeb5327e5eb61d0433cec3fb6331fc5e6",
+    "scripts/write-api-spec.mjs": "5312e20d19fc5a10550c5672f50da0c6d9a811057224ee03562cf2bd69872bf0"
+  }
+}

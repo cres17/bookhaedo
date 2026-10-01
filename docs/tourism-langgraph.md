@@ -205,3 +205,7 @@ python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
 자체 호스팅/별도 경로 서버에는 전역 1.1초 대기를 적용하지 않고, 명시적으로 설정한 공용 주소에도 공용 간격을 유지한다. 운영의 공용 서버 거절도 같은 주소 판별 함수를 사용한다. 발행과 감사의 명칭·250m·유일 후보 연결 규칙은 `tourism-matching.ts`로 통합했다.
 
 `npm run tourism:compare`는 활성 미연결 시설의 원문 근거와 모든 근접 후보를 읽기 전용으로 출력한다. 실제 명칭 불일치 10건의 대조 메모, 다른 주변 후보 없음 6건의 목록과 승인 대기 상태를 보존했으며 실제 연결을 변경하지 않았다. 전체 Vitest 221개·실제 자료 2개 포함 E2E 27개·Python 20개 및 build·lint·format:check·spec:check를 검증했다. 변경·측정 제약·재실행 명령은 [후속 검증](research/tourism-langgraph-review-5-20261001.md)을 참고한다.
+
+### 2026-10-01 추천 POST 호출 제한 수정
+
+GET 전용 정책을 사용해 관광 추천 POST 집계를 건너뛰던 문제를 수정했다. 추천은 전용 정책으로 사용자당 60초에 30회이며 세션·여행·날짜가 한도를 공유한다. 실제 PostgreSQL·인증 경로에서 31~40번째 429, 동행자별 분리, GET 조회 한도 분리, 만료 초기화를 검증했다. 실제 429를 거치는 데스크톱·모바일 검사로 이전 코스와 일정 보존, 미리보기 제거도 확인했다. 전체 Vitest 224개·E2E 27개·CI 묶음 156개·Python 20개 및 build·lint·format:check·spec:check가 통과했다. [재현과 검증 범위](research/tourism-langgraph-review-6-20261001.md)에 fixture와 실제 API/DB의 경계를 기록했다.

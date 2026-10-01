@@ -127,6 +127,15 @@ export const rateLimits = {
       key: 'user',
       message: '추천 조회가 많아요. 잠시 후 다시 확인해주세요.',
     }),
+  aiRecommendation: () =>
+    createRateLimiter({
+      namespace: 'ai-recommendation',
+      windowMs: 60_000,
+      limit: 30,
+      key: 'user',
+      code: 'AI_RECOMMENDATION_RATE_LIMITED',
+      message: '추천 요청이 많아요. 잠시 후 다시 조회해주세요.',
+    }),
   provider: () =>
     createRateLimiter({
       namespace: 'provider',
