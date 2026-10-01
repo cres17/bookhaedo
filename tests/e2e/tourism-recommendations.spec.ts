@@ -115,6 +115,7 @@ for (const viewport of [
                 fetchedAt: '2026-10-01T00:00:00Z',
                 sourceUpdatedAt: null,
                 hoursStatus: 'historical',
+                dateStatus: 'tentative',
               },
               {
                 id: 'event',
@@ -158,6 +159,7 @@ for (const viewport of [
       await expect(page.getByRole('heading', { name: '함께 확인한 공개 자료' })).toBeVisible();
       await page.getByText('공개 시설 안내', { exact: true }).click();
       await expect(page.getByText('과거 영업시간 포함')).toBeVisible();
+      await expect(page.getByText('개최 미확정 · 변경 가능')).not.toBeVisible();
       await page.getByText('행사 참고 자료 · 행사 참고', { exact: true }).click();
       await expect(page.getByText('개최 미확정 · 변경 가능')).toBeVisible();
       await expect(page.getByText('자료에 좌표 없음')).toBeVisible();

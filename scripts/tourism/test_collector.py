@@ -9,6 +9,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -70,6 +71,18 @@ class Integration(unittest.TestCase):
 
     def collector(self):
         return module.Collector(self.root, self.page, interval=0.04, min_year=2026)
+
+    def test_gate_rechecks_deadline_after_early_wakeup(self):
+        c = self.collector()
+        try:
+            c.db.execute('INSERT INTO gate VALUES (?,?)', (c.origin.netloc, 100.0))
+            c.db.commit()
+            with patch.object(module.time, 'time', side_effect=[100.01, 100.039, 100.04, 100.04]), \
+                 patch.object(module.time, 'sleep') as sleep:
+                self.assertGreaterEqual(c.gate(), 100.04)
+                self.assertEqual(sleep.call_count, 2)
+        finally:
+            c.db.close()
 
     def test_robots_404_stops_before_discovery_and_drops_stale_rules(self):
         c = self.collector(); c.robots()
