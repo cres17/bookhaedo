@@ -1,0 +1,104 @@
+{
+  "checkedAt": "2026-10-02T01:29:25.129006+00:00",
+  "branch": "ver2",
+  "baseCommit": "0a0344014fd8b27d25ce202aa14c62092a6af3c6",
+  "state": "validated_before_commit_and_push",
+  "reviewScope": [
+    "collector and normalization",
+    "publication and withdrawal concurrency",
+    "snapshot retention and migrations",
+    "approved alias and linkage audit",
+    "authenticated recommendation API and frontend request state"
+  ],
+  "validation": {
+    "vitest": {
+      "files": 39,
+      "passed": 275
+    },
+    "ciTestSubsetLocal": {
+      "files": 33,
+      "passed": 207
+    },
+    "python": {
+      "passed": 32
+    },
+    "defaultE2E": {
+      "passed": 25,
+      "skipped": 6
+    },
+    "publishedE2E": {
+      "passed": 6,
+      "regions": [
+        "furano",
+        "hakodate",
+        "sapporo"
+      ]
+    },
+    "publicationConcurrencyRepeated": {
+      "runs": 3,
+      "passedPerKnowledgeFile": 26
+    },
+    "checks": [
+      "build",
+      "lint",
+      "typecheck",
+      "format:check",
+      "spec:check",
+      "fresh database migration and repeat",
+      "legacy withdrawal backfill migration",
+      "git diff --check"
+    ]
+  },
+  "dataPreservation": {
+    "catalogPlaces": 20810,
+    "snapshots": 7,
+    "records": 184,
+    "activeSnapshotsPreserved": true,
+    "withdrawalMarkers": 0,
+    "linkReviews": 0,
+    "runtime": {
+      "postgres": "17.5 (Debian 17.5-1.pgdg110+1)",
+      "postgis": "3.5.2"
+    }
+  },
+  "fixedFindings": [
+    "CLI/library discovery failures persisted to SQLite; normalizer refuses latest failure",
+    "source/external-ID withdrawal persisted through concurrent reprocessing, refresh and retention"
+  ],
+  "additionalCoverage": [
+    "103 synthetic Sapporo CSV rows through collector/normalizer/publisher/search",
+    "CSV hash drift rejects approved aliases",
+    "linked catalog drift reported without silently changing links",
+    "withdrawal rollback atomicity and both concurrent orderings",
+    "dated/undated event exclusions despite cleared snapshot flags",
+    "prior withdrawals backfilled during upgrade"
+  ],
+  "remainingLimits": [
+    "Direct SQL withdrawal concurrent with pruning can encounter transactional deadlock; use the source-first withdrawal CLI",
+    "Withdrawal reapproval/removal policy is not automated",
+    "Synthetic CSV pipeline is not a fresh external collection or current-operation verification",
+    "No new GitHub Actions run or remote push was performed at validation time"
+  ],
+  "sha256": {
+    "db/migrations/006_tourism_withdrawal.sql": "8c349e7e6f82721415a095ace153837ef690edb373633a5a73df38f429b906bf",
+    "docs/erd.dbml": "9834b48b9948b29255248a26c7bf4dda32dc7ce30faeec750c72892ed2d41d22",
+    "docs/tourism-langgraph.md": "d1b48c066660a589ba5b3f8b49753799ab65fb4af3345890599444053190b4e7",
+    "package.json": "05bebb58d75b9c6fc3d30b28b2614cc64fa87698e09dcb674e575ee792e63aca",
+    "scripts/tourism/collector.py": "78602123d75cdeeaf10cf8708eb3fe6885bdbb5c29cb9c63e5b9de0b50cfe28e",
+    "scripts/tourism/normalize.py": "04836928d09fcc58e6e3ab8a42d0c2b2c1f55088d062cf5c0efa5f50098c5eb3",
+    "scripts/tourism/test_normalize.py": "30b7870dea40a99f72ab51f820d6858b12b98bfa8c3134fb695e73243032ed56",
+    "scripts/tourism/test_run_failures.py": "c1b47c042f3bb07362cc7a04d2d4b37e1b360e85e9642e7f7435bcf78d77f873",
+    "scripts/tourism/withdraw.ts": "5fef0439dd604ccac74abdfe5f3f4ea6291576a7691117a2ce35de13cea445df",
+    "server/tourism-comparison.ts": "a21831fea59533e88ed83c3c946b5fb0bceb624e4fe3dae062a4fd146b1c11ca",
+    "server/tourism-knowledge.ts": "abf6ea8b9d9d7a5cf45f6f5a57ce02217ecfffd2905c439063be9959784186f8",
+    "server/tourism-quality.ts": "f20700268202f1ab5de0837645fb2cf3baaba0481338793073b51b338d0ca513",
+    "server/tourism-search.ts": "2e30148b99c9584a71fc9db6343f88eb789c2a1220f4db4828407339bf9edf2c",
+    "server/tourism-withdrawal.ts": "f2f5aaa741439c674e3eb62cf003954940fb54ca680fa2b77ffb0193efcff12b",
+    "tests/migrations.test.ts": "13e3a889fbe58df53ec58581721a287b1d0e1c550fa1149c7ef32b4a7ac3b789",
+    "tests/tourism-alias.test.ts": "b4e7c5946494b1fbfe32c9d2e2396cbb4dabac32e1286a14144399fa5ae467ad",
+    "tests/tourism-comparison.test.ts": "5e6626729c56efe793b624716882a20b647e45dc644a1144c045c31d21b554b4",
+    "tests/tourism-knowledge.test.ts": "989f5ed5f6ba5949cce69ad9f786ba9633e356e74e544c9b14070b62c59c78a8",
+    "tests/tourism-pipeline.test.ts": "5ecfebea0c9ea12c056a4305676629b5be2c78bc55bb4534ec18cdfaa6384504",
+    "tests/tourism-reference.test.ts": "c1741486d3652900e40f9121ba29e6f2d6931467ec7d988e0c4f6038725e3445"
+  }
+}

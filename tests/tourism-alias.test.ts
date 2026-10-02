@@ -154,3 +154,9 @@ it('applies both approved Hokuto spelling aliases, but never conflates the viewp
     ).toBeNull();
   }
 });
+
+it('keeps an alias unlinked after a new CSV hash, even if title and catalog identity stay the same', async () => {
+  const changed = { ...input, contentSha256: 'f'.repeat(64) };
+  const result = await matchTourismFacility(db(), changed, [alias]);
+  expect(result).toMatchObject({ placeId: null, reason: 'NAME_MISMATCH' });
+});

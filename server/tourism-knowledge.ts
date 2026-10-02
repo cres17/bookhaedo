@@ -175,6 +175,11 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
       throw new Error('Source withdrawn or disabled');
     if (previous.fetched_at && new Date(previous.fetched_at).getTime() > fetchedTime)
       throw new Error('Older fetch cannot replace a newer snapshot');
+    const withdrawals = await db.query<{ external_id: string; withdrawn_at: Date }>(
+      'SELECT external_id,withdrawn_at FROM tourism_knowledge.withdrawal WHERE source_id=$1 AND external_id=ANY($2::text[])',
+      [source.id, batch.records.map((r) => r.externalId)],
+    );
+    const withdrawnAt = new Map(withdrawals.rows.map((r) => [r.external_id, r.withdrawn_at]));
     if (reprocessSnapshotId !== undefined) {
       if (
         previous.id !== reprocessSnapshotId ||
@@ -188,7 +193,8 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
         'SELECT 1 FROM tourism_knowledge.record WHERE snapshot_id=$1 AND withdrawn_at IS NOT NULL LIMIT 1',
         [previous.id],
       );
-      if (withdrawn.rowCount) throw new Error('Cannot reprocess a snapshot with withdrawn records');
+      if (withdrawn.rowCount || withdrawnAt.size)
+        throw new Error('Cannot reprocess a snapshot with withdrawn records');
     }
     if (
       reprocessSnapshotId === undefined &&
@@ -214,8 +220,8 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
         `INSERT INTO tourism_knowledge.record
         (snapshot_id,external_id,kind,region_id,canonical_place_id,title_ja,description_ja,resource_url,
         content_sha256,source_updated_at,evidence_pointer,latitude,longitude,location_status,
-        start_date,end_date,timezone,date_status,schedule_raw,hours_status,valid_from,valid_until)
-        VALUES(${Array.from({ length: 22 }, (_, i) => '$' + (i + 1)).join(',')})`,
+        start_date,end_date,timezone,date_status,schedule_raw,hours_status,valid_from,valid_until,withdrawn_at)
+        VALUES(${Array.from({ length: 23 }, (_, i) => '$' + (i + 1)).join(',')})`,
         [
           snapshotId,
           r.externalId,
@@ -239,6 +245,7 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
           r.hoursStatus,
           r.validFrom,
           r.validUntil,
+          withdrawnAt.get(r.externalId) ?? null,
         ],
       );
     }

@@ -69,7 +69,7 @@ export async function searchTourism(input: TourismSearchInput): Promise<SearchRe
     FROM tourism_knowledge.record r JOIN tourism_knowledge.snapshot v ON v.id=r.snapshot_id
     JOIN tourism_knowledge.source s ON s.id=v.source_id
     WHERE r.snapshot_id=ANY($1::uuid[]) AND s.active_snapshot_id=r.snapshot_id
-    AND s.id=ANY($6::text[]) AND s.enabled AND s.rights_status='approved' AND r.withdrawn_at IS NULL AND r.region_id=$2
+    AND s.id=ANY($6::text[]) AND s.enabled AND s.rights_status='approved' AND r.withdrawn_at IS NULL AND NOT EXISTS (SELECT 1 FROM tourism_knowledge.withdrawal w WHERE w.source_id=s.id AND w.external_id=r.external_id) AND r.region_id=$2
     AND v.fetched_at>=now()-interval '90 days'
     AND (r.valid_from IS NULL OR r.valid_from<=$3::date) AND (r.valid_until IS NULL OR r.valid_until>=$3::date)
     AND (r.kind='event' OR r.canonical_place_id=ANY($5::text[]))
@@ -93,7 +93,7 @@ export async function searchTourism(input: TourismSearchInput): Promise<SearchRe
     JOIN tourism_knowledge.source s ON s.id=v.source_id
     WHERE r.snapshot_id=ANY($1::uuid[]) AND s.active_snapshot_id=r.snapshot_id
     AND s.id=ANY($4::text[]) AND s.enabled AND s.rights_status='approved'
-    AND r.withdrawn_at IS NULL AND r.region_id=$2 AND v.fetched_at>=now()-interval '90 days'
+    AND r.withdrawn_at IS NULL AND NOT EXISTS (SELECT 1 FROM tourism_knowledge.withdrawal w WHERE w.source_id=s.id AND w.external_id=r.external_id) AND r.region_id=$2 AND v.fetched_at>=now()-interval '90 days'
     AND (r.valid_from IS NULL OR r.valid_from<=$3::date) AND (r.valid_until IS NULL OR r.valid_until>=$3::date)
     AND r.kind='event' AND r.date_status IN ('recurring','unknown')
     AND r.start_date IS NULL AND r.end_date IS NULL

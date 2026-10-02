@@ -336,3 +336,13 @@ Table tourism_knowledge.record {
   search_text tsvector [note: 'Generated simple full-text vector from title and description; GIN index']
   indexes { (snapshot_id,external_id) [pk] }
 }
+
+Table tourism_knowledge.withdrawal {
+  source_id text [not null, ref: > tourism_knowledge.source.id]
+  external_id text [not null]
+  withdrawn_at timestamptz [not null]
+  indexes {
+    (source_id, external_id) [pk]
+  }
+  Note: 'Source and stable external ID withdrawal survives snapshot replacement and retention. Record UPDATE trigger persists withdrawals and updates the current active record. Source FK cascades only when the entire source is deleted.'
+}

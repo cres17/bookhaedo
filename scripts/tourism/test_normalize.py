@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import unittest
+from contextlib import closing
 from pathlib import Path
 from normalize import normalize_csv, normalize_report
 
@@ -73,7 +74,7 @@ class Normalize(unittest.TestCase):
                         'key':'event2026.csv','sha256':digest,'year':2026}
             report = {'source':'eniwa-events','started_at':'2026-10-01T00:00:00Z',
                       'resources_found':1,'resources':[resource],'errors':[]}
-            with sqlite3.connect(root / 'state.sqlite') as db:
+            with closing(sqlite3.connect(root / 'state.sqlite')) as db, db:
                 db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY, source TEXT, report TEXT)')
                 db.execute('INSERT INTO runs(source,report) VALUES (?,?)',('eniwa-events',json.dumps(report)))
             self.assertEqual(normalize_report(root,'eniwa-events',2026)['records'][0]['externalId'],'0000000001')
@@ -84,7 +85,7 @@ class Normalize(unittest.TestCase):
                 normalize_report(root,'eniwa-events',2026)
             blob.write_bytes(body)
             report['errors'] = [{'error':'503'}]
-            with sqlite3.connect(root / 'state.sqlite') as db:
+            with closing(sqlite3.connect(root / 'state.sqlite')) as db, db:
                 db.execute('INSERT INTO runs(source,report) VALUES (?,?)',('eniwa-events',json.dumps(report)))
             with self.assertRaisesRegex(ValueError,'Incomplete collector run'):
                 normalize_report(root,'eniwa-events',2026)
@@ -102,7 +103,7 @@ class Normalize(unittest.TestCase):
             blob.parent.mkdir(parents=True); blob.write_bytes(body)
             resource = {'url':source['resourceUrl'],'key':'012360_torurism_20260826.csv','sha256':digest}
             report = {'source':'hokuto-places','started_at':'2026-10-01T00:00:00Z','resources_found':1,'resources':[resource],'errors':[]}
-            with sqlite3.connect(root / 'state.sqlite') as db:
+            with closing(sqlite3.connect(root / 'state.sqlite')) as db, db:
                 db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY, source TEXT, report TEXT)')
                 db.execute('INSERT INTO runs(source,report) VALUES (?,?)',('hokuto-places',json.dumps(report)))
             result = normalize_report(root,'hokuto-places')
@@ -110,7 +111,7 @@ class Normalize(unittest.TestCase):
             self.assertEqual(result['records'][0]['regionId'],'hakodate')
             self.assertIsNone(result['records'][0]['sourceUpdatedAt'])
             report['resources'][0]['url'] = 'https://www.harp.lg.jp/opendata/dataset/1657/resource/old/old.csv'
-            with sqlite3.connect(root / 'state.sqlite') as db:
+            with closing(sqlite3.connect(root / 'state.sqlite')) as db, db:
                 db.execute('INSERT INTO runs(source,report) VALUES (?,?)',('hokuto-places',json.dumps(report)))
             with self.assertRaisesRegex(ValueError,'Resource version is not approved'):
                 normalize_report(root,'hokuto-places')
@@ -146,8 +147,8 @@ class Normalize(unittest.TestCase):
             root=Path(tmp);blob=root/'blobs'/sha/'source.csv';blob.parent.mkdir(parents=True);blob.write_bytes(body)
             report={'started_at':'2026-10-02T00:00:00Z','resources_found':1,'errors':[],'resources':[{'url':source['resourceUrl'],'key':'011002_tourism.csv','sha256':sha}]}
             def insert():
-                with sqlite3.connect(root/'state.sqlite') as db:db.execute('INSERT INTO runs(source,report) VALUES (?,?)',(source['id'],json.dumps(report)))
-            with sqlite3.connect(root/'state.sqlite') as db:db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY,source TEXT,report TEXT)')
+                with closing(sqlite3.connect(root/'state.sqlite')) as db, db:db.execute('INSERT INTO runs(source,report) VALUES (?,?)',(source['id'],json.dumps(report)))
+            with closing(sqlite3.connect(root/'state.sqlite')) as db, db:db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY,source TEXT,report TEXT)')
             insert();self.assertEqual(normalize_report(root,source['id'])['parserVersion'],'sapporo-csv-v1')
             report['resources'][0]['url']=source['resourceUrl'].replace('011002_tourism.csv','other.csv');insert()
             with self.assertRaisesRegex(ValueError,'allowlist'):normalize_report(root,source['id'])

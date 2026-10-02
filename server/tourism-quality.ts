@@ -33,7 +33,7 @@ count(*) FILTER (WHERE r.kind='event')::int AS events,
 count(*) FILTER (WHERE r.kind='place' AND r.latitude IS NOT NULL AND r.longitude IS NOT NULL)::int AS "facilitiesWithCoordinates",
 count(*) FILTER (WHERE r.kind='place' AND r.canonical_place_id IS NOT NULL)::int AS "linkedFacilities",
 count(*) FILTER (WHERE r.kind='event' AND r.latitude IS NOT NULL AND r.longitude IS NOT NULL)::int AS "eventsWithCoordinates",
-count(*) FILTER (WHERE r.kind='event' AND r.date_status IN ('confirmed','tentative') AND r.start_date<=$2::date AND r.end_date>=$2::date AND r.withdrawn_at IS NULL AND s.enabled AND s.rights_status='approved' AND v.fetched_at>=now()-interval '90 days' AND (r.valid_from IS NULL OR r.valid_from<=$2::date) AND (r.valid_until IS NULL OR r.valid_until>=$2::date))::int AS "eligibleEventsOnDate",
+count(*) FILTER (WHERE r.kind='event' AND r.date_status IN ('confirmed','tentative') AND r.start_date<=$2::date AND r.end_date>=$2::date AND r.withdrawn_at IS NULL AND NOT EXISTS (SELECT 1 FROM tourism_knowledge.withdrawal w WHERE w.source_id=s.id AND w.external_id=r.external_id) AND s.enabled AND s.rights_status='approved' AND v.fetched_at>=now()-interval '90 days' AND (r.valid_from IS NULL OR r.valid_from<=$2::date) AND (r.valid_until IS NULL OR r.valid_until>=$2::date))::int AS "eligibleEventsOnDate",
 count(*) FILTER (WHERE r.kind='event' AND r.end_date<$2::date)::int AS "endedEventsBeforeDate",
 count(*) FILTER (WHERE r.kind='event' AND (r.start_date IS NULL OR r.end_date IS NULL))::int AS "eventsWithoutExplicitPeriod",
 count(*) FILTER (WHERE r.date_status='tentative')::int AS tentative,
@@ -42,7 +42,7 @@ count(*) FILTER (WHERE r.date_status='recurring')::int AS recurring,
 count(*) FILTER (WHERE r.date_status='unknown')::int AS "unknownDates",
 count(*) FILTER (WHERE r.hours_status='historical')::int AS "historicalHours",
 count(*) FILTER (WHERE r.source_updated_at IS NULL)::int AS "unknownSourceUpdatedAt",
-count(*) FILTER (WHERE r.withdrawn_at IS NOT NULL)::int AS withdrawn
+count(*) FILTER (WHERE r.withdrawn_at IS NOT NULL OR EXISTS (SELECT 1 FROM tourism_knowledge.withdrawal w WHERE w.source_id=s.id AND w.external_id=r.external_id))::int AS withdrawn
 FROM tourism_knowledge.source s JOIN tourism_knowledge.snapshot v ON v.id=s.active_snapshot_id
 LEFT JOIN tourism_knowledge.record r ON r.snapshot_id=v.id
 WHERE s.id=ANY($1::text[]) GROUP BY s.id,v.id ORDER BY s.id`;
@@ -85,8 +85,12 @@ export async function auditTourismData(
       let reason = 'LINKED';
       let nearby: TourismMatchCandidate[] = [];
       let sameName: SameNameCandidate[] = [];
+      const match = await matchTourismFacility(db, { ...r, kind: 'place' });
+      if (r.placeId && match.placeId !== r.placeId) {
+        reason = 'LINK_REVIEW_REQUIRED';
+        nearby = match.nearby;
+      }
       if (!r.placeId) {
-        const match = await matchTourismFacility(db, { ...r, kind: 'place' });
         reason = match.placeId ? 'ELIGIBLE_BUT_UNLINKED' : match.reason;
         nearby = match.nearby;
         if (match.reason !== 'MISSING_COORDINATES') {
@@ -109,7 +113,13 @@ export async function auditTourismData(
                   : match.reason;
         }
       }
-      diagnostics.push({ ...r, reason, nearby, sameName });
+      diagnostics.push({
+        ...r,
+        reason,
+        nearby,
+        sameName,
+        currentMatch: { placeId: match.placeId, reason: match.reason },
+      });
     }
     const counts = (
       await db.query(`SELECT (SELECT count(*)::int FROM geo_data.place) AS "catalogPlaces",
@@ -121,7 +131,7 @@ export async function auditTourismData(
       checkedAt: new Date().toISOString(),
       targetDate: date,
       grain: 'sourceId + externalId in the active snapshot',
-      matchingRule: `Exact NFKC/punctuation-normalized name + unique same-region catalog candidate within ${TOURISM_MATCH_RADIUS_METERS}m`,
+      matchingRule: `Exact unique normalized name or approved alias fingerprint + same-region catalog candidate within ${TOURISM_MATCH_RADIUS_METERS}m`,
       counts,
       profile,
       diagnostics,
