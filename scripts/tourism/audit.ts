@@ -14,6 +14,7 @@ try {
       {
         counts: report.counts,
         profile: report.profile,
+        aliasReviews: report.diagnostics.flatMap((r) => (r.aliasReview ? [r.aliasReview] : [])),
         unlinkedReasons: report.diagnostics.reduce<Record<string, number>>((counts, r) => {
           counts[r.reason] = (counts[r.reason] ?? 0) + 1;
           return counts;

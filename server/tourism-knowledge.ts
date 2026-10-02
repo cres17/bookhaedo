@@ -1,4 +1,13 @@
-import { matchTourismFacility } from './tourism-matching.js';
+import {
+  approvedSourcePolicy,
+  approvedResourceUrl,
+  resourceBelongsToSource,
+} from './tourism-source-policy.js';
+import {
+  approvedTourismAliases,
+  matchTourismFacility,
+  type AliasReview,
+} from './tourism-matching.js';
 export { normalizedTourismName } from './tourism-matching.js';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -7,22 +16,7 @@ import type { Pool, PoolClient } from 'pg';
 import { dateOnly, regions } from './domain.js';
 
 const nullableDate = dateOnly.nullable();
-const resourceUrl = z
-  .string()
-  .url()
-  .refine((value) => {
-    const u = new URL(value);
-    return (
-      u.protocol === 'https:' &&
-      ((u.host === 'www.harp.lg.jp' && u.pathname.startsWith('/opendata/dataset/')) ||
-        (u.host === 'ckan.pf-sapporo.jp' &&
-          u.pathname.startsWith('/dataset/a467875c-db25-4477-ba1f-16964fc5a7bd/resource/'))) &&
-      !u.username &&
-      !u.password &&
-      !u.search &&
-      !u.hash
-    );
-  }, 'Unapproved resource URL');
+const resourceUrl = z.url().refine(approvedResourceUrl, 'Unapproved resource URL');
 export const tourismRecordInput = z
   .object({
     externalId: z.string().min(1).max(150),
@@ -133,7 +127,8 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
     !source?.enabled ||
     source.rightsStatus !== 'approved' ||
     !source.licenseId ||
-    !source.licenseUrl
+    !source.licenseUrl ||
+    !approvedSourcePolicy(source)
   )
     throw new Error('Source permission is not approved');
   if (batch.parserVersion !== (source.parserVersion ?? 'harp-csv-v1'))
@@ -145,13 +140,7 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
       (r) =>
         r.regionId !== source.regionId ||
         r.kind !== source.kind ||
-        (source.resourceUrl && r.resourceUrl !== source.resourceUrl) ||
-        new URL(r.resourceUrl).origin !== new URL(source.sourceUrl).origin ||
-        (new URL(source.sourceUrl).host === 'www.harp.lg.jp'
-          ? !new URL(r.resourceUrl).pathname.startsWith(
-              new URL(source.sourceUrl).pathname.replace('.html', '/'),
-            )
-          : !source.resourceUrl),
+        !resourceBelongsToSource(source, r.resourceUrl),
     )
   )
     throw new Error('Record is outside its registered source');
@@ -196,13 +185,32 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
       if (withdrawn.rowCount || withdrawnAt.size)
         throw new Error('Cannot reprocess a snapshot with withdrawn records');
     }
+    const aliasReviews: AliasReview[] = [];
     if (
       reprocessSnapshotId === undefined &&
       previous.content_sha256 === hash &&
       new Date(previous.fetched_at).getTime() === fetchedTime
     ) {
+      const reviewedIds = new Set(
+        (await approvedTourismAliases())
+          .filter((a) => a.sourceId === source.id)
+          .map((a) => a.externalId),
+      );
+      for (const r of batch.records.filter((r) => reviewedIds.has(r.externalId))) {
+        const match = await matchTourismFacility(db, {
+          ...r,
+          sourceId: source.id,
+          title: r.titleJa,
+        });
+        if (match.aliasReview) aliasReviews.push(match.aliasReview);
+      }
       await db.query('COMMIT');
-      return { snapshotId: previous.id as string, records: batch.records.length, unchanged: true };
+      return {
+        snapshotId: previous.id as string,
+        records: batch.records.length,
+        unchanged: true,
+        aliasReviews,
+      };
     }
     const snapshotId = randomUUID();
     await db.query(
@@ -211,11 +219,12 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
       [snapshotId, source.id, hash, batch.parserVersion, batch.fetchedAt, batch.records.length],
     );
     for (const r of batch.records) {
-      const { placeId } = await matchTourismFacility(db, {
+      const { placeId, aliasReview } = await matchTourismFacility(db, {
         ...r,
         sourceId: source.id,
         title: r.titleJa,
       });
+      if (aliasReview) aliasReviews.push(aliasReview);
       await db.query(
         `INSERT INTO tourism_knowledge.record
         (snapshot_id,external_id,kind,region_id,canonical_place_id,title_ja,description_ja,resource_url,
@@ -254,7 +263,7 @@ export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSna
       snapshotId,
     ]);
     await db.query('COMMIT');
-    return { snapshotId, records: batch.records.length, unchanged: false };
+    return { snapshotId, records: batch.records.length, unchanged: false, aliasReviews };
   } catch (e) {
     await db.query('ROLLBACK');
     throw e;

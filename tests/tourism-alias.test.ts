@@ -46,6 +46,7 @@ it.each([
   { name: 'different catalog' },
   { website: 'https://example.test' },
   { distanceMeters: 251 },
+  { distanceMeters: NaN },
   { regionId: 'other' },
 ])('fails closed after catalog changes: %j', async (change) => {
   expect(
@@ -159,4 +160,57 @@ it('keeps an alias unlinked after a new CSV hash, even if title and catalog iden
   const changed = { ...input, contentSha256: 'f'.repeat(64) };
   const result = await matchTourismFacility(db(), changed, [alias]);
   expect(result).toMatchObject({ placeId: null, reason: 'NAME_MISMATCH' });
+});
+
+it.each([
+  {
+    patch: { contentSha256: 'e'.repeat(64) },
+    candidate: row,
+    reason: 'ALIAS_SOURCE_CHANGED',
+    fields: ['contentSha256'],
+  },
+  {
+    patch: {},
+    candidate: { ...row, category: 'OTHER' },
+    reason: 'ALIAS_CATALOG_CHANGED',
+    fields: ['category'],
+  },
+])(
+  'explains a rejected alias without weakening the matching rule: $reason',
+  async ({ patch, candidate, reason, fields }) => {
+    const result = await matchTourismFacility(db([candidate]), { ...input, ...patch }, [alias]);
+    expect(result.placeId).toBeNull();
+    expect(result.aliasReview).toMatchObject({
+      sourceId: alias.sourceId,
+      externalId: alias.externalId,
+      placeId: alias.placeId,
+      reason,
+      changedFields: fields,
+    });
+  },
+);
+it('explains a missing reviewed candidate and missing source coordinates', async () => {
+  expect((await matchTourismFacility(db([]), input, [alias])).aliasReview?.reason).toBe(
+    'ALIAS_CANDIDATE_UNAVAILABLE',
+  );
+  expect(
+    (await matchTourismFacility(db(), { ...input, latitude: null }, [alias])).aliasReview?.reason,
+  ).toBe('ALIAS_MISSING_COORDINATES');
+});
+it('does not warn about a stopped link when an exact unique name still links after CSV change', async () => {
+  const result = await matchTourismFacility(
+    db([{ ...row, name: input.title }]),
+    { ...input, contentSha256: 'e'.repeat(64) },
+    [alias],
+  );
+  expect(result).toMatchObject({ placeId: alias.placeId, reason: 'MATCHED' });
+  expect(result.aliasReview).toBeUndefined();
+});
+it('does not apply or hide ambiguity behind a reviewed alias', async () => {
+  const exact = { ...row, name: input.title };
+  const result = await matchTourismFacility(db([exact, { ...exact, id: 'second' }]), input, [
+    alias,
+  ]);
+  expect(result).toMatchObject({ placeId: null, reason: 'AMBIGUOUS_MATCH' });
+  expect(result.aliasReview?.reason).toBe('ALIAS_AMBIGUOUS');
 });

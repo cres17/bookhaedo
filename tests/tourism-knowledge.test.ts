@@ -823,3 +823,36 @@ it('rejects unknown withdrawal IDs without persisting a block', async () => {
     ).rowCount,
   ).toBe(0);
 });
+
+it('returns the same rejected-alias diagnostic on publication, unchanged publication and audit', async () => {
+  const reviewed = (await import('../server/tourism-matching')).approvedTourismAliases;
+  const alias = (await reviewed()).find((a) => a.sourceId === 'furano-places')!;
+  const raw = batch([
+    facility({ externalId: alias.externalId, titleJa: alias.title, contentSha256: 'e'.repeat(64) }),
+  ]);
+  const result = await publish(raw);
+  const expected = {
+    sourceId: alias.sourceId,
+    externalId: alias.externalId,
+    placeId: alias.placeId,
+    reason: 'ALIAS_SOURCE_CHANGED',
+    changedFields: ['contentSha256'],
+  };
+  expect(result.aliasReviews).toEqual([expected]);
+  const unchanged = await publishTourismBatch(pool, raw);
+  expect(unchanged).toMatchObject({ unchanged: true, aliasReviews: [expected] });
+  const audit = await auditTourismData(pool, '2026-10-01');
+  expect(
+    audit.diagnostics.find(
+      (r) => r.sourceId === alias.sourceId && r.externalId === alias.externalId,
+    )?.aliasReview,
+  ).toEqual(expected);
+  expect(
+    (
+      await pool.query(
+        'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+        [result.snapshotId],
+      )
+    ).rows[0].canonical_place_id,
+  ).toBeNull();
+});
