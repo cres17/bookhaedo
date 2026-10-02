@@ -14,10 +14,13 @@ const resourceUrl = z
     const u = new URL(value);
     return (
       u.protocol === 'https:' &&
-      u.host === 'www.harp.lg.jp' &&
+      ((u.host === 'www.harp.lg.jp' && u.pathname.startsWith('/opendata/dataset/')) ||
+        (u.host === 'ckan.pf-sapporo.jp' &&
+          u.pathname.startsWith('/dataset/a467875c-db25-4477-ba1f-16964fc5a7bd/resource/'))) &&
       !u.username &&
       !u.password &&
-      u.pathname.startsWith('/opendata/dataset/')
+      !u.search &&
+      !u.hash
     );
   }, 'Unapproved resource URL');
 export const tourismRecordInput = z
@@ -60,7 +63,7 @@ export const tourismRecordInput = z
 export const tourismBatchInput = z
   .object({
     sourceId: z.string().min(1).max(100),
-    parserVersion: z.literal('harp-csv-v1'),
+    parserVersion: z.enum(['harp-csv-v1', 'sapporo-csv-v1']),
     fetchedAt: z.iso.datetime({ offset: true }),
     records: z.array(tourismRecordInput).min(1).max(10000),
   })
@@ -71,6 +74,7 @@ export const sourceRegistry = async () =>
     publisher: string;
     sourceUrl: string;
     resourceUrl?: string;
+    parserVersion?: string;
     licenseId: string | null;
     licenseUrl: string | null;
     rightsStatus: string;
@@ -121,7 +125,8 @@ export async function syncTourismSources(pool: Pool) {
   }
 }
 
-export async function publishTourismBatch(pool: Pool, raw: unknown) {
+export async function publishTourismBatch(pool: Pool, raw: unknown, reprocessSnapshotId?: string) {
+  if (reprocessSnapshotId !== undefined) z.uuid().parse(reprocessSnapshotId);
   const batch = tourismBatchInput.parse(raw);
   const source = (await sourceRegistry()).find((s) => s.id === batch.sourceId);
   if (
@@ -131,6 +136,8 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
     !source.licenseUrl
   )
     throw new Error('Source permission is not approved');
+  if (batch.parserVersion !== (source.parserVersion ?? 'harp-csv-v1'))
+    throw new Error('Parser version is outside its registered source');
   if (new Set(batch.records.map((r) => r.externalId)).size !== batch.records.length)
     throw new Error('Ambiguous stable IDs');
   if (
@@ -139,9 +146,12 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
         r.regionId !== source.regionId ||
         r.kind !== source.kind ||
         (source.resourceUrl && r.resourceUrl !== source.resourceUrl) ||
-        !new URL(r.resourceUrl).pathname.startsWith(
-          new URL(source.sourceUrl).pathname.replace('.html', '/'),
-        ),
+        new URL(r.resourceUrl).origin !== new URL(source.sourceUrl).origin ||
+        (new URL(source.sourceUrl).host === 'www.harp.lg.jp'
+          ? !new URL(r.resourceUrl).pathname.startsWith(
+              new URL(source.sourceUrl).pathname.replace('.html', '/'),
+            )
+          : !source.resourceUrl),
     )
   )
     throw new Error('Record is outside its registered source');
@@ -165,7 +175,23 @@ export async function publishTourismBatch(pool: Pool, raw: unknown) {
       throw new Error('Source withdrawn or disabled');
     if (previous.fetched_at && new Date(previous.fetched_at).getTime() > fetchedTime)
       throw new Error('Older fetch cannot replace a newer snapshot');
+    if (reprocessSnapshotId !== undefined) {
+      if (
+        previous.id !== reprocessSnapshotId ||
+        previous.content_sha256 !== hash ||
+        new Date(previous.fetched_at).getTime() !== fetchedTime
+      )
+        throw new Error(
+          'Reprocessing requires the unchanged active snapshot, content and fetch time',
+        );
+      const withdrawn = await db.query(
+        'SELECT 1 FROM tourism_knowledge.record WHERE snapshot_id=$1 AND withdrawn_at IS NOT NULL LIMIT 1',
+        [previous.id],
+      );
+      if (withdrawn.rowCount) throw new Error('Cannot reprocess a snapshot with withdrawn records');
+    }
     if (
+      reprocessSnapshotId === undefined &&
       previous.content_sha256 === hash &&
       new Date(previous.fetched_at).getTime() === fetchedTime
     ) {

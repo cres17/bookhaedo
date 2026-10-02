@@ -237,6 +237,43 @@ class Integration(unittest.TestCase):
         calls = self.state['calls']
         self.assertGreaterEqual(calls[-1]['start'] - calls[-2]['start'], 0.99)
 
+    def test_sapporo_origin_requires_registry_page_and_pinned_csv(self):
+        source=module.REGISTERED['sapporo-places']
+        c=module.Collector(self.root,source['sourceUrl'],interval=0,resource_url=source['resourceUrl'])
+        self.assertEqual(c.interval,10)
+        c.db.close()
+        for page,resource in [(source['sourceUrl'],None),(source['sourceUrl']+'/other',source['resourceUrl']),(source['sourceUrl'].replace('ckan.pf-sapporo.jp','ckan.pf-sapporo.jp.example.test'),source['resourceUrl'])]:
+            with self.assertRaisesRegex(ValueError,'Only approved'):
+                module.Collector(self.root,page,resource_url=resource)
+
+    def test_ckan_api_disallow_and_pin_keep_other_files_out(self):
+        self.state['robots']='User-agent: *\nDisallow: /api/\n'
+        c=self.collector(); c.resource_url=self.page.replace('/dataset.html','/event2026.csv'); c.robots()
+        before=len(self.state['calls'])
+        with self.assertRaisesRegex(ValueError,'disallows'):
+            c.fetch(self.page.replace('/dataset.html','/api/3/action/package_show'))
+        self.assertEqual(len(self.state['calls']),before)
+        report=c.run('fixture')
+        self.assertEqual(len(report['resources']),1)
+        self.assertEqual(report['resources'][0]['url'],c.resource_url)
+        c.db.close()
+
+    def test_conditional_timeout_retries_without_validators_and_never_returns_stale_body(self):
+        c=self.collector();c.robots();c.run('fixture');self.state['changed']=True
+        real_build=module.urllib.request.build_opener
+        headers=[]
+        class Wrapper:
+            def __init__(self,opener):self.opener=opener
+            def open(self,request,**kwargs):
+                headers.append(dict(request.header_items()))
+                if request.has_header('If-none-match'):raise TimeoutError('fixture conditional timeout')
+                return self.opener.open(request,**kwargs)
+        with patch.object(module.urllib.request,'build_opener',side_effect=lambda *args:Wrapper(real_build(*args))):
+            body,status=c.fetch(self.page.replace('/dataset.html','/event2026.csv'))
+        self.assertEqual(status,200);self.assertIn('変更',body.decode())
+        self.assertIn('If-none-match',headers[0]);self.assertNotIn('If-none-match',headers[1])
+        c.db.close()
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

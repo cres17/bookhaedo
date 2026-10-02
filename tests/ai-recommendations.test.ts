@@ -15,6 +15,20 @@ vi.mock('../server/routing', async (original) => ({
     durationSeconds: null,
   })),
 }));
+// These cases intentionally exercise the no-knowledge fallback. Keep real DB candidates,
+// authentication and confirmation, but isolate knowledge absence from local published data.
+vi.mock('../server/tourism-search', async (original) => {
+  const module = await original<any>();
+  return {
+    ...module,
+    searchTourism: vi.fn(async (input: any) => ({
+      ...(await module.searchTourism(input)),
+      evidence: [],
+      snapshotIds: [],
+      referenceEvents: [],
+    })),
+  };
+});
 import { app } from '../server/app';
 import { pool, migrate } from '../server/db';
 const owner = request.agent(app),

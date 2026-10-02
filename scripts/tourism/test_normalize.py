@@ -115,6 +115,45 @@ class Normalize(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Resource version is not approved'):
                 normalize_report(root,'hokuto-places')
 
+    def sapporo_fixture(self, **changes):
+        source=next(s for s in json.loads((ROOT/'ops/tourism/sources.json').read_text()) if s['id']=='sapporo-places')
+        row={'NO':'0000000003','名称':'札幌fixture','説明':'過去の営業時間、電話等の説明','緯度（10進法）':'43.06','経度（10進法）':'141.35','利用可能時間特記事項':'2022年予定','URL（公式）':'https://example.test','連絡先時電話番号':'private-fixture-contact','画像':'https://example.test/image.jpg','料金（基本）':'1000円'}
+        row.update(changes);text=io.StringIO();writer=csv.DictWriter(text,fieldnames=row);writer.writeheader();writer.writerow(row)
+        return text.getvalue().encode('utf-8-sig'),source
+
+    def test_sapporo_profile_preserves_identity_without_hours_contacts_or_photos(self):
+        body,source=self.sapporo_fixture()
+        r=normalize_csv(body,source,{'url':source['resourceUrl'],'key':'011002_tourism.csv'},'2026-10-02T00:00:00Z')[0]
+        self.assertEqual(r['externalId'],'0000000003');self.assertEqual(r['latitude'],43.06)
+        self.assertEqual(r['descriptionJa'],'');self.assertEqual(r['scheduleRaw'],'')
+        self.assertEqual(r['hoursStatus'],'unknown');self.assertEqual(r['dateStatus'],'unknown')
+        self.assertIn('NO=0000000003',r['evidencePointer'])
+        self.assertNotIn('private-fixture-contact',json.dumps(r));self.assertNotIn('image.jpg',json.dumps(r))
+        self.assertIsNone(r['sourceUpdatedAt'])
+
+    def test_sapporo_rejects_changed_coordinates_and_duplicate_ids(self):
+        body,source=self.sapporo_fixture()
+        for invalid in [body.replace('緯度（10進法）'.encode(),'緯度'.encode()),body+body.splitlines()[1]+b'\n']:
+            with self.assertRaises(ValueError):
+                normalize_csv(invalid,source,{'url':source['resourceUrl'],'key':'x'},'2026-10-02T00:00:00Z')
+        body,source=self.sapporo_fixture(**{'緯度（10進法）':'nan'})
+        with self.assertRaises(ValueError):normalize_csv(body,source,{'url':source['resourceUrl'],'key':'x'},'2026-10-02T00:00:00Z')
+
+    def test_sapporo_report_requires_complete_success_and_pinned_hash_verified_blob(self):
+        import hashlib,sqlite3,tempfile
+        body,source=self.sapporo_fixture();sha=hashlib.sha256(body).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);blob=root/'blobs'/sha/'source.csv';blob.parent.mkdir(parents=True);blob.write_bytes(body)
+            report={'started_at':'2026-10-02T00:00:00Z','resources_found':1,'errors':[],'resources':[{'url':source['resourceUrl'],'key':'011002_tourism.csv','sha256':sha}]}
+            def insert():
+                with sqlite3.connect(root/'state.sqlite') as db:db.execute('INSERT INTO runs(source,report) VALUES (?,?)',(source['id'],json.dumps(report)))
+            with sqlite3.connect(root/'state.sqlite') as db:db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY,source TEXT,report TEXT)')
+            insert();self.assertEqual(normalize_report(root,source['id'])['parserVersion'],'sapporo-csv-v1')
+            report['resources'][0]['url']=source['resourceUrl'].replace('011002_tourism.csv','other.csv');insert()
+            with self.assertRaisesRegex(ValueError,'allowlist'):normalize_report(root,source['id'])
+            report['resources'][0]['url']=source['resourceUrl'];report['errors']=[{'error':'timeout'}];insert()
+            with self.assertRaisesRegex(ValueError,'Incomplete'):normalize_report(root,source['id'])
+
 
 if __name__ == '__main__':
     unittest.main()

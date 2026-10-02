@@ -26,8 +26,10 @@ export type TourismMatchCandidate = {
   category: string;
   address: string | null;
   website: string | null;
+  latitude: number;
+  longitude: number;
 };
-export const tourismNearbySql = `SELECT id,name_ja AS name,region_id AS "regionId",category,address,website,
+export const tourismNearbySql = `SELECT id,name_ja AS name,region_id AS "regionId",category,address,website,latitude,longitude,
 ST_Distance(location,ST_SetSRID(ST_MakePoint($2,$3),4326)::geography) AS "distanceMeters"
 FROM geo_data.place WHERE region_id=$1 AND ST_DWithin(location,
 ST_SetSRID(ST_MakePoint($2,$3),4326)::geography,$4) ORDER BY "distanceMeters",id`;
@@ -41,7 +43,11 @@ const aliasSchema = z
     regionId: z.string().min(1),
     placeId: z.string().min(1),
     catalogName: z.string().min(1),
-    catalogWebsite: z.url(),
+    catalogWebsite: z.url().nullable(),
+    catalogCategory: z.string().min(1),
+    catalogAddress: z.string().min(1).nullable(),
+    catalogLatitude: z.number().min(41).max(46.1),
+    catalogLongitude: z.number().min(137).max(147),
     verifiedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     evidenceUrls: z.array(z.url()).min(1),
     reason: z.string().min(1),
@@ -105,7 +111,11 @@ export async function matchTourismFacility(
           p.regionId === a.regionId &&
           p.distanceMeters <= TOURISM_MATCH_RADIUS_METERS &&
           p.name === a.catalogName &&
-          p.website === a.catalogWebsite,
+          p.website === a.catalogWebsite &&
+          p.category === a.catalogCategory &&
+          p.address === a.catalogAddress &&
+          p.latitude === a.catalogLatitude &&
+          p.longitude === a.catalogLongitude,
       ),
     );
     if (candidates.length === 1)
