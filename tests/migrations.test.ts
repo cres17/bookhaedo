@@ -1,6 +1,7 @@
 import { beforeAll, afterAll, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import pg from 'pg';
+import { mkdtemp, writeFile, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { pool, migrate, verifyMigrations } from '../server/db';
@@ -92,6 +93,54 @@ it('pending migrations block startup and failed DDL rolls back without recording
     ).toBeNull();
     await verifyMigrations();
   } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+it('backfills existing record withdrawals before the persistent-ID migration is activated', async () => {
+  const name = 'bookhaedo_withdrawal_' + randomUUID().replaceAll('-', '');
+  const dir = await mkdtemp(tmpdir() + '/bookhaedo-withdraw-migration-');
+  let fresh: pg.Pool | undefined;
+  let created = false;
+  try {
+    await pool.query(`CREATE DATABASE "${name}"`);
+    created = true;
+    const connection = new URL(pool.options.connectionString!);
+    connection.pathname = '/' + name;
+    fresh = new pg.Pool({ connectionString: connection.toString() });
+    await fresh.query(await readFile(new URL('../db/schema.sql', import.meta.url), 'utf8'));
+    for (const file of (await migrationFiles()).filter((f) => f.name < '006_'))
+      await writeFile(dir + '/' + file.name, file.sql);
+    await runMigrations(fresh, pathToFileURL(dir + '/'));
+    const id = randomUUID();
+    await fresh.query(
+      "INSERT INTO tourism_knowledge.source(id,publisher,source_url,license_id,license_url,rights_status,enabled) VALUES('legacy','test','https://example.test','test','https://example.test','approved',true)",
+    );
+    await fresh.query(
+      "INSERT INTO tourism_knowledge.snapshot(id,source_id,content_sha256,parser_version,fetched_at,record_count) VALUES($1,'legacy',$2,'harp-csv-v1',now(),1)",
+      [id, 'a'.repeat(64)],
+    );
+    await fresh.query(
+      "INSERT INTO tourism_knowledge.record(snapshot_id,external_id,kind,region_id,title_ja,description_ja,resource_url,content_sha256,evidence_pointer,location_status,date_status,hours_status,withdrawn_at) VALUES($1,'old-withdrawal','place','furano','test','','https://example.test',$2,'test','missing','unknown','unknown',now())",
+      [id, 'a'.repeat(64)],
+    );
+    await fresh.query(
+      "UPDATE tourism_knowledge.source SET active_snapshot_id=$1 WHERE id='legacy'",
+      [id],
+    );
+    await runMigrations(fresh);
+    await runMigrations(fresh, undefined, true);
+    expect(
+      (
+        await fresh.query(
+          "SELECT external_id FROM tourism_knowledge.withdrawal WHERE source_id='legacy'",
+        )
+      ).rows,
+    ).toEqual([{ external_id: 'old-withdrawal' }]);
+    expect((await fresh.query('SELECT count(*)::int AS n FROM geo_data.place')).rows[0].n).toBe(0);
+  } finally {
+    await fresh?.end();
+    if (created) await pool.query(`DROP DATABASE "${name}"`);
     await rm(dir, { recursive: true, force: true });
   }
 });

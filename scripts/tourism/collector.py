@@ -178,9 +178,24 @@ class Collector:
             found.setdefault(key, {'url': url, 'key': key, 'year': year})
         return list(found.values()), status
 
+    def save_report(self, source, started, report):
+        self.db.execute('INSERT INTO runs(source,started,report) VALUES (?,?,?)',
+                        (source, started, json.dumps(report, ensure_ascii=False)))
+        self.db.commit()
+
+    def failed_report(self, source, started, error):
+        report = {'source': source, 'started_at': datetime.fromtimestamp(started, timezone.utc).isoformat(),
+                  'resources_found': 0, 'resources': [], 'errors': [{'error': str(error)}]}
+        self.save_report(source, started, report)
+        return report
+
     def run(self, source):
         started = time.time()
-        discovered, status = self.discover()
+        try:
+            discovered, status = self.discover()
+        except Exception as error:
+            # Library callers must not leave the previous success as the latest run either.
+            return self.failed_report(source, started, error)
         report = {'source': source, 'started_at': datetime.now(timezone.utc).isoformat(),
                   'page_status': status, 'resources_found': len(discovered), 'resources': [], 'errors': []}
         for item in discovered:
@@ -217,9 +232,7 @@ class Collector:
             except Exception as e:
                 report['errors'].append({'url': item['url'], 'error': str(e)})
         if not discovered: report['errors'].append({'error': 'No eligible CSV discovered'})
-        self.db.execute('INSERT INTO runs(source,started,report) VALUES (?,?,?)',
-                        (source, started, json.dumps(report, ensure_ascii=False)))
-        self.db.commit()
+        self.save_report(source, started, report)
         return report
 
 
@@ -243,11 +256,12 @@ def main():
             reports = []
             for i in range(args.rounds):
                 if i: time.sleep(args.repeat_seconds)
+                started = time.time()
                 try:
                     c.robots()  # Revalidate robots; all HTTP requests share the gate.
                     report = c.run(args.source)
                 except Exception as e:
-                    report = {'source': args.source, 'resources': [], 'errors': [{'error': str(e)}]}
+                    report = c.failed_report(args.source, started, e)
                 reports.append(report)
                 print(json.dumps(report, ensure_ascii=False), flush=True)
             (root / 'latest-report.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2))

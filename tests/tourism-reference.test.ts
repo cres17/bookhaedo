@@ -1,9 +1,11 @@
 import { beforeAll, afterAll, expect, it } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { pool, migrate } from '../server/db';
 import { publishTourismBatch } from '../server/tourism-knowledge';
 import { searchTourism } from '../server/tourism-search';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
 let original: any, snapshot: string;
+const withdrawnIds = ['000-withdrawn-' + randomUUID(), '000-dated-withdrawn-' + randomUUID()];
 const query = () =>
   searchTourism({
     anchor: { latitude: 43.34, longitude: 142.39 },
@@ -35,7 +37,12 @@ beforeAll(async () => {
     event('ended', { dateStatus: 'confirmed', startDate: '2026-09-01', endDate: '2026-09-02' }),
     event('dated-recurring', { startDate: '2026-09-01', endDate: '2026-09-02' }),
     event('invalid', { validUntil: '2026-09-01' }),
-    event('withdrawn'),
+    event(withdrawnIds[0]),
+    event(withdrawnIds[1], {
+      dateStatus: 'confirmed',
+      startDate: '2026-10-01',
+      endDate: '2026-10-02',
+    }),
   ];
   snapshot = (
     await publishTourismBatch(
@@ -44,11 +51,15 @@ beforeAll(async () => {
     )
   ).snapshotId;
   await pool.query(
-    "UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1 AND external_id='withdrawn'",
-    [snapshot],
+    'UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1 AND external_id=ANY($2::text[])',
+    [snapshot, withdrawnIds],
   );
 });
 afterAll(async () => {
+  await pool.query(
+    "DELETE FROM tourism_knowledge.withdrawal WHERE source_id='furano-events' AND external_id=ANY($1::text[])",
+    [withdrawnIds],
+  );
   if (original)
     await pool.query(
       'UPDATE tourism_knowledge.source SET active_snapshot_id=$2,enabled=$3,rights_status=$4 WHERE id=$1',
@@ -77,7 +88,7 @@ it('caps reference reading at 20, excludes it from plan evidence, and excludes d
   ).toBe(true);
   expect(
     r.referenceEvents!.some((e) =>
-      ['ended', 'dated-recurring', 'invalid', 'withdrawn'].includes(e.externalId),
+      ['ended', 'dated-recurring', 'invalid', ...withdrawnIds].includes(e.externalId),
     ),
   ).toBe(false);
   expect(r.evidence.some((e) => e.sourceId === 'furano-events')).toBe(false);
@@ -127,4 +138,14 @@ it('honors region, source withdrawal, current snapshot and freshness for referen
       })
     ).referenceEvents,
   ).toEqual([]);
+});
+
+it('excludes stable-ID withdrawals from dated evidence and reference reading even if snapshot flags are cleared', async () => {
+  await pool.query(
+    'UPDATE tourism_knowledge.record SET withdrawn_at=NULL WHERE snapshot_id=$1 AND external_id=ANY($2::text[])',
+    [snapshot, withdrawnIds],
+  );
+  const result = await query();
+  expect(result.evidence.some((e) => withdrawnIds.includes(e.externalId))).toBe(false);
+  expect(result.referenceEvents!.some((e) => withdrawnIds.includes(e.externalId))).toBe(false);
 });

@@ -10,9 +10,12 @@ import { matchTourismFacility } from '../server/tourism-matching';
 import { buildTourismComparison } from '../server/tourism-comparison';
 import { auditTourismData } from '../server/tourism-quality';
 import { searchTourism } from '../server/tourism-search';
+import { withdrawTourismRecord } from '../server/tourism-withdrawal';
+import { pruneTourismSnapshots } from '../server/tourism-maintenance';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
 const sourceIds = ['furano-places', 'furano-events', 'eniwa-events', 'sapporo-places'];
 const snapshots: string[] = [];
+const withdrawalIds = new Set<string>();
 let original: any[] = [];
 let place: any;
 let time = Date.now();
@@ -52,6 +55,10 @@ beforeAll(async () => {
   place = (await pool.query('SELECT * FROM geo_data.place WHERE id=$1', [fixtureId])).rows[0];
 });
 afterAll(async () => {
+  await pool.query(
+    'DELETE FROM tourism_knowledge.withdrawal WHERE source_id=ANY($1::text[]) AND external_id=ANY($2::text[])',
+    [sourceIds, [...withdrawalIds]],
+  );
   for (const id of sourceIds) {
     const old = original.find((r) => r.id === id);
     if (old)
@@ -148,6 +155,7 @@ it('keeps unlocated tentative events as context and excludes ended/recurring eve
   expect(result.evidence[0].dateStatus).toBe('tentative');
 });
 it('makes replacement snapshots visible as a whole and excludes stale validity and withdrawn records', async () => {
+  withdrawalIds.add('replacement');
   const old = (await searchTourism(input())).snapshotIds;
   await publish(
     batch([
@@ -541,7 +549,9 @@ it('reprocesses only unchanged active content while retaining fetchedAt and the 
   );
 });
 it('never revives withdrawn source records through reprocessing', async () => {
-  const raw = batch([facility()]);
+  const externalId = 'review-existing-' + randomUUID();
+  withdrawalIds.add(externalId);
+  const raw = batch([facility({ externalId })]);
   const old = await publish(raw);
   await pool.query('UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1', [
     old.snapshotId,
@@ -554,4 +564,262 @@ it('never revives withdrawn source records through reprocessing', async () => {
       )
     ).rows[0].active_snapshot_id,
   ).toBe(old.snapshotId);
+});
+
+it('honors a direct SQL withdrawal that waits while reprocessing activates a replacement', async () => {
+  const externalId = 'review-race-' + randomUUID();
+  withdrawalIds.add(externalId);
+  const raw = batch([facility({ externalId })]);
+  const old = await publish(raw);
+  const writer = await pool.connect();
+  const pid = (await writer.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+  let withdrawal: Promise<any> | undefined;
+  const facade = {
+    connect: async () => {
+      const db = await pool.connect();
+      return {
+        release: () => db.release(),
+        query: async (sql: string, params: any[]) => {
+          const result = await db.query(sql, params);
+          if (sql.startsWith('SELECT 1 FROM tourism_knowledge.record')) {
+            withdrawal = writer.query(
+              'UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1 AND external_id=$2',
+              [old.snapshotId, externalId],
+            );
+            // Confirm an actual DB lock wait, rather than rely on timing alone.
+            let blocked = false;
+            for (let n = 0; n < 100; n++) {
+              blocked = (
+                await pool.query('SELECT cardinality(pg_blocking_pids($1))>0 AS blocked', [pid])
+              ).rows[0].blocked;
+              if (blocked) break;
+              await new Promise((resolve) => setTimeout(resolve, 5));
+            }
+            expect(blocked).toBe(true);
+          }
+          return result;
+        },
+      };
+    },
+  };
+  try {
+    const next = await publishTourismBatch(facade as any, raw, old.snapshotId);
+    snapshots.push(next.snapshotId);
+    await withdrawal;
+    expect(
+      (
+        await pool.query('SELECT withdrawn_at FROM tourism_knowledge.record WHERE snapshot_id=$1', [
+          next.snapshotId,
+        ])
+      ).rows[0].withdrawn_at,
+    ).not.toBeNull();
+    expect(
+      (await searchTourism(input())).evidence.some(
+        (e) => e.sourceId === 'furano-places' && e.externalId === externalId,
+      ),
+    ).toBe(false);
+  } finally {
+    await withdrawal;
+    writer.release();
+  }
+});
+
+it('waits for an in-progress withdrawal and then refuses reprocessing', async () => {
+  const externalId = 'review-withdraw-first-' + randomUUID();
+  withdrawalIds.add(externalId);
+  const raw = batch([facility({ externalId })]);
+  const old = await publish(raw);
+  const writer = await pool.connect();
+  let pending: Promise<any> | undefined;
+  try {
+    await writer.query('BEGIN');
+    await writer.query(
+      'UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1',
+      [old.snapshotId],
+    );
+    pending = publishTourismBatch(pool, raw, old.snapshotId);
+    const rejection = expect(pending).rejects.toThrow('withdrawn records');
+    await writer.query('COMMIT');
+    await rejection;
+    expect(
+      (
+        await pool.query('SELECT active_snapshot_id FROM tourism_knowledge.source WHERE id=$1', [
+          'furano-places',
+        ])
+      ).rows[0].active_snapshot_id,
+    ).toBe(old.snapshotId);
+  } finally {
+    await writer.query('ROLLBACK');
+    writer.release();
+    await pending?.catch(() => {});
+  }
+});
+
+it('retains stable-ID withdrawal through a newer fetch', async () => {
+  const externalId = 'review-refresh-' + randomUUID();
+  withdrawalIds.add(externalId);
+  await publish(batch([facility({ externalId })]));
+  await withdrawTourismRecord(pool, { sourceId: 'furano-places', externalId });
+  const newer = await publish(batch([facility({ externalId })]));
+  expect(
+    (
+      await pool.query('SELECT withdrawn_at FROM tourism_knowledge.record WHERE snapshot_id=$1', [
+        newer.snapshotId,
+      ])
+    ).rows[0].withdrawn_at,
+  ).not.toBeNull();
+  // Clearing a snapshot flag does not undo the stable-ID withdrawal.
+  await pool.query('UPDATE tourism_knowledge.record SET withdrawn_at=NULL WHERE snapshot_id=$1', [
+    newer.snapshotId,
+  ]);
+  expect((await searchTourism(input())).evidence.some((e) => e.externalId === externalId)).toBe(
+    false,
+  );
+});
+
+it('keeps the withdrawal marker when retention removes an old snapshot', async () => {
+  const sourceId = 'review-prune-' + randomUUID(),
+    oldId = randomUUID(),
+    newId = randomUUID();
+  try {
+    await pool.query(
+      "INSERT INTO tourism_knowledge.source(id,publisher,source_url,license_id,license_url,rights_status,enabled) VALUES($1,'test','https://example.test','test','https://example.test','approved',true)",
+      [sourceId],
+    );
+    for (const id of [oldId, newId])
+      await pool.query(
+        "INSERT INTO tourism_knowledge.snapshot(id,source_id,content_sha256,parser_version,fetched_at,record_count) VALUES($1,$2,$3,'harp-csv-v1',now(),1)",
+        [id, sourceId, 'a'.repeat(64)],
+      );
+    await pool.query(
+      "INSERT INTO tourism_knowledge.record(snapshot_id,external_id,kind,region_id,title_ja,description_ja,resource_url,content_sha256,evidence_pointer,location_status,date_status,hours_status) VALUES($1,'test-id','place','furano','test','','https://example.test',$2,'test','missing','unknown','unknown')",
+      [oldId, 'a'.repeat(64)],
+    );
+    await pool.query('UPDATE tourism_knowledge.source SET active_snapshot_id=$2 WHERE id=$1', [
+      sourceId,
+      oldId,
+    ]);
+    await withdrawTourismRecord(pool, { sourceId, externalId: 'test-id' });
+    await pool.query('UPDATE tourism_knowledge.source SET active_snapshot_id=$2 WHERE id=$1', [
+      sourceId,
+      newId,
+    ]);
+    await pool.query(
+      "UPDATE tourism_knowledge.snapshot SET published_at=now()-interval '100 days' WHERE id=$1",
+      [oldId],
+    );
+    const result = await pruneTourismSnapshots(pool, {
+      apply: true,
+      days: 1,
+      keepLatest: 1,
+      sourceId,
+    });
+    expect(result.candidates.map((r) => r.snapshotId)).toEqual([oldId]);
+    expect(
+      (
+        await pool.query('SELECT 1 FROM tourism_knowledge.withdrawal WHERE source_id=$1', [
+          sourceId,
+        ])
+      ).rowCount,
+    ).toBe(1);
+  } finally {
+    await pool.query('UPDATE tourism_knowledge.source SET active_snapshot_id=NULL WHERE id=$1', [
+      sourceId,
+    ]);
+    await pool.query('DELETE FROM tourism_knowledge.snapshot WHERE source_id=$1', [sourceId]);
+    await pool.query('DELETE FROM tourism_knowledge.source WHERE id=$1', [sourceId]);
+  }
+});
+
+it('rolls back both the withdrawal marker and record flags together', async () => {
+  const externalId = 'review-rollback-' + randomUUID();
+  withdrawalIds.add(externalId);
+  const published = await publish(batch([facility({ externalId })]));
+  const db = await pool.connect();
+  try {
+    await db.query('BEGIN');
+    await db.query('UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1', [
+      published.snapshotId,
+    ]);
+    expect(
+      (
+        await db.query('SELECT 1 FROM tourism_knowledge.withdrawal WHERE external_id=$1', [
+          externalId,
+        ])
+      ).rowCount,
+    ).toBe(1);
+    await db.query('ROLLBACK');
+    expect(
+      (
+        await pool.query('SELECT 1 FROM tourism_knowledge.withdrawal WHERE external_id=$1', [
+          externalId,
+        ])
+      ).rowCount,
+    ).toBe(0);
+    expect(
+      (
+        await pool.query('SELECT withdrawn_at FROM tourism_knowledge.record WHERE snapshot_id=$1', [
+          published.snapshotId,
+        ])
+      ).rows[0].withdrawn_at,
+    ).toBeNull();
+  } finally {
+    await db.query('ROLLBACK');
+    db.release();
+  }
+});
+
+it('allows only one of two simultaneous reprocess requests for the same active snapshot', async () => {
+  const raw = batch([facility({ externalId: 'review-concurrent-' + randomUUID() })]);
+  const old = await publish(raw);
+  const results = await Promise.allSettled([
+    publishTourismBatch(pool, raw, old.snapshotId),
+    publishTourismBatch(pool, raw, old.snapshotId),
+  ]);
+  for (const result of results)
+    if (result.status === 'fulfilled') snapshots.push(result.value.snapshotId);
+  expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+  expect(results.filter((r) => r.status === 'rejected')).toHaveLength(1);
+});
+
+it('audits catalog drift on linked facilities without silently modifying the existing link', async () => {
+  const published = await publish(
+    batch([facility({ externalId: 'review-drift-' + randomUUID() })]),
+  );
+  try {
+    await pool.query('UPDATE geo_data.place SET name_ja=$2 WHERE id=$1', [
+      place.id,
+      'changed-' + randomUUID(),
+    ]);
+    const report = await auditTourismData(pool);
+    expect(report.diagnostics.find((r) => r.snapshotId === published.snapshotId)).toMatchObject({
+      reason: 'LINK_REVIEW_REQUIRED',
+      placeId: place.id,
+      currentMatch: { placeId: null, reason: 'NAME_MISMATCH' },
+    });
+    expect(
+      (
+        await pool.query(
+          'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+          [published.snapshotId],
+        )
+      ).rows[0].canonical_place_id,
+    ).toBe(place.id);
+  } finally {
+    await pool.query('UPDATE geo_data.place SET name_ja=$2 WHERE id=$1', [place.id, place.name_ja]);
+  }
+});
+
+it('rejects unknown withdrawal IDs without persisting a block', async () => {
+  const externalId = 'review-unknown-' + randomUUID();
+  await expect(
+    withdrawTourismRecord(pool, { sourceId: 'furano-places', externalId }),
+  ).rejects.toThrow('Unknown active tourism record');
+  expect(
+    (
+      await pool.query('SELECT 1 FROM tourism_knowledge.withdrawal WHERE external_id=$1', [
+        externalId,
+      ])
+    ).rowCount,
+  ).toBe(0);
 });

@@ -70,3 +70,8 @@ it('escapes facility text in Markdown while retaining all candidate IDs', () => 
 it('rejects a source without an active audited snapshot', () => {
   expect(() => buildTourismComparison(audit, 'unknown')).toThrow('active audited snapshot');
 });
+
+it('keeps linked facilities requiring review separate from the unlinked comparison list', () => {
+  const drift = { ...diagnostic('drift', 'LINK_REVIEW_REQUIRED'), placeId: 'still-linked' };
+  expect(buildTourismComparison({ ...audit, diagnostics: [drift] }).rows).toEqual([]);
+});

@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import re
+from contextlib import closing
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -97,7 +98,7 @@ def normalize_report(state_dir, source_id, year=None):
         raise ValueError('Source reuse is not approved')
     # Only latest complete success is publishable. An older success is not a fresh fetch.
     import sqlite3
-    with sqlite3.connect(f'file:{root / "state.sqlite"}?mode=ro', uri=True) as db:
+    with closing(sqlite3.connect(f'file:{root / "state.sqlite"}?mode=ro', uri=True)) as db:
         result = db.execute('SELECT report FROM runs WHERE source=? ORDER BY id DESC LIMIT 1', (source_id,)).fetchone()
     if not result:
         raise ValueError('No collector report')

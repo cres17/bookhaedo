@@ -6,7 +6,12 @@ export function buildTourismComparison(audit: Audit, sourceId?: string) {
   if (sourceId && !audit.profile.some((source) => source.sourceId === sourceId))
     throw Error('Source has no active audited snapshot');
   const rows = audit.diagnostics
-    .filter((record) => record.reason !== 'LINKED' && (!sourceId || record.sourceId === sourceId))
+    .filter(
+      (record) =>
+        !record.placeId &&
+        record.reason !== 'LINKED' &&
+        (!sourceId || record.sourceId === sourceId),
+    )
     .map((record) => ({
       sourceId: record.sourceId,
       externalId: record.externalId,
