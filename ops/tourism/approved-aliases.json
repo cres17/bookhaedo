@@ -12,6 +12,49 @@
     "evidenceUrls": [
       "https://www.furano.ne.jp/winehouse/"
     ],
-    "reason": "Official name matches CSV; official address and website match catalog; distance 15.6m. Hiragana/kanji spelling alias only."
+    "reason": "Official name matches CSV; official address and website match catalog; distance 15.6m. Hiragana/kanji spelling alias only.",
+    "catalogCategory": "RESTAURANT",
+    "catalogAddress": "〒076-0048 北海道富良野市清水山",
+    "catalogLatitude": 43.3560767,
+    "catalogLongitude": 142.372802
+  },
+  {
+    "sourceId": "hokuto-places",
+    "externalId": "6",
+    "title": "きじひき高原パノラマ展望台",
+    "contentSha256": "d2d3b76c3a3cc3bd358350600dc012ee045065c2d987eb534b5ae21923cd1f17",
+    "regionId": "hakodate",
+    "placeId": "9b181db5-1725-5e24-a19c-6b97e95589e0",
+    "verifiedOn": "2026-10-02",
+    "evidenceUrls": [
+      "https://www.city.hokuto.hokkaido.jp/docs/1959.html"
+    ],
+    "reason": "Official Hokuto name, facility type and source location reviewed. Catalog きじびき spelling alias; explicit null website plus exact category/address/coordinates guard. See facility review 20261002.",
+    "catalogName": "きじびき高原 パノラマ展望台",
+    "catalogWebsite": null,
+    "catalogCategory": "ATTRACTION",
+    "catalogAddress": null,
+    "catalogLatitude": 41.9442139,
+    "catalogLongitude": 140.6157716
+  },
+  {
+    "sourceId": "hokuto-places",
+    "externalId": "7",
+    "title": "きじひき高原キャンプ場",
+    "contentSha256": "d2d3b76c3a3cc3bd358350600dc012ee045065c2d987eb534b5ae21923cd1f17",
+    "regionId": "hakodate",
+    "placeId": "cfc30657-212b-5b89-b5ba-c0bf0fc44e07",
+    "verifiedOn": "2026-10-02",
+    "evidenceUrls": [
+      "https://www.city.hokuto.hokkaido.jp/institution/shisetsu/kijihiki-campjo/",
+      "https://www.city.hokuto.hokkaido.jp/docs/2425.html"
+    ],
+    "reason": "Official Hokuto name, facility type and source location reviewed. Catalog きじびき spelling alias; explicit null website plus exact category/address/coordinates guard. See facility review 20261002.",
+    "catalogName": "きじびき高原キャンプ場",
+    "catalogWebsite": null,
+    "catalogCategory": "LODGING",
+    "catalogAddress": null,
+    "catalogLatitude": 41.9241493,
+    "catalogLongitude": 140.6162831
   }
 ]

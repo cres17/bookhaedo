@@ -176,3 +176,90 @@ for (const viewport of [
     }
   });
 }
+
+for (const width of [1440, 390]) {
+  test(`실제 삿포로 발행 자료의 추천·출처 (${width}px)`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 960 });
+    const db = new pg.Pool({
+      connectionString:
+        process.env.DATABASE_URL ||
+        'postgresql://kita_plan:kita_plan_local@127.0.0.1:5433/kita_plan',
+    });
+    const email = `sapporo-published-${randomUUID()}@example.test`;
+    const date = '2026-11-01';
+    try {
+      const first = (
+        await db.query(`SELECT p.id,COALESCE(p.name_ko,p.name_ja) AS name,r.title_ja AS title,r.resource_url AS "resourceUrl",r.snapshot_id AS "snapshotId"
+      FROM tourism_knowledge.record r JOIN tourism_knowledge.source s ON s.active_snapshot_id=r.snapshot_id JOIN geo_data.place p ON p.id=r.canonical_place_id
+      WHERE s.id='sapporo-places' AND s.enabled AND s.rights_status='approved' AND p.category<>'LODGING' ORDER BY r.external_id LIMIT 1`)
+      ).rows[0];
+      expect(first, '실제 삿포로 발행 시설 필요').toBeTruthy();
+      expect(
+        (
+          await page.request.post('/api/auth/register', {
+            data: { email, name: '삿포로 자료 검증', password: 'sapporo-test-password' },
+          })
+        ).ok(),
+      ).toBe(true);
+      const created = await page.request.post('/api/trips', {
+        data: { title: '삿포로 자료 검증', startDate: date, days: 1, transportMode: 'WALK' },
+      });
+      expect(created.ok()).toBe(true);
+      const trip = (await created.json()).data.id;
+      expect(
+        (
+          await page.request.put(`/api/trips/${trip}/days/${date}/items`, {
+            data: { placeIds: [first.id], expectedRevision: 0 },
+          })
+        ).ok(),
+      ).toBe(true);
+      const response = await page.request.post(
+        `/api/trips/${trip}/days/${date}/ai-recommendations`,
+        { data: { count: 4, keepPlaceIds: [first.id] } },
+      );
+      expect(response.ok()).toBe(true);
+      const result = await response.json();
+      expect(result.status).toBe('READY');
+      expect(result.evidence.find((e: any) => e.placeId === first.id)).toMatchObject({
+        sourceId: 'sapporo-places',
+        snapshotId: first.snapshotId,
+        publisher: '札幌市',
+        licenseId: 'CC-BY-4.0',
+        resourceUrl: first.resourceUrl,
+        hoursStatus: 'unknown',
+        scheduleRaw: '',
+        excerpt: '',
+      });
+      await page.goto('/trips/' + trip);
+      await page.getByRole('button', { name: '하루 코스 추천', exact: true }).click();
+      await page.getByRole('checkbox', { name: '공개 관광 자료 함께 보기' }).check();
+      await page.getByText('현재 일정에서 유지할 장소 선택', { exact: true }).click();
+      await page
+        .locator('.knowledge-controls')
+        .getByRole('checkbox', { name: first.name, exact: true })
+        .check();
+      await page.getByRole('button', { name: '조건 적용해 다시 추천' }).click();
+      const detail = page
+        .locator('.tourism-evidence details')
+        .filter({ has: page.locator('summary', { hasText: first.title }) });
+      await expect(detail).toBeVisible();
+      await detail.locator('summary').click();
+      await expect(detail.getByRole('link', { name: '札幌市 원문 CSV' })).toHaveAttribute(
+        'href',
+        first.resourceUrl,
+      );
+      await expect(detail.getByRole('link', { name: 'CC-BY-4.0' })).toHaveAttribute(
+        'href',
+        'https://creativecommons.org/licenses/by/4.0/',
+      );
+      await expect(detail.getByText('과거 영업시간 포함', { exact: false })).toHaveCount(0);
+      const saved = (
+        await (await page.request.get('/api/trips/' + trip)).json()
+      ).data.days[0].items.map((p: any) => p.id);
+      expect(saved).toEqual([first.id]);
+    } finally {
+      await db.query('DELETE FROM planner.app_user WHERE email=$1', [email]);
+      await db.end();
+    }
+  });
+}

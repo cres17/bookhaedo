@@ -26,3 +26,33 @@ it('pins the approved Hokuto version and rejects old/other resource URLs before 
   }
   expect(db.connect).not.toHaveBeenCalled();
 });
+
+it('rejects other CKAN resources, hosts and parser profiles before DB writes', async () => {
+  const source = (await sourceRegistry()).find((s) => s.id === 'sapporo-places')!;
+  expect(source).toMatchObject({
+    publisher: '札幌市',
+    regionId: 'sapporo',
+    licenseId: 'CC-BY-4.0',
+    parserVersion: 'sapporo-csv-v1',
+  });
+  const db = { connect: vi.fn() };
+  const record = tourismRecord({ regionId: 'sapporo', resourceUrl: source.resourceUrl });
+  const raw = { ...tourismBatch([record], 'sapporo-places'), parserVersion: 'sapporo-csv-v1' };
+  for (const resourceUrl of [
+    source.resourceUrl!.replace('011002_tourism.csv', 'other.csv'),
+    source.resourceUrl!.replace('ckan.pf-sapporo.jp', 'example.test'),
+    source.resourceUrl! + '?token=x',
+    source.resourceUrl! + '#changed',
+  ]) {
+    await expect(
+      publishTourismBatch(db as any, { ...raw, records: [{ ...record, resourceUrl }] }),
+    ).rejects.toThrow();
+  }
+  await expect(
+    publishTourismBatch(db as any, { ...raw, parserVersion: 'harp-csv-v1' }),
+  ).rejects.toThrow('Parser version');
+  await expect(
+    publishTourismBatch(db as any, { ...raw, records: [{ ...record, regionId: 'furano' }] }),
+  ).rejects.toThrow('outside its registered source');
+  expect(db.connect).not.toHaveBeenCalled();
+});

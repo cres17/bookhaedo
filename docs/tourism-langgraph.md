@@ -35,7 +35,7 @@ npm run tourism:normalize -- --source eniwa-events --state-dir <state-dir> --yea
 npm run tourism:publish -- <state-dir>/curated/eniwa-events.json
 ```
 
-후라노 자료는 `--source furano-places` 또는 `furano-events`, 북토시 자료는 `--source hokuto-places`와 각각의 출력 파일로 실행한다. 북토시는 등록부의 최신 CSV URL에 고정되어 URL 변경 시 재검토한다. HARP 요청은 기존 수집기에서 최소 60초 간격을 지킨다. 정제·발행은 네트워크를 사용하지 않는다.
+후라노 자료는 `--source furano-places` 또는 `furano-events`, 북토시 자료는 `--source hokuto-places`와 각각의 출력 파일로 실행한다. 북토시는 등록부의 최신 CSV URL에 고정되어 URL 변경 시 재검토한다. 삿포로 도심 자료는 `--source sapporo-places`와 전용 `sapporo-csv-v1` 해석 규칙을 사용하며 고정 CKAN CSV만 허용한다. HARP는 최소 60초, 삿포로는 최소 10초 간격과 origin별 robots 규칙을 지킨다. 정제·발행은 네트워크를 사용하지 않는다.
 
 에니와 `--year`를 생략하면 실행 시점의 현재 연도 자료를 선택한다. 선택 연도의 파일이 없으면 오래된 파일을 대신 쓰지 않고 오류를 낸다. 실제 행사 날짜는 CSV 값으로만 결정한다. 현재 MVP는 에니와의 한 선택 연도 snapshot을 활성화하며 여러 연도의 event occurrence 동시 색인은 후속 작업이다. 같은 ID를 가진 파일들이 선택 범위에 중복되면 공개하지 않는다.
 
@@ -226,3 +226,8 @@ GET 전용 정책을 사용해 관광 추천 POST 집계를 건너뛰던 문제�
 나머지 9개 지역 모두의 후보 출처·라이선스를 조사했다. 시정촌 4곳의 파일과 경관 지도 ZIP을 실제 확보하고, 지도에서 5개 앱 지역에 속하는 장소 8개를 별도로 대조했다. HARP CSV 두 개는 미리보기·자원 URL만 확인하고 다운로드가 시간 초과됐으므로 파일 확보로 세지 않았다. 새 production 출처는 0개이며 일부 시정촌·지도 장소를 지역 전체 자료 확보로 해석하지 않는다. [지역별 출처와 적용 전 제약](research/tourism-nine-region-sources-20261002.md)에 CC BY 버전·안정 ID·좌표 변환·robots·파일 형식의 남은 일을 기록했다.
 
 기존 매칭·별칭 테스트 18개와 [재현 노트북](research/tourism-facility-source-review-20261002.ipynb)의 4개 코드 셀을 실행했다. 읽기 전용 DB 재감사로 catalog 20,810곳·활성 시설 34건·연결 11건·미연결 23건과 활성 snapshot 보존을 확인했다. 이번 변경은 연구 문서에 한정되며 전체 build·Vitest·E2E를 로컬에서 재실행한 결과로 보고하지 않는다.
+
+
+### 2026-10-02 북토 별칭 2건과 삿포로 자료 적용
+
+북토 별칭의 null URL과 catalog 분류·주소·좌표 지문을 강화하고 검토한 2건을 적용했다. 북토 새 CSV 수집은 시간 초과돼 원문·원래 수집 시각을 보존하는 명시적 재처리로 연결을 2/10에서 4/10으로 늘렸다. 새 snapshot에만 연결하며 이전 snapshot은 보존했다. 원래 미연결 23건 중 21건이 남았다. 삿포로의 실제 CSV 103행을 수집·정제·발행해 15건을 연결했고 새 미연결 88건(명칭 87·지역 1)은 별도 모집단이다. catalog 20,810곳은 보존했다. [구현·재처리 제한·실제 자료 및 테스트 범위](research/tourism-alias-sapporo-20261002.md)를 보존했다.

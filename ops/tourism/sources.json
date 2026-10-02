@@ -52,5 +52,19 @@
     "licenseUrl": null,
     "rightsStatus": "permission_pending",
     "enabled": false
+  },
+  {
+    "id": "sapporo-places",
+    "publisher": "札幌市",
+    "sourceUrl": "https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot",
+    "resourceUrl": "https://ckan.pf-sapporo.jp/dataset/a467875c-db25-4477-ba1f-16964fc5a7bd/resource/4374a1aa-f96c-4b99-9521-5eea0af0d2b9/download/011002_tourism.csv",
+    "licenseId": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "rightsStatus": "approved",
+    "enabled": true,
+    "regionId": "sapporo",
+    "kind": "place",
+    "parserVersion": "sapporo-csv-v1",
+    "minimumIntervalSeconds": 10
   }
 ]

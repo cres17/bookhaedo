@@ -1,0 +1,173 @@
+{
+  "verifiedAt": "2026-10-02T00:46:45.593829+00:00",
+  "baselineCommit": "0055ebbc0064421c2b05f69319944083b58ad8ab",
+  "aliasApplication": {
+    "method": "Reprocess unchanged active snapshot; retain fetchedAt, original record content/hash, and old immutable snapshot",
+    "previousSnapshotId": "b61d1e88-eb51-4be5-a673-693efb2a45fb",
+    "currentSnapshotId": "4bd7b7d8-9f38-4743-a6b2-5bc0e17f0a9b",
+    "fetchedAt": "2026-10-01T10:57:19.165Z",
+    "normalizedContentSha256Unchanged": "e9f31681dd1220157f2f57ee710e50f0b9125e8eb987aece63b2c87ccb526000",
+    "linkedFacilitiesBefore": 2,
+    "linkedFacilitiesAfter": 4,
+    "appliedExternalIds": [
+      "6",
+      "7"
+    ],
+    "originalUnlinkedBefore": 23,
+    "originalUnlinkedRemaining": 21,
+    "freshCollectionSucceeded": false,
+    "failedCollectionReports": [
+      {
+        "source": "hokuto-places",
+        "started_at": "2026-10-02T00:24:50.696697+00:00",
+        "page_status": 200,
+        "resources_found": 1,
+        "resources": [],
+        "errors": [
+          {
+            "url": "https://www.harp.lg.jp/opendata/dataset/1657/resource/9136/012360_torurism_20260826.csv",
+            "error": "The read operation timed out"
+          }
+        ]
+      },
+      {
+        "source": "hokuto-places",
+        "started_at": "2026-10-02T00:30:40.191384+00:00",
+        "page_status": 304,
+        "resources_found": 1,
+        "resources": [],
+        "errors": [
+          {
+            "url": "https://www.harp.lg.jp/opendata/dataset/1657/resource/9136/012360_torurism_20260826.csv",
+            "error": "The read operation timed out"
+          }
+        ]
+      }
+    ],
+    "guards": [
+      "Explicit null URL differs from missing or newly supplied URL",
+      "Exact catalog name, category, address and coordinates plus same-region 250m guard",
+      "Source ID, external ID, title and original CSV SHA are pinned",
+      "Reprocessing requires the exact active snapshot ID, unchanged content hash and unchanged original fetchedAt",
+      "Withdrawn/disabled sources, withdrawn records, older fetches and changed active snapshots are rejected"
+    ]
+  },
+  "sapporo": {
+    "publisher": "札幌市",
+    "sourceId": "sapporo-places",
+    "parserVersion": "sapporo-csv-v1",
+    "collectorReport": {
+      "source": "sapporo-places",
+      "started_at": "2026-10-02T00:28:32.090233+00:00",
+      "page_status": 200,
+      "resources_found": 1,
+      "resources": [
+        {
+          "url": "https://ckan.pf-sapporo.jp/dataset/a467875c-db25-4477-ba1f-16964fc5a7bd/resource/4374a1aa-f96c-4b99-9521-5eea0af0d2b9/download/011002_tourism.csv",
+          "key": "011002_tourism.csv",
+          "year": null,
+          "status": 200,
+          "change": "new",
+          "sha256": "a8ef3ebea11c75f3bab39b9c48c12c29a1a520d28c58a22e6ee6a23177352bce",
+          "rows": 103,
+          "encoding": "utf-8-sig"
+        }
+      ],
+      "errors": []
+    },
+    "publishedProfile": {
+      "sourceId": "sapporo-places",
+      "snapshotId": "88d799d5-4405-41b4-8b7e-030f946ecd65",
+      "contentSha256": "c49fe437c0f859d08ce66439e1c84e6e15a87c0c8fc45f8770a007661a92b98d",
+      "fetchedAt": "2026-10-02T00:28:32.090Z",
+      "publishedAt": "2026-10-02T00:29:45.595Z",
+      "enabled": true,
+      "rightsStatus": "approved",
+      "declaredRecords": 103,
+      "records": 103,
+      "facilities": 103,
+      "events": 0,
+      "facilitiesWithCoordinates": 103,
+      "linkedFacilities": 15,
+      "eventsWithCoordinates": 0,
+      "eligibleEventsOnDate": 0,
+      "endedEventsBeforeDate": 0,
+      "eventsWithoutExplicitPeriod": 0,
+      "tentative": 0,
+      "datesProvided": 0,
+      "recurring": 0,
+      "unknownDates": 103,
+      "historicalHours": 0,
+      "unknownSourceUpdatedAt": 103,
+      "withdrawn": 0,
+      "facilityMatchRatePct": 14.563106796116505,
+      "coordinateMatchRatePct": 14.563106796116505
+    },
+    "unlinkedReasons": {
+      "NAME_MISMATCH": 87,
+      "REGION_MISMATCH": 1
+    },
+    "projection": "Stable NO, title, supplied coordinates, provenance. No description/contact/image/price/schedule copied. Unknown hours and unknown sourceUpdatedAt remain unknown."
+  },
+  "hostGates": {
+    "www.harp.lg.jp": {
+      "minimumObservedStartGapSeconds": 60.000096797943115,
+      "requiredMinimumSeconds": 60,
+      "requestCount": 10
+    },
+    "ckan.pf-sapporo.jp": {
+      "minimumObservedStartGapSeconds": 10.002246141433716,
+      "requiredMinimumSeconds": 10,
+      "requestCount": 3
+    }
+  },
+  "tests": {
+    "aliasRedBeforeChange": {
+      "failed": 6,
+      "passed": 14
+    },
+    "vitest": {
+      "files": 38,
+      "passed": 262
+    },
+    "python": {
+      "passed": 28
+    },
+    "e2eDefault": {
+      "passed": 25,
+      "skipped": 6
+    },
+    "e2ePublished": {
+      "passed": 4,
+      "furano": 2,
+      "sapporo": 2
+    },
+    "build": true,
+    "lint": true,
+    "formatCheck": true,
+    "specCheck": {
+      "paths": 45,
+      "tables": 28
+    }
+  },
+  "testCorrections": [
+    "The no-knowledge API scenario previously assumed Sapporo had no active knowledge; new real data reproduced three failures. It now explicitly strips knowledge evidence while retaining real authentication, DB candidates and confirmation.",
+    "Repeated browser suites reached real registration 50 per 900s limit (429). Counter and service limit were not modified; retry waited for the actual Retry-After window."
+  ],
+  "codeSha256": {
+    "server/tourism-matching.ts": "7a3a3344bb39b832b49d074069a6a534cf7d99a9ffba0c53624bc2715288dcc9",
+    "server/tourism-knowledge.ts": "85bae108a6be06a6a54bd5bc87ddc6bf9fde4922675781354755f4d2314438e8",
+    "scripts/tourism/collector.py": "d8ab196113458caeec7f8041a8a324b6fec25a59077816bf8ed44f08bc08533f",
+    "scripts/tourism/normalize.py": "2e9609ed10bec244dc30dc9382fabfd5c06cd7e4da8e64a86716b0f02f49fe83",
+    "scripts/tourism/publish.ts": "5be42cea2123ad39dac1dc03c88bc15e939f0a001f4b28ae4cae13b23802aa6d",
+    "ops/tourism/sources.json": "d692a2a4d0de84b3bd61a77840d22abfd935937ac5b1f49f447bd4ebd3f3f14d",
+    "ops/tourism/approved-aliases.json": "80cc68779cc8298ffb2256a65d0e887001c084957b4d0ec8f309f5c85edd450f"
+  },
+  "limits": [
+    "Local knowledge DB publication and Git code publication are distinct from production deployment.",
+    "Sapporo downtown CSV does not cover all of Sapporo. Newly downloaded now does not imply updated opening hours.",
+    "Hokuto collection timed out even without validators; alias reprocessing preserves the original 2026-10-01 fetchedAt.",
+    "Sapporo 88 unlinked entries were not fuzzy-matched: 87 name mismatch and one region mismatch (Half Note).",
+    "Published-data E2E requires opt-in and existing data; CI runs fixture tourism E2E, not live ingestion."
+  ]
+}

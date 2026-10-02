@@ -11,7 +11,7 @@ import { buildTourismComparison } from '../server/tourism-comparison';
 import { auditTourismData } from '../server/tourism-quality';
 import { searchTourism } from '../server/tourism-search';
 import { tourismBatch, tourismRecord } from './tourism-fixtures';
-const sourceIds = ['furano-places', 'furano-events', 'eniwa-events'];
+const sourceIds = ['furano-places', 'furano-events', 'eniwa-events', 'sapporo-places'];
 const snapshots: string[] = [];
 let original: any[] = [];
 let place: any;
@@ -442,4 +442,116 @@ it('keeps ambiguous nearby names unlinked in publication, audit and comparison',
   } finally {
     await pool.query('DELETE FROM geo_data.place WHERE id=$1', [duplicateId]);
   }
+});
+
+it('publishes the pinned Sapporo CSV profile and exposes linked source attribution', async () => {
+  const source = (await sourceRegistry()).find((s) => s.id === 'sapporo-places')!;
+  const id = randomUUID();
+  const name = '札幌検証' + id;
+  await pool.query(
+    `INSERT INTO geo_data.place(id,region_id,category,name_ja,normalized_name,latitude,longitude,location,region_distance_km)
+  VALUES($1,'sapporo','ATTRACTION',$2,$2,43.06,141.35,ST_SetSRID(ST_MakePoint(141.35,43.06),4326)::geography,0)`,
+    [id, name],
+  );
+  try {
+    const raw = {
+      ...batch(
+        [
+          tourismRecord({
+            regionId: 'sapporo',
+            titleJa: name,
+            descriptionJa: '',
+            latitude: 43.06,
+            longitude: 141.35,
+            resourceUrl: source.resourceUrl,
+            scheduleRaw: '',
+            hoursStatus: 'unknown',
+          }),
+        ],
+        'sapporo-places',
+      ),
+      parserVersion: 'sapporo-csv-v1',
+    };
+    const published = await publish(raw);
+    expect((await publishTourismBatch(pool, raw)).snapshotId).toBe(published.snapshotId);
+    const found = await searchTourism({
+      ...input(),
+      anchor: { latitude: 43.06, longitude: 141.35 },
+      regionId: 'sapporo',
+    });
+    expect(found.evidence.find((e) => e.sourceId === 'sapporo-places')).toMatchObject({
+      placeId: id,
+      licenseId: 'CC-BY-4.0',
+      resourceUrl: source.resourceUrl,
+      hoursStatus: 'unknown',
+      sourceUpdatedAt: null,
+    });
+  } finally {
+    await pool.query('DELETE FROM geo_data.place WHERE id=$1', [id]);
+  }
+});
+
+it('reprocesses only unchanged active content while retaining fetchedAt and the old snapshot', async () => {
+  const raw = batch([facility()]);
+  const old = await publish(raw);
+  await pool.query(
+    'UPDATE tourism_knowledge.record SET canonical_place_id=NULL WHERE snapshot_id=$1',
+    [old.snapshotId],
+  );
+  for (const bad of [
+    { ...raw, fetchedAt: new Date(++time).toISOString() },
+    { ...raw, records: [facility({ descriptionJa: 'changed' })] },
+  ]) {
+    await expect(publishTourismBatch(pool, bad, old.snapshotId)).rejects.toThrow(
+      'unchanged active snapshot',
+    );
+  }
+  await expect(publishTourismBatch(pool, raw, randomUUID())).rejects.toThrow(
+    'unchanged active snapshot',
+  );
+  const next = await publishTourismBatch(pool, raw, old.snapshotId);
+  snapshots.push(next.snapshotId);
+  expect(next.snapshotId).not.toBe(old.snapshotId);
+  const rows = (
+    await pool.query(
+      'SELECT id,fetched_at FROM tourism_knowledge.snapshot WHERE id=ANY($1::uuid[])',
+      [[old.snapshotId, next.snapshotId]],
+    )
+  ).rows;
+  expect(rows).toHaveLength(2);
+  expect(rows.every((r) => new Date(r.fetched_at).toISOString() === raw.fetchedAt)).toBe(true);
+  expect(
+    (
+      await pool.query(
+        'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+        [old.snapshotId],
+      )
+    ).rows[0].canonical_place_id,
+  ).toBeNull();
+  expect(
+    (
+      await pool.query(
+        'SELECT canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+        [next.snapshotId],
+      )
+    ).rows[0].canonical_place_id,
+  ).toBe(place.id);
+  await expect(publishTourismBatch(pool, raw, old.snapshotId)).rejects.toThrow(
+    'unchanged active snapshot',
+  );
+});
+it('never revives withdrawn source records through reprocessing', async () => {
+  const raw = batch([facility()]);
+  const old = await publish(raw);
+  await pool.query('UPDATE tourism_knowledge.record SET withdrawn_at=now() WHERE snapshot_id=$1', [
+    old.snapshotId,
+  ]);
+  await expect(publishTourismBatch(pool, raw, old.snapshotId)).rejects.toThrow('withdrawn records');
+  expect(
+    (
+      await pool.query(
+        "SELECT active_snapshot_id FROM tourism_knowledge.source WHERE id='furano-places'",
+      )
+    ).rows[0].active_snapshot_id,
+  ).toBe(old.snapshotId);
 });

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded, persistent HARP CSV collector. Runtime state stays outside Git."""
+"""Bounded, persistent approved HARP/Sapporo CSV collector. Runtime state stays outside Git."""
 import argparse
 import csv
 import fcntl
@@ -20,7 +20,8 @@ from pathlib import Path
 
 REGISTRY = Path(__file__).resolve().parents[2] / 'ops/tourism/sources.json'
 REGISTERED = {s['id']: s for s in json.loads(REGISTRY.read_text()) if s['enabled'] and s['rightsStatus'] == 'approved'
-              and s['sourceUrl'].startswith('https://www.harp.lg.jp/opendata/dataset/')}
+              and (s['sourceUrl'].startswith('https://www.harp.lg.jp/opendata/dataset/') or
+                   (s['id'] == 'sapporo-places' and s['sourceUrl'] == 'https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot'))}
 SOURCES = {key: source['sourceUrl'] for key, source in REGISTERED.items()}
 AGENT = 'BookhaedoTourismCollector/0.1'
 
@@ -45,9 +46,15 @@ class Collector:
         if self.origin.scheme not in ('https', 'http'):
             raise ValueError('Unsupported URL scheme')
         self.local = self.origin.hostname in ('127.0.0.1', 'localhost')
-        if not self.local and (self.origin.hostname != 'www.harp.lg.jp' or self.origin.scheme != 'https'):
-            raise ValueError('Only HARP HTTPS or loopback fixture is allowed')
-        self.interval = interval if self.local else max(60, interval)
+        if not self.local:
+            harp = self.origin.netloc == 'www.harp.lg.jp'
+            sapporo = self.origin.netloc == 'ckan.pf-sapporo.jp' and any(
+                s['id'] == 'sapporo-places' and s['sourceUrl'] == page and s.get('resourceUrl') == resource_url
+                for s in REGISTERED.values())
+            if self.origin.scheme != 'https' or self.origin.query or self.origin.fragment or not (harp or sapporo):
+                raise ValueError('Only approved HARP/Sapporo HTTPS or loopback fixture is allowed')
+        floor = 10 if self.origin.hostname == 'ckan.pf-sapporo.jp' else 60
+        self.interval = interval if self.local else max(floor, interval)
         self.attempts = attempts
         self.min_year = min_year
         self.db = sqlite3.connect(self.root / 'state.sqlite')
@@ -130,6 +137,10 @@ class Collector:
             except (urllib.error.URLError, TimeoutError) as e:
                 self.log({'url': url, 'start': started, 'attempt': attempt, 'error': str(e)})
                 if attempt == self.attempts: raise
+                # A failed conditional request is not a successful refresh. Retry the same
+                # approved URL without validators, still through the persistent host gate.
+                headers.pop('If-None-Match', None)
+                headers.pop('If-Modified-Since', None)
                 time.sleep(2 ** (attempt - 1))
 
     def robots(self):
@@ -226,7 +237,7 @@ def main():
         try: fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             print(json.dumps({'status': 'already_running'})); return 2
-        c = Collector(root, SOURCES[args.source], min_year=args.min_year,
+        c = Collector(root, SOURCES[args.source], interval=REGISTERED[args.source].get('minimumIntervalSeconds', 60), min_year=args.min_year,
                       resource_url=REGISTERED[args.source].get('resourceUrl'))
         try:
             reports = []
