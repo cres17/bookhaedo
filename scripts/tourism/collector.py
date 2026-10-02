@@ -18,10 +18,11 @@ from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from pathlib import Path
 
+from source_policy import approved_source_policy, collector_policy
+
 REGISTRY = Path(__file__).resolve().parents[2] / 'ops/tourism/sources.json'
-REGISTERED = {s['id']: s for s in json.loads(REGISTRY.read_text()) if s['enabled'] and s['rightsStatus'] == 'approved'
-              and (s['sourceUrl'].startswith('https://www.harp.lg.jp/opendata/dataset/') or
-                   (s['id'] == 'sapporo-places' and s['sourceUrl'] == 'https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot'))}
+REGISTERED = {s['id']: s for s in json.loads(REGISTRY.read_text())
+              if s['enabled'] and s['rightsStatus'] == 'approved' and approved_source_policy(s)}
 SOURCES = {key: source['sourceUrl'] for key, source in REGISTERED.items()}
 AGENT = 'BookhaedoTourismCollector/0.1'
 
@@ -46,14 +47,10 @@ class Collector:
         if self.origin.scheme not in ('https', 'http'):
             raise ValueError('Unsupported URL scheme')
         self.local = self.origin.hostname in ('127.0.0.1', 'localhost')
-        if not self.local:
-            harp = self.origin.netloc == 'www.harp.lg.jp'
-            sapporo = self.origin.netloc == 'ckan.pf-sapporo.jp' and any(
-                s['id'] == 'sapporo-places' and s['sourceUrl'] == page and s.get('resourceUrl') == resource_url
-                for s in REGISTERED.values())
-            if self.origin.scheme != 'https' or self.origin.query or self.origin.fragment or not (harp or sapporo):
-                raise ValueError('Only approved HARP/Sapporo HTTPS or loopback fixture is allowed')
-        floor = 10 if self.origin.hostname == 'ckan.pf-sapporo.jp' else 60
+        policy = None if self.local else collector_policy(page, resource_url, REGISTERED.values())
+        if not self.local and not policy:
+            raise ValueError('Only approved HARP/Sapporo HTTPS or loopback fixture is allowed')
+        floor = policy['minimumIntervalSeconds'] if policy else 0
         self.interval = interval if self.local else max(floor, interval)
         self.attempts = attempts
         self.min_year = min_year

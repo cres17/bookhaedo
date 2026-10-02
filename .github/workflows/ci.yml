@@ -25,7 +25,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm audit --omit=dev --audit-level=high
+      - name: Audit production dependencies (retry registry errors only)
+        run: node scripts/audit-dependencies.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run format:check

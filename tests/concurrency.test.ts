@@ -111,8 +111,13 @@ it('여행 설정의 잘못된 비용 입력은 이름·이동방법도 바꾸�
   expect(r.transportMode).toBe('DRIVE');
 });
 it('조회 제한은 회원별로 적용하고 외부 호출 없는 확정을 막지 않는다', async () => {
-  for (let i = 0; i < 30; i++)
-    expect((await user.get('/api/weather?date=invalid')).status).toBe(400);
+  for (let i = 0; i < 30; i++) {
+    const response = await user.get('/api/weather?date=invalid');
+    expect(
+      response.status,
+      JSON.stringify({ attempt: i + 1, status: response.status, error: response.body.error }),
+    ).toBe(400);
+  }
   const limited = await user.get('/api/weather?date=invalid');
   expect(limited.status).toBe(429);
   expect(limited.headers['retry-after']).toBeTruthy();

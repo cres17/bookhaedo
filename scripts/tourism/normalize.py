@@ -9,7 +9,7 @@ import re
 from contextlib import closing
 from datetime import date, datetime
 from pathlib import Path
-from urllib.parse import urlsplit
+from source_policy import approved_source_policy, approved_resource_url, resource_belongs_to_source
 
 PARSER_VERSION = 'harp-csv-v1'
 REGISTRY = Path(__file__).resolve().parents[2] / 'ops/tourism/sources.json'
@@ -94,7 +94,7 @@ def normalize_report(state_dir, source_id, year=None):
     root = Path(state_dir)
     sources = {s['id']: s for s in json.loads(REGISTRY.read_text())}
     source = sources[source_id]
-    if not source['enabled'] or source['rightsStatus'] != 'approved':
+    if not source['enabled'] or source['rightsStatus'] != 'approved' or not approved_source_policy(source):
         raise ValueError('Source reuse is not approved')
     # Only latest complete success is publishable. An older success is not a fresh fetch.
     import sqlite3
@@ -116,13 +116,12 @@ def normalize_report(state_dir, source_id, year=None):
         sha = resource['sha256']
         if not re.fullmatch(r'[a-f0-9]{64}', sha):
             raise ValueError('Invalid blob SHA')
-        url = urlsplit(resource['url'])
-        harp = url.netloc == 'www.harp.lg.jp' and url.path.startswith('/opendata/dataset/')
-        sapporo = source_id == 'sapporo-places' and url.netloc == 'ckan.pf-sapporo.jp' and source.get('resourceUrl') == resource['url']
-        if url.scheme != 'https' or url.query or url.fragment or not (harp or sapporo):
+        if not approved_resource_url(resource['url']):
             raise ValueError('Resource URL outside allowlist')
         if source.get('resourceUrl') and resource['url'] != source['resourceUrl']:
             raise ValueError('Resource version is not approved')
+        if not resource_belongs_to_source(source, resource['url']):
+            raise ValueError('Resource URL outside allowlist')
         body = (root / 'blobs' / sha / 'source.csv').read_bytes()
         if hashlib.sha256(body).hexdigest() != sha:
             raise ValueError('Blob SHA mismatch')

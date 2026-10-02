@@ -53,6 +53,18 @@ const aliasSchema = z
     reason: z.string().min(1),
   })
   .strict();
+export type AliasReview = {
+  sourceId: string;
+  externalId: string;
+  placeId: string;
+  reason:
+    | 'ALIAS_SOURCE_CHANGED'
+    | 'ALIAS_CATALOG_CHANGED'
+    | 'ALIAS_CANDIDATE_UNAVAILABLE'
+    | 'ALIAS_AMBIGUOUS'
+    | 'ALIAS_MISSING_COORDINATES';
+  changedFields: string[];
+};
 export type TourismAlias = z.infer<typeof aliasSchema>;
 export function parseTourismAliases(raw: unknown) {
   const aliases = z.array(aliasSchema).parse(raw);
@@ -65,7 +77,12 @@ export function approvedTourismAliases() {
   return (aliasesPromise ??= readFile(
     new URL('../ops/tourism/approved-aliases.json', import.meta.url),
     'utf8',
-  ).then((raw) => parseTourismAliases(JSON.parse(raw))));
+  )
+    .then((raw) => parseTourismAliases(JSON.parse(raw)))
+    .catch((error) => {
+      aliasesPromise = undefined;
+      throw error;
+    }));
 }
 // Exact unique name remains the default. Reviewed aliases fail closed when source/catalog changes.
 export async function matchTourismFacility(
@@ -79,12 +96,35 @@ export async function matchTourismFacility(
       reason: 'NOT_FACILITY' as const,
       nearby: [] as TourismMatchCandidate[],
     };
-  if (input.latitude === null || input.longitude === null)
+  const getReviewed = async () =>
+    input.sourceId && input.externalId
+      ? (aliases ?? (await approvedTourismAliases())).find(
+          (a) => a.sourceId === input.sourceId && a.externalId === input.externalId,
+        )
+      : undefined;
+  let reviewed: TourismAlias | undefined;
+  const review = (
+    reason: AliasReview['reason'],
+    changedFields: string[] = [],
+  ): AliasReview | undefined =>
+    reviewed
+      ? {
+          sourceId: reviewed.sourceId,
+          externalId: reviewed.externalId,
+          placeId: reviewed.placeId,
+          reason,
+          changedFields,
+        }
+      : undefined;
+  if (input.latitude === null || input.longitude === null) {
+    reviewed = await getReviewed();
     return {
       placeId: null,
       reason: 'MISSING_COORDINATES' as const,
+      aliasReview: review('ALIAS_MISSING_COORDINATES'),
       nearby: [] as TourismMatchCandidate[],
     };
+  }
   const nearby = (
     await db.query<TourismMatchCandidate>(tourismNearbySql, [
       input.regionId,
@@ -95,31 +135,43 @@ export async function matchTourismFacility(
   ).rows;
   const name = normalizedTourismName(input.title);
   const exact = nearby.filter((candidate) => normalizedTourismName(candidate.name) === name);
-  if (!exact.length && input.sourceId && input.externalId && input.contentSha256) {
-    const approved = (aliases ?? (await approvedTourismAliases())).filter(
-      (a) =>
-        a.sourceId === input.sourceId &&
-        a.externalId === input.externalId &&
-        a.title === input.title &&
-        a.contentSha256 === input.contentSha256 &&
-        a.regionId === input.regionId,
-    );
-    const candidates = approved.flatMap((a) =>
-      nearby.filter(
-        (p) =>
-          p.id === a.placeId &&
-          p.regionId === a.regionId &&
-          p.distanceMeters <= TOURISM_MATCH_RADIUS_METERS &&
-          p.name === a.catalogName &&
-          p.website === a.catalogWebsite &&
-          p.category === a.catalogCategory &&
-          p.address === a.catalogAddress &&
-          p.latitude === a.catalogLatitude &&
-          p.longitude === a.catalogLongitude,
-      ),
-    );
-    if (candidates.length === 1)
-      return { placeId: candidates[0].id, reason: 'MATCHED_ALIAS' as const, nearby };
+  // Exact matches do not depend on the alias file being available.
+  if (exact.length === 1) return { placeId: exact[0].id, reason: 'MATCHED' as const, nearby };
+  reviewed = await getReviewed();
+  // A valid exact match remains sufficient even when an old alias fingerprint no longer matches.
+  let aliasReview: AliasReview | undefined;
+  if (reviewed && exact.length !== 1) {
+    if (exact.length > 1) aliasReview = review('ALIAS_AMBIGUOUS');
+    else {
+      const sourceChanged = (['title', 'contentSha256', 'regionId'] as const).filter(
+        (k) => input[k] !== reviewed[k],
+      );
+      if (sourceChanged.length) aliasReview = review('ALIAS_SOURCE_CHANGED', sourceChanged);
+      else {
+        const candidate = nearby.find((p) => p.id === reviewed.placeId);
+        if (
+          !candidate ||
+          !(candidate.distanceMeters <= TOURISM_MATCH_RADIUS_METERS) ||
+          candidate.regionId !== reviewed.regionId
+        )
+          aliasReview = review('ALIAS_CANDIDATE_UNAVAILABLE');
+        else {
+          const fields = {
+            name: 'catalogName',
+            website: 'catalogWebsite',
+            category: 'catalogCategory',
+            address: 'catalogAddress',
+            latitude: 'catalogLatitude',
+            longitude: 'catalogLongitude',
+          } as const;
+          const changed = (Object.keys(fields) as (keyof typeof fields)[]).filter(
+            (k) => candidate[k] !== reviewed[fields[k]],
+          );
+          if (changed.length) aliasReview = review('ALIAS_CATALOG_CHANGED', changed);
+          else return { placeId: candidate.id, reason: 'MATCHED_ALIAS' as const, nearby };
+        }
+      }
+    }
   }
   return {
     placeId: exact.length === 1 ? exact[0].id : null,
@@ -132,5 +184,6 @@ export async function matchTourismFacility(
             ? ('NAME_MISMATCH' as const)
             : ('NO_CATALOG_PLACE_WITHIN_250M' as const),
     nearby,
+    ...(aliasReview ? { aliasReview } : {}),
   };
 }

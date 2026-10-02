@@ -119,6 +119,7 @@ export async function auditTourismData(
         nearby,
         sameName,
         currentMatch: { placeId: match.placeId, reason: match.reason },
+        aliasReview: match.aliasReview ?? null,
       });
     }
     const counts = (
