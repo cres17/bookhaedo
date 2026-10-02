@@ -1,0 +1,1129 @@
+{
+  "checkedOn": "2026-10-02",
+  "scope": "Manual public-source research. No new source registered, normalized, published, or enabled.",
+  "csvDownloads": [
+    {
+      "id": "sapporo",
+      "url": "https://ckan.pf-sapporo.jp/dataset/a467875c-db25-4477-ba1f-16964fc5a7bd/resource/4374a1aa-f96c-4b99-9521-5eea0af0d2b9/download/011002_tourism.csv",
+      "checkedAt": "2026-10-01T23:43:28.792367+00:00",
+      "status": 200,
+      "contentType": "text/csv",
+      "bytes": 159931,
+      "sha256": "a8ef3ebea11c75f3bab39b9c48c12c29a1a520d28c58a22e6ee6a23177352bce",
+      "encoding": "utf-8-sig",
+      "headers": [
+        "都道府県コード又は市区町村コード",
+        "NO",
+        "都道府県名",
+        "市区町村名",
+        "エリア",
+        "名称",
+        "名称_カナ",
+        "名称_英語",
+        "POIコード",
+        "住所",
+        "方書",
+        "緯度（10進法）",
+        "経度（10進法）",
+        "利用可能曜日",
+        "開始時間",
+        "終了時間",
+        "利用可能時間特記事項",
+        "料金（基本）",
+        "料金（詳細）",
+        "説明",
+        "説明_英語",
+        "アクセス方法",
+        "駐車場情報",
+        "バリアフリー情報",
+        "連絡先名称",
+        "連絡先時電話番号",
+        "連絡先内線番号",
+        "画像",
+        "画像_ライセンス",
+        "URL（公式）",
+        "備考",
+        "分類",
+        "テーマ（旅行の趣向性）",
+        "主な対象",
+        "おすすめ季節",
+        "決済方法",
+        "平均単価（昼）",
+        "平均単価（夜）"
+      ],
+      "recordCount": 103,
+      "coordinatesValid": 103,
+      "emptyIds": 0,
+      "uniqueNonemptyIds": 103
+    },
+    {
+      "id": "noboribetsu",
+      "url": "https://ckan.hoda.jp/dataset/96fbe6c2-0399-4d39-b397-1012ba711668/resource/11d71023-192f-4be7-a9b4-71d577407912/download/012301_tourism.csv.csv",
+      "checkedAt": "2026-10-01T23:43:29.176937+00:00",
+      "status": 200,
+      "contentType": "text/csv",
+      "bytes": 5010,
+      "sha256": "060b3da21cbb36aca6ce4ae57587904e907707253170509c2ee793cfeebef8e9",
+      "encoding": "cp932",
+      "headers": [
+        "全国地方公共団体コード",
+        "法人番号",
+        "ID",
+        "地方公共団体名",
+        "名称",
+        "名称_カナ",
+        "名称_英語",
+        "POIコード",
+        "所在地_全国地方公共団体コード",
+        "町字ID",
+        "所在地_連結表記",
+        "所在地_都道府県",
+        "所在地_市区町村",
+        "所在地_町字",
+        "所在地_番地以下",
+        "建物名等(方書)",
+        "緯度",
+        "経度",
+        "高度の種別",
+        "高度の値",
+        "利用可能曜日",
+        "開始時間",
+        "終了時間",
+        "利用可能日時特記事項",
+        "料金（基本）",
+        "料金（詳細）",
+        "説明",
+        "説明_英語",
+        "アクセス方法",
+        "駐車場情報",
+        "車椅子可",
+        "車椅子貸出",
+        "ツエ貸出",
+        "バリアフリートイレ",
+        "スロープ、エレベーター、エスカレーターの有無を記載",
+        "点字ブロック等の移動支援",
+        "点字や読上による支援",
+        "盲導犬・介護犬、聴導犬同伴",
+        "字幕",
+        "筆談対応",
+        "優先駐車場",
+        "オストメイト対応トイレ",
+        "授乳室",
+        "おむつ替えコーナー",
+        "飲食可否",
+        "ベビーカー貸出",
+        "ベビーカー利用",
+        "連絡先名称",
+        "連絡先電話番号",
+        "連絡先内線番号",
+        "連絡先メールアドレス",
+        "",
+        "バリアフリー情報",
+        "連絡先FormURL",
+        "連絡先備考（その他、SNSなど）",
+        "画像",
+        "画像_ライセンス",
+        "URL",
+        "備考"
+      ],
+      "recordCount": 4,
+      "coordinatesValid": 4,
+      "emptyIds": 4,
+      "uniqueNonemptyIds": 0
+    },
+    {
+      "id": "abashiri",
+      "url": "https://www.city.abashiri.hokkaido.jp/uploaded/attachment/2774.csv",
+      "checkedAt": "2026-10-01T23:43:29.557879+00:00",
+      "status": 200,
+      "contentType": "text/csv",
+      "bytes": 3104,
+      "sha256": "7bd1addd3cbfa1efc0551643046942a50619b5363418cfac2d3100b57dd5788b",
+      "encoding": "cp932",
+      "headers": [
+        "都道府県コード又は市区町村コード",
+        "NO",
+        "都道府県名",
+        "市区町村名",
+        "名称",
+        "名称_カナ",
+        "住所",
+        "緯度",
+        "経度",
+        "開始時間",
+        "終了時間",
+        "利用可能日時特記事項",
+        "URL"
+      ],
+      "recordCount": 14,
+      "coordinatesValid": 14,
+      "emptyIds": 0,
+      "uniqueNonemptyIds": 14
+    }
+  ],
+  "failedDownloads": [
+    {
+      "id": "niseko-public-facilities",
+      "url": "https://www.harp.lg.jp/opendata/dataset/1755/resource/4233/013951_public_facility.csv",
+      "error": "Download timed out after bounded 30-second attempts. Robots and dataset discovery succeeded; CSV body not verified.",
+      "minimumIntervalSeconds": 60,
+      "recordCount": null
+    },
+    {
+      "id": "otofuke-cultural-properties",
+      "url": "https://www.harp.lg.jp/opendata/dataset/1699/resource/6666/016314_cultural_property_202404.csv",
+      "checkedAt": "2026-10-02T00:06:04.574873+00:00",
+      "error": "The read operation timed out",
+      "minimumIntervalSeconds": 60,
+      "recordCount": null
+    }
+  ],
+  "asahikawaTourismArchive": {
+    "id": "asahikawa-tourism",
+    "url": "https://www.city.asahikawa.hokkaido.jp/700/735/755/756/d083431_d/fil/012041_GIS_090101.zip",
+    "checkedAt": "2026-10-01T23:45:59.313343+00:00",
+    "status": 200,
+    "contentType": "application/zip",
+    "bytes": 22522,
+    "sha256": "365c85af41444966c6c83009275b1559d6212f7548b5ced367d2fe266dcbfb7b",
+    "recordCount": 315,
+    "categoryCounts": {
+      "観光名所": 30,
+      "飲食店・居酒屋他": 156,
+      "ホテル・旅館他": 46,
+      "お土産ショッピング": 38,
+      "アクティビティー": 29,
+      "体験": 9,
+      "地場産品": 7
+    },
+    "coordinateSystem": "JGD2011 / Japan Plane Rectangular CS XII",
+    "coordinateConversionVerified": false,
+    "hasStablePublishedId": false,
+    "fieldNames": [
+      "施設名",
+      "住所",
+      "電話",
+      "FAX",
+      "URL",
+      "分類"
+    ]
+  },
+  "scenicIndex": {
+    "id": "scenic-current-index",
+    "url": "https://ckan.pf-sapporo.jp/dataset/b2ba7b74-cbdf-4d4c-9633-7ab188160ddf/resource/e6db1a4a-515d-465e-b0a1-92271a8bccf9/download/mapdata.r8.xlsx",
+    "checkedAt": "2026-10-01T23:45:59.745437+00:00",
+    "status": 200,
+    "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "bytes": 40995,
+    "sha256": "d1e56eb8bfab11bf45e46034aec2f72eee39f2abac5916487a84b981a63dba79",
+    "sectionCount": 15,
+    "sections": [
+      {
+        "number": 1,
+        "title": "支笏湖ブルーに出逢う道",
+        "publishedFilename": "scenicroad01.kml"
+      },
+      {
+        "number": 2,
+        "title": "洞爺湖の美しさ、火山の迫力を感じる道",
+        "publishedFilename": "scenicroad02.kml"
+      },
+      {
+        "number": 3,
+        "title": "美しく変化する羊蹄山の稜線に寄り添う道",
+        "publishedFilename": "scenicroad03.kml"
+      },
+      {
+        "number": 4,
+        "title": "十勝岳と四季を彩る花々に出逢う道",
+        "publishedFilename": "scenicroad04.kml"
+      },
+      {
+        "number": 5,
+        "title": "一面の流氷が織りなすグレートネイチャーを体感する道",
+        "publishedFilename": "scenicroad05.kml"
+      },
+      {
+        "number": 6,
+        "title": "秀峰・利尻山を望む道",
+        "publishedFilename": "scenicroad06.kml"
+      },
+      {
+        "number": 7,
+        "title": "大地の息吹を感じる宗谷周氷河の道",
+        "publishedFilename": "scenicroad07.kml"
+      },
+      {
+        "number": 8,
+        "title": "美幌峠と屈斜路湖を風のように吹き抜ける道",
+        "publishedFilename": "scenicroad08.kml"
+      },
+      {
+        "number": 9,
+        "title": "大自然の中を一直線に貫く中標津ミルクロード",
+        "publishedFilename": "scenicroad09.kml"
+      },
+      {
+        "number": 10,
+        "title": "樹海に佇む天空の道",
+        "publishedFilename": "scenicroad10.kml"
+      },
+      {
+        "number": 11,
+        "title": "森を抜ける公園のような道",
+        "publishedFilename": "scenicroad11.kml"
+      },
+      {
+        "number": 12,
+        "title": "日本一のそば畑を走る道",
+        "publishedFilename": "scenicroad12.kml"
+      },
+      {
+        "number": 13,
+        "title": "並木のウエルカムゲートを抜けて絶景へと至る道",
+        "publishedFilename": "scenicroad13.kmz"
+      },
+      {
+        "number": 14,
+        "title": "汐風薫るいにしえの道",
+        "publishedFilename": "scenicroad14.kmz"
+      },
+      {
+        "number": 15,
+        "title": "北太平洋と湿地の風土に息づく自然と漁業の道",
+        "publishedFilename": "scenicroad15.kmz"
+      }
+    ],
+    "archiveInspected": false
+  },
+  "robots": [
+    {
+      "url": "https://ckan.pf-sapporo.jp/robots.txt",
+      "status": 200,
+      "sha256": "6d6055b3c1aec1be2dc478f18250a0d805ba39e2c256b8f63f34a9042fc46533",
+      "robots": "User-agent: *\nDisallow: /dataset/rate/\nDisallow: /revision/\nDisallow: /dataset/*/history\nDisallow: /api/\nCrawl-Delay: 10\n"
+    },
+    {
+      "url": "https://ckan.hoda.jp/robots.txt",
+      "status": 200,
+      "sha256": "064150d0466e18193f572f16ffe8573cf2dc7ff94ed06bbb9ff7f23019360dca",
+      "robots": "User-agent: *\nDisallow: /dataset/rate/\nDisallow: /revision/\nDisallow: /dataset/*/history\nDisallow: /api/\nCrawl-Delay: 10\n\n"
+    },
+    {
+      "url": "https://www.city.abashiri.hokkaido.jp/robots.txt",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ],
+  "limits": [
+    "Raw CSV/DBF files may contain contact fields and remain outside Git. Public metadata includes column names but no phone, email, or fax values.",
+    "Manual Abashiri download is not an automatic collector approval. Existing robots-404 fail-closed behavior is unchanged.",
+    "Downloaded now is not evidence of current opening hours or data updated now.",
+    "Asahikawa geometry conversion and stable identity design remain unverified.",
+    "Scenic KML names and Point coordinates were inspected. Point occurrences include duplicate facilities and itinerary markers, so 581 is not a facility count.",
+    "HARP robots and resource discovery succeeded but both CSV bodies timed out; no row count, SHA, or coordinate success is invented for these files."
+  ],
+  "scenicPoints": {
+    "url": "https://ckan.pf-sapporo.jp/dataset/b2ba7b74-cbdf-4d4c-9633-7ab188160ddf/resource/30ca6984-bc52-49b5-8971-e9260d9dbaf5/download/plan.zip",
+    "checkedAt": "2026-10-02T00:00:54.006873+00:00",
+    "status": 200,
+    "bytes": 1929206,
+    "sha256": "6b5d3baf07436a12ba1da3bd3d176a69057632d4f7bb415bfaad2efa8e7474c6",
+    "kmlFiles": [
+      {
+        "name": "scenicroad05_daytrip.kmz/doc.kml",
+        "sha256": "4c5467a082c690288806cffed71b2ae787db6f0a5dacb61a70d7bd6b9751b447"
+      },
+      {
+        "name": "scenicroad09_daytrip.kmz/doc.kml",
+        "sha256": "bdeb1f11a39f0e5ab1c6fcfeef119b0b755101d42914c6d3564114badbdaff3c"
+      },
+      {
+        "name": "scenicroad01_daytrip.kmz/doc.kml",
+        "sha256": "a3dd5aca6521e30771208adb2101e3aa4ed6b417d069c805f669142b20eaf854"
+      },
+      {
+        "name": "scenicroad04_daytrip.kmz/doc.kml",
+        "sha256": "266f0b3f6015392b0e38b9d311792c400b3a28a3fc8e4f128a2a0902c6340f33"
+      },
+      {
+        "name": "scenicroad12_staytrip.kmz/doc.kml",
+        "sha256": "25e641f3ff687fb8ddbd539f9d3df325942fc038fadd2a126a11c44cf5ef3499"
+      },
+      {
+        "name": "scenicroad10_daytrip.kmz/doc.kml",
+        "sha256": "8b474234c49a5368b297a623f103b7bb4280ccba8a7c6f653dfcfabecb932b17"
+      },
+      {
+        "name": "scenicroad03_staytrip.kmz/doc.kml",
+        "sha256": "eaba3f76d5a97e0c8d7bd55a0ae393816cb26b7c323083ef488be95e53505300"
+      },
+      {
+        "name": "scenicroad05_staytrip.kmz/doc.kml",
+        "sha256": "1fde7c2337b2a0de3227ba72f0dc4586714d8f964ab8b889e2f7ce29d65b666c"
+      },
+      {
+        "name": "scenicroad11_staytrip.kmz/doc.kml",
+        "sha256": "c2a2ba0f6a740f64c05b8846742ba7c9dc672f3dae746a4e230b8b6cf93e9ee5"
+      },
+      {
+        "name": "scenicroad02_staytrip.kmz/doc.kml",
+        "sha256": "03e304ee6b5b3c14d38df530797e10a0d3e0d2dc5a3e95df4439a391c826fafc"
+      },
+      {
+        "name": "scenicroad01_staytrip.kmz/doc.kml",
+        "sha256": "082c3115e875ff5dc1b4223f6e4f964b3d79da075d55e47deca4b6f1b2203e21"
+      },
+      {
+        "name": "scenicroad08_daytrip.kmz/doc.kml",
+        "sha256": "87db448d503162aefda4122de919b554e1d061e591e78f2431409f298b2471fc"
+      },
+      {
+        "name": "scenicroad14_daytrip.kmz/doc.kml",
+        "sha256": "55a588299bfe602fabe41d0be43e317a5f2d30ca968090ef0efa79b5c8e7eb0c"
+      },
+      {
+        "name": "scenicroad15_staytrip.kmz/doc.kml",
+        "sha256": "a9e056cdf4bca4e605fa062b20cb4cda00b84f54cb0a6f9a0ac4ad479f88bb0a"
+      },
+      {
+        "name": "scenicroad14_staytrip.kmz/doc.kml",
+        "sha256": "41b2e030faf647f3f57391b30353b757a9a8f2d58071bb2c0d4533bbd94f6c20"
+      },
+      {
+        "name": "scenicroad0607_staytrip.kmz/doc.kml",
+        "sha256": "7c7c83949afdcdde7a21d2b0fd1ae380143309022e261ff4b073198931a9e034"
+      },
+      {
+        "name": "scenicroad0809_staytrip.kmz/doc.kml",
+        "sha256": "a1b34d9c14fee738ac42851fcc49b0d036f80032a8f73d178d54e9692d58ab7f"
+      },
+      {
+        "name": "scenicroad10_staytrip.kmz/doc.kml",
+        "sha256": "fbc557c58042d3032e3f308500c5fdaec9575f74cde2e61f5052fa3bd639879b"
+      },
+      {
+        "name": "scenicroad0607_daytrip.kmz/doc.kml",
+        "sha256": "ac08b3e3dcae4e25f5578b16650bee771d13206961978c82b99f9e24d215f6eb"
+      },
+      {
+        "name": "scenicroad15_daytrip.kmz/doc.kml",
+        "sha256": "8070aa91e034738a2f51c4549b58b046907ca3152614f14280782b6e1e9bb873"
+      },
+      {
+        "name": "scenicroad12_daytrip.kmz/doc.kml",
+        "sha256": "fac88f0a0b52435aa6887874169633ff2d7f78b2908147c6db8ce3626c8e8816"
+      },
+      {
+        "name": "scenicroad13_daytrip.kmz/doc.kml",
+        "sha256": "75bd8a63b0e9c8867086aa3194ad3176f11a0f3137db3662302d7153c2c94ac7"
+      },
+      {
+        "name": "scenicroad11_daytrip.kmz/doc.kml",
+        "sha256": "ff95c5e82b7e855d1d56cb2105642f409183bb3c7d407fb8cfbad1551d0ed177"
+      },
+      {
+        "name": "scenicroad02_daytrip.kmz/doc.kml",
+        "sha256": "496c7965b908d736f4216a0bce6f72d09e0a73712091b6edd1bcdaff472038be"
+      },
+      {
+        "name": "scenicroad13_staytrip.kmz/doc.kml",
+        "sha256": "2f52a8157149ce112d263706b54aeabc49b76f59e11e005b1183b4c8832c5f62"
+      },
+      {
+        "name": "scenicroad03_daytrip.kmz/doc.kml",
+        "sha256": "63ef51083be353c48123ecb65ccdbc852477f3c66a3f00c2be5f40bfdb917105"
+      },
+      {
+        "name": "scenicroad04_staytrip.kml/doc.kml",
+        "sha256": "88504ac48823b88658f94c2ebf46c4580ef9d7a99af9c7f5086cc881555994a3"
+      }
+    ],
+    "mislabeledZipFiles": [
+      "scenicroad04_staytrip.kml"
+    ],
+    "scope": "Only KML point names and coordinates. No images, descriptions, contact data, course lengths, or travel times retained.",
+    "id": "scenic-modelcourse-points",
+    "pointOccurrences": 581,
+    "kmlFileCount": 27,
+    "selectedPoints": [
+      {
+        "name": "ニセコ駅前温泉綺羅乃湯",
+        "latitude": 42.808276,
+        "longitude": 140.68524,
+        "file": "scenicroad03_daytrip.kmz/doc.kml",
+        "reviewedAppRegion": "niseko-kutchan",
+        "exactNameMatches": [],
+        "nearbyCandidates": [
+          {
+            "id": "b7d69eb0-1769-55b5-81e9-cd78e0cd29af",
+            "name_ja": "ポンポン",
+            "region_id": "niseko-kutchan",
+            "category": "RESTAURANT",
+            "latitude": 42.8085863,
+            "longitude": 140.6858032,
+            "website": null,
+            "distance": 57.53561347
+          },
+          {
+            "id": "20527993-b03b-5954-b4b3-89b7636cc810",
+            "name_ja": "ヌプリ",
+            "region_id": "niseko-kutchan",
+            "category": "RESTAURANT",
+            "latitude": 42.8088487,
+            "longitude": 140.6849735,
+            "website": null,
+            "distance": 67.25134535
+          },
+          {
+            "id": "b40e1a67-bbf4-51c1-9b84-5f644f829136",
+            "name_ja": "Dragon",
+            "region_id": "niseko-kutchan",
+            "category": "RESTAURANT",
+            "latitude": 42.808595,
+            "longitude": 140.68454,
+            "website": null,
+            "distance": 67.3351419
+          },
+          {
+            "id": "907b51e8-76ac-55fb-a928-9b36ac18f554",
+            "name_ja": "9643",
+            "region_id": "niseko-kutchan",
+            "category": "ATTRACTION",
+            "latitude": 42.8079096,
+            "longitude": 140.683425,
+            "website": null,
+            "distance": 153.93537646
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "IDENTITY_REVIEW_REQUIRED"
+      },
+      {
+        "name": "北海道ワイン",
+        "latitude": 43.158526,
+        "longitude": 141.016715,
+        "file": "scenicroad03_staytrip.kmz/doc.kml",
+        "reviewedAppRegion": "otaru",
+        "exactNameMatches": [],
+        "nearbyCandidates": [
+          {
+            "id": "31e382c9-7700-5cb6-b09c-f3fa3b7c2f61",
+            "name_ja": "D51 286",
+            "region_id": "otaru",
+            "category": "ATTRACTION",
+            "latitude": 43.1606921,
+            "longitude": 141.0167625,
+            "website": null,
+            "distance": 240.67571952
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "IDENTITY_REVIEW_REQUIRED"
+      },
+      {
+        "name": "稚内市樺太記念館",
+        "latitude": 45.40817488,
+        "longitude": 141.6766834,
+        "file": "scenicroad0607_daytrip.kmz/doc.kml",
+        "reviewedAppRegion": "wakkanai-rishiri-rebun",
+        "exactNameMatches": [
+          {
+            "id": "619c33a2-0fc6-5e8b-a4a2-5ba0c92c8467",
+            "name_ja": "稚内市樺太記念館",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4080742,
+            "longitude": 141.6765756,
+            "website": null,
+            "distance": 14.01516944
+          }
+        ],
+        "nearbyCandidates": [
+          {
+            "id": "619c33a2-0fc6-5e8b-a4a2-5ba0c92c8467",
+            "name_ja": "稚内市樺太記念館",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4080742,
+            "longitude": 141.6765756,
+            "website": null,
+            "distance": 14.01516944
+          },
+          {
+            "id": "226be17f-8e0b-5421-95e0-808708c48ed3",
+            "name_ja": "北の台所なごみ",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.408331,
+            "longitude": 141.6766594,
+            "website": null,
+            "distance": 17.45256554
+          },
+          {
+            "id": "785c6171-b3fb-5925-bb5b-9c439976e09c",
+            "name_ja": "波止場横丁（鉄板焼 正ちゃん）",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4081493,
+            "longitude": 141.6761116,
+            "website": null,
+            "distance": 44.85356562
+          },
+          {
+            "id": "029f2a85-d481-53a2-92d6-1b9399ad83f0",
+            "name_ja": "波止場横丁（串かつ 松ちゃん）",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4082011,
+            "longitude": 141.6760442,
+            "website": null,
+            "distance": 50.12454481
+          },
+          {
+            "id": "17bd7374-61c2-526f-b1ca-ee5c1f833c69",
+            "name_ja": "魚常明田鮮魚店",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4086425,
+            "longitude": 141.6766123,
+            "website": null,
+            "distance": 52.26838186
+          },
+          {
+            "id": "a5a49532-07d9-567f-8f4c-eb192bd8e743",
+            "name_ja": "稚内副港市場",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4086533,
+            "longitude": 141.6766366,
+            "website": "https://fukkoichiba.hokkaido.jp/",
+            "distance": 53.29755641
+          },
+          {
+            "id": "e5a4c591-c1fc-5115-8005-173ba25c1bfa",
+            "name_ja": "カフェPotto",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4087266,
+            "longitude": 141.6765136,
+            "website": null,
+            "distance": 62.74230822
+          },
+          {
+            "id": "29c8b8eb-e180-5407-a13b-0e249b891c00",
+            "name_ja": "てっぺん食堂",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4088131,
+            "longitude": 141.6767297,
+            "website": null,
+            "distance": 71.0241647
+          },
+          {
+            "id": "78109e58-6e00-59e3-a8d8-dbcc5b3703a4",
+            "name_ja": "渡辺つり具店",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4080149,
+            "longitude": 141.6754651,
+            "website": null,
+            "distance": 97.01792619
+          },
+          {
+            "id": "7d0e0711-0142-54d0-966f-2928d5c8d2a4",
+            "name_ja": "ナマステ",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4082497,
+            "longitude": 141.6753511,
+            "website": null,
+            "distance": 104.63000662
+          },
+          {
+            "id": "f679704a-c296-5aa1-9fad-a812dd457da8",
+            "name_ja": "稚内丸善(株) マリンギフト",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4093424,
+            "longitude": 141.6766042,
+            "website": null,
+            "distance": 129.90594195
+          },
+          {
+            "id": "0175fb3f-d507-55f4-a600-4d65994404f9",
+            "name_ja": "ら・せーぬ",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.4098539,
+            "longitude": 141.6763942,
+            "website": null,
+            "distance": 187.97424445
+          },
+          {
+            "id": "0782512a-f88e-5dd0-9752-fcc5ca8c3e99",
+            "name_ja": "稚内市地方卸売市場",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4082246,
+            "longitude": 141.6793619,
+            "website": null,
+            "distance": 209.7590997
+          },
+          {
+            "id": "5e97ee84-82e2-5a9a-b9de-986c83a78ea8",
+            "name_ja": "稚内機船漁業協同組合 市場部",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4088507,
+            "longitude": 141.6793569,
+            "website": null,
+            "distance": 222.36331594
+          },
+          {
+            "id": "ae0a683e-7022-53c8-a368-e6b6edde1285",
+            "name_ja": "味の大番",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.409281,
+            "longitude": 141.674116,
+            "website": null,
+            "distance": 235.60243798
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "EXACT_NAME_AND_REGION_CANDIDATE"
+      },
+      {
+        "name": "稚内公園",
+        "latitude": 45.42142998,
+        "longitude": 141.6676927,
+        "file": "scenicroad0607_daytrip.kmz/doc.kml",
+        "reviewedAppRegion": "wakkanai-rishiri-rebun",
+        "exactNameMatches": [
+          {
+            "id": "eb9c332a-25e4-5e1a-a16e-37694652dc65",
+            "name_ja": "稚内公園",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4213961,
+            "longitude": 141.6686257,
+            "website": null,
+            "distance": 73.11986632
+          }
+        ],
+        "nearbyCandidates": [
+          {
+            "id": "7b4da410-6db8-5d34-8ce7-9db7fb2cc171",
+            "name_ja": "タロ・ジロの店",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4215004,
+            "longitude": 141.6674231,
+            "website": null,
+            "distance": 22.50539534
+          },
+          {
+            "id": "842cd2f9-0bad-5d3b-a040-81b8f54b56da",
+            "name_ja": "氷雪の門売店",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4215528,
+            "longitude": 141.6674535,
+            "website": null,
+            "distance": 23.16933813
+          },
+          {
+            "id": "19f3b737-37b1-5259-8e58-7bacb0479949",
+            "name_ja": "教學の碑",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4214526,
+            "longitude": 141.668036,
+            "website": null,
+            "distance": 26.98630522
+          },
+          {
+            "id": "320dedad-b2f4-5b9a-a772-b76e66d9e20a",
+            "name_ja": "九人の乙女の碑",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4219858,
+            "longitude": 141.6681281,
+            "website": null,
+            "distance": 70.54970051
+          },
+          {
+            "id": "eb9c332a-25e4-5e1a-a16e-37694652dc65",
+            "name_ja": "稚内公園",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4213961,
+            "longitude": 141.6686257,
+            "website": null,
+            "distance": 73.11986632
+          },
+          {
+            "id": "c1d1ff74-8972-5ea8-ad04-f6ae72d97661",
+            "name_ja": "氷雪の門",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.4219248,
+            "longitude": 141.6683301,
+            "website": null,
+            "distance": 74.25014211
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "EXACT_NAME_AND_REGION_CANDIDATE"
+      },
+      {
+        "name": "宗谷岬",
+        "latitude": 45.5229466,
+        "longitude": 141.9365788,
+        "file": "scenicroad0607_daytrip.kmz/doc.kml",
+        "reviewedAppRegion": "wakkanai-rishiri-rebun",
+        "exactNameMatches": [
+          {
+            "id": "f4cdb2c6-f6cf-5b4d-bfd9-9f64ed9cbd8f",
+            "name_ja": "宗谷岬",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5228863,
+            "longitude": 141.9366,
+            "website": null,
+            "distance": 6.90349321
+          }
+        ],
+        "nearbyCandidates": [
+          {
+            "id": "f4cdb2c6-f6cf-5b4d-bfd9-9f64ed9cbd8f",
+            "name_ja": "宗谷岬",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5228863,
+            "longitude": 141.9366,
+            "website": null,
+            "distance": 6.90349321
+          },
+          {
+            "id": "4e383cec-db4e-5fdd-8c7c-142d3fda13e6",
+            "name_ja": "日本最北端の地",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5228446,
+            "longitude": 141.9365949,
+            "website": null,
+            "distance": 11.40605141
+          },
+          {
+            "id": "09f95328-7ae1-5dc0-93fe-9a245abd418f",
+            "name_ja": "間宮林蔵",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5226801,
+            "longitude": 141.9364846,
+            "website": null,
+            "distance": 30.51995848
+          },
+          {
+            "id": "4732f9e7-f5b1-5628-a937-e3121728e3ff",
+            "name_ja": "えぞや",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.522083,
+            "longitude": 141.9373118,
+            "website": null,
+            "distance": 111.76805785
+          },
+          {
+            "id": "26a325c9-0dd8-5523-a9b5-968f0bd48559",
+            "name_ja": "てっぺん市場",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.5220488,
+            "longitude": 141.9374327,
+            "website": null,
+            "distance": 120.03029438
+          },
+          {
+            "id": "34592992-6edc-5756-8ec9-034cc1e20493",
+            "name_ja": "宗谷岬展望台",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5218869,
+            "longitude": 141.9370651,
+            "website": null,
+            "distance": 123.75355357
+          },
+          {
+            "id": "0325f72a-dd44-59f8-b559-d6d39d798b7a",
+            "name_ja": "最北端",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.5220078,
+            "longitude": 141.9375491,
+            "website": null,
+            "distance": 128.97090751
+          },
+          {
+            "id": "693b2512-3103-56ae-81a0-d78302a941ce",
+            "name_ja": "柏屋",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5222476,
+            "longitude": 141.9381034,
+            "website": null,
+            "distance": 142.20815343
+          },
+          {
+            "id": "bc5b3f9c-8486-505b-a077-c3d0a2d35928",
+            "name_ja": "流氷館",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5221749,
+            "longitude": 141.9382685,
+            "website": null,
+            "distance": 157.42643277
+          },
+          {
+            "id": "e11c3dd4-26d1-53a0-bd8f-0e020bd7ae1a",
+            "name_ja": "宗谷岬灯台",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.521446,
+            "longitude": 141.9365104,
+            "website": null,
+            "distance": 166.86525106
+          },
+          {
+            "id": "b4935139-99b3-5f73-8b35-da0b4237bbf1",
+            "name_ja": "宗谷の味",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.5220579,
+            "longitude": 141.9385768,
+            "website": null,
+            "distance": 184.72234448
+          },
+          {
+            "id": "e6dedd83-e830-5ef5-ab54-b6a6e2d129cc",
+            "name_ja": "ラ・ペルーズ顕彰記念碑",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5213521,
+            "longitude": 141.9372926,
+            "website": null,
+            "distance": 185.78339154
+          },
+          {
+            "id": "beb88f5d-4cb3-5ad3-ab76-a121d2c34856",
+            "name_ja": "あけぼの像",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "ATTRACTION",
+            "latitude": 45.5213687,
+            "longitude": 141.9374097,
+            "website": null,
+            "distance": 187.00015698
+          },
+          {
+            "id": "80490e50-705f-5e32-90db-b63e095d9ba9",
+            "name_ja": "間宮堂",
+            "region_id": "wakkanai-rishiri-rebun",
+            "category": "RESTAURANT",
+            "latitude": 45.5210688,
+            "longitude": 141.9379838,
+            "website": null,
+            "distance": 235.80922842
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "EXACT_NAME_AND_REGION_CANDIDATE"
+      },
+      {
+        "name": "阿寒湖畔（エコミュージアムセンター）",
+        "latitude": 43.43508178,
+        "longitude": 144.1013273,
+        "file": "scenicroad0809_staytrip.kmz/doc.kml",
+        "reviewedAppRegion": "kushiro-akan",
+        "exactNameMatches": [],
+        "nearbyCandidates": [
+          {
+            "id": "01a28be9-fece-53f7-8e32-bb9eb67baf8a",
+            "name_ja": "稲荷神社",
+            "region_id": "kushiro-akan",
+            "category": "ATTRACTION",
+            "latitude": 43.4343938,
+            "longitude": 144.1019251,
+            "website": null,
+            "distance": 90.47067968
+          },
+          {
+            "id": "46f7e0df-4a16-57d5-ba06-ace3a1430e26",
+            "name_ja": "白龍神王",
+            "region_id": "kushiro-akan",
+            "category": "ATTRACTION",
+            "latitude": 43.4344447,
+            "longitude": 144.102193,
+            "website": null,
+            "distance": 99.61177827
+          },
+          {
+            "id": "7e5ae86d-0df8-55ed-bb7c-dd61e45c8f52",
+            "name_ja": "ホテル阿寒湖荘",
+            "region_id": "kushiro-akan",
+            "category": "LODGING",
+            "latitude": 43.4348983,
+            "longitude": 144.0994016,
+            "website": null,
+            "distance": 157.238198
+          },
+          {
+            "id": "cd097cb5-d781-5624-870a-53a7093fd493",
+            "name_ja": "かと里湖水店",
+            "region_id": "kushiro-akan",
+            "category": "ATTRACTION",
+            "latitude": 43.4340543,
+            "longitude": 144.0993623,
+            "website": null,
+            "distance": 195.81153623
+          },
+          {
+            "id": "6f7f7948-6e1f-50ca-83bc-3d7036ee58c7",
+            "name_ja": "山水荘ホテル",
+            "region_id": "kushiro-akan",
+            "category": "LODGING",
+            "latitude": 43.4333872,
+            "longitude": 144.0999562,
+            "website": null,
+            "distance": 218.5608197
+          },
+          {
+            "id": "8c560e90-10ac-59eb-b14d-1fe56e3b6718",
+            "name_ja": "阿寒の森鶴雅リゾート花ゆう香",
+            "region_id": "kushiro-akan",
+            "category": "LODGING",
+            "latitude": 43.433834,
+            "longitude": 144.0989868,
+            "website": null,
+            "distance": 234.79174206
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "IDENTITY_REVIEW_REQUIRED"
+      },
+      {
+        "name": "釧路和商市場",
+        "latitude": 42.9892439,
+        "longitude": 144.3799192,
+        "file": "scenicroad0809_staytrip.kmz/doc.kml",
+        "reviewedAppRegion": "kushiro-akan",
+        "exactNameMatches": [],
+        "nearbyCandidates": [
+          {
+            "id": "4505d035-43fa-571f-8bb1-9cc38bff0482",
+            "name_ja": "和商市場",
+            "region_id": "kushiro-akan",
+            "category": "RESTAURANT",
+            "latitude": 42.9893293,
+            "longitude": 144.3798794,
+            "website": null,
+            "distance": 10.02719932
+          },
+          {
+            "id": "e8b79232-c002-50e0-8bca-112eea9ad2d3",
+            "name_ja": "FUTAMI BARISTA CAFE",
+            "region_id": "kushiro-akan",
+            "category": "RESTAURANT",
+            "latitude": 42.9887647,
+            "longitude": 144.3794442,
+            "website": null,
+            "distance": 65.8386061
+          },
+          {
+            "id": "9b79b216-b509-5089-b94a-1f27bc05d77e",
+            "name_ja": "釧路カトリック教会",
+            "region_id": "kushiro-akan",
+            "category": "ATTRACTION",
+            "latitude": 42.9883898,
+            "longitude": 144.3799474,
+            "website": null,
+            "distance": 94.91198881
+          },
+          {
+            "id": "42341f9e-c3d6-5036-b549-d4f15c9ac217",
+            "name_ja": "釧路ロイヤルイン",
+            "region_id": "kushiro-akan",
+            "category": "LODGING",
+            "latitude": 42.990249,
+            "longitude": 144.3805772,
+            "website": null,
+            "distance": 123.88486959
+          },
+          {
+            "id": "95d0a52e-954c-5b0c-a7f7-6e1af5187c87",
+            "name_ja": "C58 106",
+            "region_id": "kushiro-akan",
+            "category": "ATTRACTION",
+            "latitude": 42.9877589,
+            "longitude": 144.3790841,
+            "website": null,
+            "distance": 178.47836254
+          },
+          {
+            "id": "db102df1-4924-59a0-a9c5-33820205d8d5",
+            "name_ja": "ホテルルートイン釧路駅前",
+            "region_id": "kushiro-akan",
+            "category": "LODGING",
+            "latitude": 42.9892936,
+            "longitude": 144.3824079,
+            "website": "https://www.route-inn.co.jp/hotel_list/hokkaido/index_hotel_id_242/",
+            "distance": 203.04140282
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "IDENTITY_REVIEW_REQUIRED"
+      },
+      {
+        "name": "＜シーニックカフェ＞十勝千年の森",
+        "latitude": 42.9337374,
+        "longitude": 142.8697976,
+        "file": "scenicroad10_staytrip.kmz/doc.kml",
+        "reviewedAppRegion": "obihiro-tokachi",
+        "exactNameMatches": [],
+        "nearbyCandidates": [
+          {
+            "id": "5c18ed71-539d-507a-b769-7bc0010a8b09",
+            "name_ja": "十勝千年の森",
+            "region_id": "obihiro-tokachi",
+            "category": "ATTRACTION",
+            "latitude": 42.9322856,
+            "longitude": 142.8678771,
+            "website": null,
+            "distance": 224.91935423
+          },
+          {
+            "id": "3e33f2e2-e259-5a52-9d62-fb9d5cc09434",
+            "name_ja": "十勝千年の森 ガーデンカフェ・ラウラウ",
+            "region_id": "obihiro-tokachi",
+            "category": "RESTAURANT",
+            "latitude": 42.9321065,
+            "longitude": 142.8677842,
+            "website": null,
+            "distance": 244.61758561
+          }
+        ],
+        "approvedPlaceId": null,
+        "status": "IDENTITY_REVIEW_REQUIRED"
+      }
+    ],
+    "archiveInspected": true,
+    "appliedLinks": 0,
+    "probeSql": "SELECT id,name_ja,region_id,category,latitude,longitude,website,ST_Distance(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography) AS distance FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,250) ORDER BY distance,id LIMIT 20",
+    "probeParameters": "For each selected point: longitude,latitude. Read-only REPEATABLE READ. Eight selected names, not an overall matching-rate estimate.",
+    "primaryIdentityUrls": [
+      "https://www.hokkaidowine.com/company/",
+      "https://www.town.niseko.lg.jp/kokyo_shisetsu/sightseeing/kiranoyu/",
+      "https://www.tmf.jp/"
+    ]
+  }
+}

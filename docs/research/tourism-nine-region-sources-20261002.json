@@ -1,0 +1,384 @@
+{
+  "checkedOn": "2026-10-02",
+  "baselineCommit": "41a8a9a1107b2ddead9c4683cc119981866a3d04",
+  "purpose": "Nine uncovered app regions: source acquisition and review, not publication",
+  "regions": [
+    {
+      "regionId": "sapporo",
+      "label": "삿포로",
+      "primaryCandidate": {
+        "id": "sapporo-downtown-tourism",
+        "publisher": "札幌市",
+        "datasetUrl": "https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot",
+        "termsUrls": [
+          "https://data.pf-sapporo.jp/tos"
+        ],
+        "licenseId": "CC-BY-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "geographicScope": "삿포로 도심 7개 권역; 시 전체가 아님",
+        "reviewStatus": "FILE_VERIFIED",
+        "resourceUrl": "https://ckan.pf-sapporo.jp/dataset/a467875c-db25-4477-ba1f-16964fc5a7bd/resource/4374a1aa-f96c-4b99-9521-5eea0af0d2b9/download/011002_tourism.csv",
+        "downloadEvidenceId": "sapporo",
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "CKAN origin allowlist와 robots 10초 간격·/api/ 금지 반영",
+          "NO·10진법 좌표·공식 URL 열의 명시적 parser profile",
+          "이미지·연락처·요금·현재 영업 주장을 제외하고 catalog 연결률 검증"
+        ]
+      },
+      "recordCount": 103,
+      "referenceUrls": [
+        "https://www.city.sapporo.jp/keizai/kanko/tourist/buraritetyo.html"
+      ],
+      "dataUpdatedAt": null
+    },
+    {
+      "regionId": "otaru",
+      "label": "오타루",
+      "primaryCandidate": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      },
+      "recordCount": null,
+      "referenceUrls": [
+        "https://www.city.otaru.lg.jp/docs/2020120200171/",
+        "https://ckan.hoda.jp/dataset?organization=otaru"
+      ],
+      "dataUpdatedAt": null,
+      "scenicSelectedPointCount": 1,
+      "scenicSelectedNames": [
+        "北海道ワイン"
+      ],
+      "verifiedPointSource": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      },
+      "restrictedCityHtmlCandidate": {
+        "id": "otaru-official-tourism-reference",
+        "publisher": "小樽市",
+        "datasetUrl": "https://www.city.otaru.lg.jp/categories/bunya/kanko/miruasobutomaru/",
+        "termsUrls": [
+          "https://www.city.otaru.lg.jp/docs/2020110800022/"
+        ],
+        "licenseId": null,
+        "licenseUrl": null,
+        "geographicScope": "오타루 시청의 관광 안내; 재사용 가능한 시설 데이터셋은 아직 확보하지 못함",
+        "reviewStatus": "RIGHTS_PENDING",
+        "resourceUrl": null,
+        "downloadEvidenceId": null,
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "오픈데이터로 지정된 관광 시설 자료 또는 재사용 허락 확보",
+          "일반 관광 HTML에 오픈데이터 CC-BY-2.1-JP를 확대 적용하지 않음",
+          "허락 전 일반 관광 본문·사진의 자동 수집을 연결하지 않음"
+        ]
+      },
+      "scopeNote": "CC BY 4.0 모델코스 지도에서 실제 이름·좌표를 점검했다. 선택 장소 수는 전체 지역 시설 수가 아니며 본문·사진·이동시간은 재사용하지 않는다. 리시리·레분 섬 전체, 지역 경계, 현재 운영 여부는 보장하지 않는다."
+    },
+    {
+      "regionId": "asahikawa-biei",
+      "label": "아사히카와·비에이",
+      "primaryCandidate": {
+        "id": "asahikawa-tourism-gis",
+        "publisher": "旭川市",
+        "datasetUrl": "https://www.city.asahikawa.hokkaido.jp/700/735/755/756/d083431.html",
+        "termsUrls": [
+          "https://www.city.asahikawa.hokkaido.jp/700/jouhouseisaku/jouhouseisaku004/d054760.html",
+          "https://www.city.asahikawa.hokkaido.jp/700/jouhouseisaku/jouhouseisaku004/d083960.html"
+        ],
+        "licenseId": "CC-BY-2.1-JP",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.1/jp/",
+        "geographicScope": "아사히카와시 관광 GIS; 비에이 전역 자료 확보를 뜻하지 않음",
+        "reviewStatus": "FILE_VERIFIED",
+        "resourceUrl": "https://www.city.asahikawa.hokkaido.jp/700/735/755/756/d083431_d/fil/012041_GIS_090101.zip",
+        "downloadEvidenceId": "asahikawa-tourism",
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "JGD2011 평면직각좌표 제12계 → WGS84 검증",
+          "315개 DBF 행과 SHP 객체의 1:1 순서·삭제 레코드 정합성 확인",
+          "공개 안정 ID가 없어 시설명·주소·분류에 근거한 식별 설계 필요",
+          "CC BY 2.1 JP 그대로 표시; 4.0으로 바꾸지 않음",
+          "새 출처 origin의 robots 확인"
+        ]
+      },
+      "recordCount": 315,
+      "referenceUrls": [
+        "https://town.biei.hokkaido.jp/administration/administration/informatization/opendata.html"
+      ],
+      "dataUpdatedAt": "2026-03-02"
+    },
+    {
+      "regionId": "niseko-kutchan",
+      "label": "니세코·굿찬",
+      "primaryCandidate": {
+        "id": "niseko-public-facilities",
+        "publisher": "ニセコ町",
+        "datasetUrl": "https://www.harp.lg.jp/opendata/dataset/1755.html",
+        "termsUrls": [
+          "https://www.harp.lg.jp/opendata/terms.html",
+          "https://www.town.niseko.lg.jp/chosei/opendata/"
+        ],
+        "licenseId": "CC-BY-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "geographicScope": "니세코정 공공시설 중 관광 시설만 선별; 굿찬 전역이 아님",
+        "reviewStatus": "PREVIEW_VERIFIED_DOWNLOAD_TIMEOUT",
+        "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/1755/resource/4233/013951_public_facility.csv",
+        "downloadEvidenceId": "niseko-public-facilities",
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "CSV 다운로드 재검증 필요; 이번 파일 본문 미확보",
+          "有島記念館의 외부 NO를 명시적으로 허용하고 학교·보육·행정시설 제외",
+          "NO·利用可能時間特記事項 parser profile",
+          "이미 오래된 운영 표현을 현재 운영 시간으로 사용하지 않음"
+        ]
+      },
+      "recordCount": null,
+      "tourismAllowlistProposal": [
+        {
+          "NO": "1395101205",
+          "名称": "有島記念館",
+          "緯度": "42.810512",
+          "経度": "140.703728",
+          "evidenceType": "published HTML preview, CSV body unverified",
+          "previewUrl": "https://www.harp.lg.jp/opendata/dataset/1755/resource/4233/content.html"
+        }
+      ],
+      "referenceUrls": [
+        "https://www.town.niseko.lg.jp/arishima_museum/"
+      ],
+      "dataUpdatedAt": "2022-03-09",
+      "scenicSelectedPointCount": 1,
+      "scenicSelectedNames": [
+        "ニセコ駅前温泉綺羅乃湯"
+      ],
+      "verifiedPointSource": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      }
+    },
+    {
+      "regionId": "toya-noboribetsu",
+      "label": "도야·노보리베츠",
+      "primaryCandidate": {
+        "id": "noboribetsu-tourism",
+        "publisher": "登別市",
+        "datasetUrl": "https://ckan.hoda.jp/dataset/noboribetsutourism",
+        "termsUrls": [
+          "https://www.city.noboribetsu.lg.jp/docs/2018120400035/"
+        ],
+        "licenseId": "CC-BY (version unspecified)",
+        "licenseUrl": null,
+        "geographicScope": "노보리베츠 시설 4개; 도야 자료 확보를 뜻하지 않음",
+        "reviewStatus": "FILE_VERIFIED_ID_AND_LICENSE_VERSION_PENDING",
+        "resourceUrl": "https://ckan.hoda.jp/dataset/96fbe6c2-0399-4d39-b397-1012ba711668/resource/11d71023-192f-4be7-a9b4-71d577407912/download/012301_tourism.csv.csv",
+        "downloadEvidenceId": "noboribetsu",
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "4개 모두 ID 공란이므로 행 번호를 안정 ID로 간주하지 않음",
+          "시설명·주소·좌표와 출처 변경을 관리하는 명시적 식별 정책",
+          "시청·포털의 정확한 CC BY 버전과 라이선스 URL 확인",
+          "CKAN origin allowlist와 10초 간격·/api/ 금지 반영"
+        ]
+      },
+      "recordCount": 4,
+      "referenceUrls": [
+        "https://www.city.noboribetsu.lg.jp/docs/2018120400035/"
+      ],
+      "dataUpdatedAt": null
+    },
+    {
+      "regionId": "obihiro-tokachi",
+      "label": "오비히로·도카치",
+      "primaryCandidate": {
+        "id": "otofuke-cultural-properties",
+        "publisher": "北海道音更町",
+        "datasetUrl": "https://www.harp.lg.jp/opendata/dataset/1699.html",
+        "termsUrls": [
+          "https://www.harp.lg.jp/opendata/terms.html"
+        ],
+        "licenseId": "CC-BY-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "geographicScope": "도카치의 오토후케정 문화재; 오비히로시 자료나 도카치 전체 자료가 아님",
+        "reviewStatus": "PREVIEW_VERIFIED_DOWNLOAD_TIMEOUT",
+        "resourceUrl": "https://www.harp.lg.jp/opendata/dataset/1699/resource/6666/016314_cultural_property_202404.csv",
+        "downloadEvidenceId": "otofuke-cultural-properties",
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "CSV 다운로드 재검증 필요; 이번 파일 본문 미확보",
+          "무형문화·이동 유물·접근 불명 유적을 여행 방문 장소로 자동 전환하지 않음",
+          "좌표가 있어도 공개 방문 가능 여부와 장소 범위를 별도 대조",
+          "NO·문화재 분류 parser profile",
+          "과거 행사·노래·전승을 개최 확정 행사로 만들지 않음"
+        ]
+      },
+      "recordCount": null,
+      "referenceUrls": [
+        "https://www.city.obihiro.hokkaido.jp/shisei/seisaku/toshi/opendata/1001459.html"
+      ],
+      "dataUpdatedAt": "2024-04-16",
+      "scenicSelectedPointCount": 1,
+      "scenicSelectedNames": [
+        "＜シーニックカフェ＞十勝千年の森"
+      ],
+      "verifiedPointSource": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      }
+    },
+    {
+      "regionId": "kushiro-akan",
+      "label": "구시로·아칸",
+      "primaryCandidate": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      },
+      "recordCount": null,
+      "referenceUrls": [
+        "https://www.city.kushiro.lg.jp/shisei/shisetsu/1007655/index.html",
+        "https://www.city.kushiro.lg.jp/opendata/1000081/1000084.html"
+      ],
+      "scopeNote": "CC BY 4.0 모델코스 지도에서 실제 이름·좌표를 점검했다. 선택 장소 수는 전체 지역 시설 수가 아니며 본문·사진·이동시간은 재사용하지 않는다. 리시리·레분 섬 전체, 지역 경계, 현재 운영 여부는 보장하지 않는다.",
+      "dataUpdatedAt": null,
+      "scenicSelectedPointCount": 2,
+      "scenicSelectedNames": [
+        "阿寒湖畔（エコミュージアムセンター）",
+        "釧路和商市場"
+      ],
+      "verifiedPointSource": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      }
+    },
+    {
+      "regionId": "abashiri-shiretoko",
+      "label": "아바시리·시레토코",
+      "primaryCandidate": {
+        "id": "abashiri-tourism",
+        "publisher": "網走市",
+        "datasetUrl": "https://www.city.abashiri.hokkaido.jp/soshiki/3/1443.html",
+        "termsUrls": [
+          "https://www.city.abashiri.hokkaido.jp/soshiki/3/1443.html"
+        ],
+        "licenseId": "CC-BY-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "geographicScope": "아바시리 시설 14개; 시레토코 전체가 아님",
+        "reviewStatus": "FILE_VERIFIED_ROBOTS_POLICY_PENDING",
+        "resourceUrl": "https://www.city.abashiri.hokkaido.jp/uploaded/attachment/2774.csv",
+        "downloadEvidenceId": "abashiri",
+        "ingestApproved": false,
+        "enabled": false,
+        "remainingWork": [
+          "robots.txt 404에 대한 자동 수집 정책 검토; 기존 수집기의 보수적 중단은 유지",
+          "NO·날짜 특기·설명 없음 parser profile",
+          "자료 시점 2020-10-16: 요금·운영 시간은 현재 사실로 표시하지 않음",
+          "현재 catalog 연결률 확인"
+        ]
+      },
+      "recordCount": 14,
+      "referenceUrls": [
+        "https://www.city.abashiri.hokkaido.jp/soshiki/3/1443.html"
+      ],
+      "dataUpdatedAt": "2020-10-16"
+    },
+    {
+      "regionId": "wakkanai-rishiri-rebun",
+      "label": "왓카나이·리시리·레분",
+      "primaryCandidate": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      },
+      "recordCount": null,
+      "referenceUrls": [
+        "https://www.city.wakkanai.hokkaido.jp/shisei/opendata/",
+        "https://www.city.wakkanai.hokkaido.jp/kurashi/koenkeikan/koen/sonota.html"
+      ],
+      "scopeNote": "CC BY 4.0 모델코스 지도에서 실제 이름·좌표를 점검했다. 선택 장소 수는 전체 지역 시설 수가 아니며 본문·사진·이동시간은 재사용하지 않는다. 리시리·레분 섬 전체, 지역 경계, 현재 운영 여부는 보장하지 않는다.",
+      "dataUpdatedAt": null,
+      "scenicSelectedPointCount": 3,
+      "scenicSelectedNames": [
+        "稚内市樺太記念館",
+        "稚内公園",
+        "宗谷岬"
+      ],
+      "verifiedPointSource": {
+        "sharedCandidateId": "scenicbyway",
+        "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+        "ingestApproved": false,
+        "enabled": false
+      }
+    }
+  ],
+  "sharedCandidates": [
+    {
+      "id": "scenicbyway",
+      "publisher": "シーニックバイウェイ北海道推進協議会",
+      "datasetUrl": "https://ckan.pf-sapporo.jp/dataset/scenicbyway",
+      "termsUrls": [
+        "https://data.pf-sapporo.jp/tos"
+      ],
+      "licenseId": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "geographicScope": "홋카이도 경관 도로 모델코스 지도. 오타루·니세코·도카치·구시로·왓카나이의 8개 장소 이름과 좌표를 별도로 점검",
+      "reviewStatus": "POINT_FILE_VERIFIED_FILTER_REQUIRED",
+      "resourceUrl": "https://ckan.pf-sapporo.jp/dataset/b2ba7b74-cbdf-4d4c-9633-7ab188160ddf/resource/30ca6984-bc52-49b5-8971-e9260d9dbaf5/download/plan.zip",
+      "downloadEvidenceId": "scenic-modelcourse-points",
+      "ingestApproved": false,
+      "enabled": false,
+      "remainingWork": [
+        "KML/KMZ를 확장자뿐 아니라 파일 signature로 판별: .kml 한 개가 실제 ZIP",
+        "중첩 압축·해제 크기·경로 제한이 있는 수집기와 안정 ID 설계",
+        "581개 Point는 중복 장소·출발·도착·숙박 행동도 포함하므로 시설 수로 사용하지 않음",
+        "좌표만으로 지역을 확정하거나 인접 시설과 연결하지 않음",
+        "사진·본문·모델코스 이동시간과 경로는 가져오지 않음"
+      ]
+    }
+  ],
+  "downloadsFile": "tourism-source-download-checks-20261002.json",
+  "productionEffect": {
+    "newEnabledSources": 0,
+    "newPublishedRecords": 0,
+    "appRegionsWithActiveKnowledge": [
+      "furano",
+      "hakodate",
+      "new-chitose"
+    ],
+    "appRegionsStillWithoutActiveKnowledge": 9
+  },
+  "rejectedCandidates": [
+    {
+      "id": "mlit-p12-tourism-resources",
+      "url": "https://nlftp.mlit.go.jp/ksj/jpgis/datalist/KsjTmplt-P12.html",
+      "reason": "Primary page explicitly labels noncommercial; source period 2010. Excluded from commercial tourism service."
+    }
+  ],
+  "observedCorrections": [
+    "Cached web maintenance response is not an outage claim: direct Sapporo, Noboribetsu, Abashiri CSV requests succeeded.",
+    "Scenic cached page says 12 sections, current XLSX contains 15. One .kml entry is actually ZIP.",
+    "Asahikawa actual tourism resource filename dates 20260302, distinct from page publication."
+  ],
+  "limits": [
+    "All nine regions have licensed source candidates. Actual reusable file bodies were inspected for four municipality sources and one shared Point archive covering five other app regions. Two HARP CSV downloads timed out; preview and resource identity only verified.",
+    "No new production source enabled or records published. Individual municipalities and selected road points do not cover an entire app region group.",
+    "No contact fields, images, course descriptions, or travel times copied into the repository. No source-owner permission request sent."
+  ]
+}
