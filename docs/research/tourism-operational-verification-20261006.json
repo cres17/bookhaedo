@@ -1,7 +1,7 @@
 {
-  "capturedAt": "2026-10-06T02:26:19.729519+00:00",
+  "capturedAt": "2026-10-06T02:33:29.134177+00:00",
   "baselineCommit": "9e29e468f686110013666d5ce9f1713520b4247b",
-  "scope": "Local operational patch verification before push; no deployment or production capacity claim",
+  "scope": "Local verification of the final operational patch and HTTP-deadline follow-up before the final push; no deployment or production capacity claim",
   "reviewItemsImplemented": [
     "R1",
     "R2",
@@ -19,18 +19,18 @@
     "logSha256": "c05a246b1b3cc99c2d723f578ac3c90b0cba9f2c4081ef3cf91a41880bd359dc"
   },
   "regressionsAdded": {
-    "vitest": 50,
+    "vitest": 53,
     "browser": 2
   },
   "validation": {
     "fullVitest": {
-      "files": 50,
-      "passed": 422,
+      "files": 51,
+      "passed": 425,
       "database": "local catalog and published tourism data"
     },
     "ciVitest": {
-      "files": 44,
-      "passed": 354,
+      "files": 45,
+      "passed": 357,
       "database": "disposable PostgreSQL; removed"
     },
     "python": {
@@ -64,7 +64,16 @@
       "seconds": 5,
       "scope": "Local /api/regions; not recommendation/provider capacity measurement"
     },
-    "remoteCI": "Not yet run at capture; see checks for the pushed implementation commit"
+    "remoteCI": {
+      "verifiedPriorCommit": "4326d10eccbf7d9c1a322b68f7ca669bf4089577",
+      "url": "https://github.com/cres17/bookhaedo/actions/runs/37404197415",
+      "conclusion": "success",
+      "jobs": [
+        "verify",
+        "tourism-e2e"
+      ],
+      "finalDeadlineFollowUp": "Not yet pushed at capture; verify the checks for the final pushed commit."
+    }
   },
   "preservation": {
     "matchedBeforeAndAfter": true,
@@ -85,12 +94,21 @@
     "tests/operation-budget.test.ts": "2528d6a55ee99978789939125083874b6a073d239ae7d55cd4cc4f5d556c6a1c",
     "tests/operational-database.test.ts": "4c0fe11cff9f6e7f7e0cc8a1ed0f0264c6d407410e444053bb86f20ad1004343",
     "tests/recommendation-context.test.ts": "f267a6173f3f248cee058b5fc4ab8577eeaaa03363f2902268f138aff56c9880",
-    "tests/e2e/tourism-request-lifecycle.spec.ts": "0abacf4430360bfad45be185776788f2c3749ae2c1afb4e1a3199d631fdd2650"
+    "tests/e2e/tourism-request-lifecycle.spec.ts": "0abacf4430360bfad45be185776788f2c3749ae2c1afb4e1a3199d631fdd2650",
+    "tests/recommendation-deadline.test.ts": "8161d3c183f3faab971a3f7e5f6d6fa93e86721188a24e2c162621d0c54e6e17"
   },
   "remaining": [
     "Production multi-instance load and provider capacity",
     "Continuous TRANSIT itinerary with explicit dwell times",
     "Post-validation withdrawal response invalidation",
     "Deployment and backup/restore objectives"
-  ]
+  ],
+  "httpDeadlineRedBeforeFollowUp": {
+    "baselineCommit": "4326d10eccbf7d9c1a322b68f7ca669bf4089577",
+    "tests": 3,
+    "failed": 3,
+    "testBudgetMs": 35,
+    "scope": "Held read-query cleanup fixture; actual authenticated HTTP endpoints. Production handler budget remains 15s. Actual SQL cancellation tested separately.",
+    "logSha256": "3d1fc5e27a27b04d3543161250c002b2ffc738a7b77f87acd4f6c9ab517fd40f"
+  }
 }

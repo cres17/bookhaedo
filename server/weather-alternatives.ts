@@ -73,7 +73,9 @@ alternatives.get(
     res.set('Cache-Control', 'no-store');
     const date = dateOnly.parse(req.params.date),
       query = z.object({ targetId: uuid, previewId: uuid.optional() }).parse(req.query);
-    const state = await dayContext(req.params.id, date, false, pool, budget.signal);
+    const state = await budget.run(() =>
+      dayContext(req.params.id, date, false, pool, budget.signal),
+    );
     if (!state) return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
     const { items } = state;
     const target = items.find((p: any) => p.id === query.targetId);
@@ -107,10 +109,12 @@ alternatives.get(
         status: 'NOT_OUTDOOR',
         notice: '야외 장소로 확인된 일정에서 대안을 찾을 수 있어요.',
       });
-    const q = await readQuery(
-      `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND (osm_tags->>'indoor'='yes' OR osm_tags->>'tourism' IN ('museum','gallery','aquarium'))`,
-      [target.longitude, target.latitude],
-      budget.signal,
+    const q = await budget.run(() =>
+      readQuery(
+        `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND (osm_tags->>'indoor'='yes' OR osm_tags->>'tourism' IN ('museum','gallery','aquarium'))`,
+        [target.longitude, target.latitude],
+        budget.signal,
+      ),
     );
     const data = rankAlternatives(q.rows, items, target);
     let preview: any = null;

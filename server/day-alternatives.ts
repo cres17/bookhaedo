@@ -202,7 +202,9 @@ dayAlternatives.get(
           count: z.coerce.number().int().min(3).max(6).default(4),
         })
         .parse(req.query);
-    const context = await dayContext(req.params.id, date, false, pool, budget.signal);
+    const context = await budget.run(() =>
+      dayContext(req.params.id, date, false, pool, budget.signal),
+    );
     if (!context) return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
     if (!context.items.length)
       return res.json({
@@ -221,7 +223,7 @@ dayAlternatives.get(
         () => forecast(anchor.latitude, anchor.longitude, date, fetch, budget.signal),
         budget.signal,
       ),
-      candidates = await candidatesAround(anchor, pool, budget.signal);
+      candidates = await budget.run(() => candidatesAround(anchor, pool, budget.signal));
     const plans = buildDayPlans(candidates, context.items, weather, query.count);
     let preview = null;
     if (query.strategy) {
