@@ -155,6 +155,40 @@ class Normalize(unittest.TestCase):
             report['resources'][0]['url']=source['resourceUrl'];report['errors']=[{'error':'timeout'}];insert()
             with self.assertRaisesRegex(ValueError,'Incomplete'):normalize_report(root,source['id'])
 
+    def test_captured_furano_urls_normalize_complete_reports(self):
+        import hashlib
+        import sqlite3
+        import tempfile
+        sources = {s['id']: s for s in json.loads((ROOT / 'ops/tourism/sources.json').read_text())}
+        captured = json.loads((ROOT / 'docs/research/tourism-data-ingestion-20261001.json').read_text())
+        for entry in captured['collection'][:2]:
+            with self.subTest(source=entry['source']), tempfile.TemporaryDirectory() as folder:
+                source = sources[entry['source']]
+                body = ('ID,名称,説明,緯度,経度,利用可能日時特記事項\n0001,施設fixture,,43.34,142.39,\n'
+                        if source['kind'] == 'place' else 'ID,イベント名,説明,開催パターン\n0001,行事fixture,,毎年\n').encode('utf-8-sig')
+                sha = hashlib.sha256(body).hexdigest()
+                root = Path(folder)
+                blob = root / 'blobs' / sha / 'source.csv'
+                blob.parent.mkdir(parents=True)
+                blob.write_bytes(body)
+                url = entry['report']['resources'][0]['url']
+                report = {'started_at': '2026-10-06T00:00:00Z', 'errors': [], 'resources_found': 1,
+                          'resources': [{'url': url, 'key': 'source.csv', 'sha256': sha}]}
+                with closing(sqlite3.connect(root / 'state.sqlite')) as db, db:
+                    db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY, source TEXT, report TEXT)')
+                    db.execute('INSERT INTO runs(source,report) VALUES (?,?)', (source['id'], json.dumps(report)))
+                result = normalize_report(root, source['id'])
+                self.assertEqual(len(result['records']), 1)
+                self.assertEqual(result['records'][0]['resourceUrl'], url)
+
+    def test_shared_real_urls_and_encoded_path_attack_corpus(self):
+        from source_policy import resource_belongs_to_source
+        sources = {s['id']: s for s in json.loads((ROOT / 'ops/tourism/sources.json').read_text())}
+        cases = json.loads((ROOT / 'tests/fixtures/tourism/resource-url-cases.json').read_text())
+        for case in cases:
+            with self.subTest(name=case['name']):
+                self.assertEqual(resource_belongs_to_source(sources[case['sourceId']], case['url']), case['allowed'])
+
 
 if __name__ == '__main__':
     unittest.main()

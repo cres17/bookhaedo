@@ -105,13 +105,33 @@ test('상단 준비 현황과 시간표 수정·삭제·인쇄·모바일 화면
   await expect(page.getByRole('button', { name: '일정 펼치기' })).toBeVisible();
   await page.getByRole('button', { name: '일정 펼치기' }).click();
   await page.screenshot({ path: '/tmp/calendar-desktop.png', fullPage: true });
+  // Hold the deferred initial focus so a user can select a different field first.
+  await page.evaluate(() => {
+    const original = window.requestAnimationFrame.bind(window);
+    const pending: FrameRequestCallback[] = [];
+    window.requestAnimationFrame = (callback) => {
+      pending.push(callback);
+      return 0;
+    };
+    (window as any).releaseDialogFocus = () => {
+      window.requestAnimationFrame = original;
+      pending.forEach((callback) => callback(performance.now()));
+    };
+  });
   await page
     .getByRole('button', { name: /오도리 공원 .* 일정 수정/ })
     .first()
     .click();
   await page.getByLabel('시작 시간', { exact: true }).fill('08:00');
   await page.getByLabel('종료 시간', { exact: true }).fill('09:00');
+  await page.evaluate(() => (window as any).releaseDialogFocus());
+  await expect(page.getByLabel('종료 시간', { exact: true })).toBeFocused();
+  const savedSchedule = page.waitForRequest((r) => r.url().endsWith('/schedule'));
   await page.getByRole('button', { name: '시간 저장', exact: true }).click();
+  expect((await savedSchedule).postDataJSON()).toMatchObject({
+    startMinute: 480,
+    endMinute: 540,
+  });
   await expect(
     page.getByRole('button', { name: '오도리 공원 08:00–09:00 일정 수정' }),
   ).toBeVisible();

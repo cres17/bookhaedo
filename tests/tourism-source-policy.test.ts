@@ -116,3 +116,55 @@ it('shares the reviewed source policy between Python and TypeScript, independent
   expect(typescript[5]).toEqual({ approved: true, resource: true });
   expect(typescript.slice(6).every((c) => !c.resource)).toBe(true);
 });
+
+it('allows captured production URL encodings and rejects ambiguous paths identically across runtimes', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const { resourceBelongsToSource } = await import('../server/tourism-source-policy');
+  const registry = await sourceRegistry();
+  const cases = JSON.parse(
+    readFileSync(new URL('./fixtures/tourism/resource-url-cases.json', import.meta.url), 'utf8'),
+  );
+  const input = cases.map((c: any) => ({
+    ...c,
+    source: registry.find((s) => s.id === c.sourceId),
+  }));
+  const ts = input.map((c: any) => resourceBelongsToSource(c.source, c.url));
+  const python = JSON.parse(
+    execFileSync(
+      'python3',
+      [
+        '-B',
+        '-c',
+        "import json,sys;sys.path.insert(0,'scripts/tourism');from source_policy import resource_belongs_to_source;print(json.dumps([resource_belongs_to_source(c['source'],c['url']) for c in json.load(sys.stdin)]))",
+      ],
+      { input: JSON.stringify(input), encoding: 'utf8' },
+    ),
+  );
+  expect(ts).toEqual(cases.map((c: any) => c.allowed));
+  expect(python).toEqual(ts);
+});
+
+it('keeps every enabled registry source and captured resource compatible with the reviewed policy', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { approvedSourcePolicy, resourceBelongsToSource } =
+    await import('../server/tourism-source-policy');
+  const registry = (await sourceRegistry()).filter(
+    (s) => s.enabled && s.rightsStatus === 'approved',
+  );
+  const captured = JSON.parse(
+    readFileSync(
+      new URL('../docs/research/tourism-data-ingestion-20261001.json', import.meta.url),
+      'utf8',
+    ),
+  ).collection;
+  for (const source of registry) {
+    expect(approvedSourcePolicy(source), source.id).not.toBeNull();
+    const urls = source.resourceUrl
+      ? [source.resourceUrl]
+      : captured.find((c: any) => c.source === source.id)?.report.resources.map((r: any) => r.url);
+    expect(urls?.length, source.id).toBeGreaterThan(0);
+    for (const url of urls)
+      expect(resourceBelongsToSource(source, url), `${source.id}: ${url}`).toBe(true);
+  }
+});

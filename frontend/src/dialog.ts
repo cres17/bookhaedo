@@ -29,7 +29,8 @@ export const dialog: Directive<DialogElement> = {
     };
     el.addEventListener('keydown', handler);
     requestAnimationFrame(() => {
-      if (el.isConnected)
+      // Deferred autofocus must not override a field the user already selected.
+      if (el.isConnected && !el.contains(document.activeElement))
         (el.querySelector<HTMLElement>('input,select') || focusable()[0])?.focus();
     });
     el.dialogCleanup = () => {

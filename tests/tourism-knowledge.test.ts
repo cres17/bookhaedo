@@ -856,3 +856,58 @@ it('returns the same rejected-alias diagnostic on publication, unchanged publica
     ).rows[0].canonical_place_id,
   ).toBeNull();
 });
+
+it('normalizes captured Furano resource URLs through SQLite reports, publishes and searches attribution', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const python = String.raw`
+import csv,hashlib,io,json,sqlite3,sys,tempfile
+from contextlib import closing
+from datetime import datetime,timezone
+from pathlib import Path
+sys.path.insert(0,'scripts/tourism')
+from normalize import normalize_report
+captured=json.loads(Path('docs/research/tourism-data-ingestion-20261001.json').read_text())['collection'][:2]
+result=[]
+for entry in captured:
+ with tempfile.TemporaryDirectory() as folder:
+  text=io.StringIO();source=entry['source']
+  row={'ID':'encoding-'+sys.argv[1], '説明':'fixture description'}
+  if source=='furano-places': row.update({'名称':sys.argv[2], '緯度':43.34,'経度':142.39,'利用可能日時特記事項':''})
+  else: row.update({'イベント名':'encoding-event-'+sys.argv[1],'開催パターン':'','開始日':'2026-10-01','終了日':'2026-10-02'})
+  writer=csv.DictWriter(text,fieldnames=row);writer.writeheader();writer.writerow(row)
+  body=text.getvalue().encode('utf-8-sig');sha=hashlib.sha256(body).hexdigest();root=Path(folder)
+  blob=root/'blobs'/sha/'source.csv';blob.parent.mkdir(parents=True);blob.write_bytes(body)
+  url=entry['report']['resources'][0]['url']
+  report={'started_at':datetime.now(timezone.utc).isoformat(),'errors':[],'resources_found':1,'resources':[{'url':url,'key':'source.csv','sha256':sha}]}
+  with closing(sqlite3.connect(root/'state.sqlite')) as db,db:
+   db.execute('CREATE TABLE runs(id INTEGER PRIMARY KEY, source TEXT, report TEXT)')
+   db.execute('INSERT INTO runs(source,report) VALUES (?,?)',(source,json.dumps(report)))
+  result.append(normalize_report(root,source))
+print(json.dumps(result))
+`;
+  const raws = JSON.parse(
+    execFileSync('python3', ['-B', '-c', python, randomUUID(), place.name_ja], {
+      encoding: 'utf8',
+    }),
+  );
+  for (const raw of raws) {
+    const result = await publish(raw);
+    const expectedUrl = raw.records[0].resourceUrl;
+    expect(expectedUrl).toContain('%');
+    const row = (
+      await pool.query(
+        'SELECT resource_url,canonical_place_id FROM tourism_knowledge.record WHERE snapshot_id=$1',
+        [result.snapshotId],
+      )
+    ).rows[0];
+    expect(row.resource_url).toBe(expectedUrl);
+    if (raw.sourceId === 'furano-places') expect(row.canonical_place_id).toBe(place.id);
+  }
+  const result = await searchTourism(input());
+  for (const raw of raws)
+    expect(
+      result.evidence.find(
+        (e) => e.sourceId === raw.sourceId && e.externalId === raw.records[0].externalId,
+      )?.resourceUrl,
+    ).toBe(raw.records[0].resourceUrl);
+});

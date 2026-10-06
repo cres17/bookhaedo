@@ -36,17 +36,14 @@ for (const viewport of [
         )
       ).rows[0];
       expect(second).toBeTruthy();
-      expect(
-        (
-          await page.request.post('/api/auth/register', {
-            data: { email, name: '실제 자료 검증', password: 'tourism-published-password' },
-          })
-        ).ok(),
-      ).toBe(true);
+      const registered = await page.request.post('/api/auth/register', {
+        data: { email, name: '실제 자료 검증', password: 'tourism-published-password' },
+      });
+      expect(registered.status(), await registered.text()).toBe(201);
       const create = await page.request.post('/api/trips', {
         data: { title: '실제 관광 자료 검증', startDate: date, days: 1, transportMode: 'WALK' },
       });
-      expect(create.ok()).toBe(true);
+      expect(create.status(), await create.text()).toBe(201);
       const trip = (await create.json()).data.id;
       const initial = [first.id, second.id];
       expect(
@@ -194,17 +191,14 @@ for (const width of [1440, 390]) {
       WHERE s.id='sapporo-places' AND s.enabled AND s.rights_status='approved' AND p.category<>'LODGING' ORDER BY r.external_id LIMIT 1`)
       ).rows[0];
       expect(first, '실제 삿포로 발행 시설 필요').toBeTruthy();
-      expect(
-        (
-          await page.request.post('/api/auth/register', {
-            data: { email, name: '삿포로 자료 검증', password: 'sapporo-test-password' },
-          })
-        ).ok(),
-      ).toBe(true);
+      const registered = await page.request.post('/api/auth/register', {
+        data: { email, name: '삿포로 자료 검증', password: 'sapporo-test-password' },
+      });
+      expect(registered.status(), await registered.text()).toBe(201);
       const created = await page.request.post('/api/trips', {
         data: { title: '삿포로 자료 검증', startDate: date, days: 1, transportMode: 'WALK' },
       });
-      expect(created.ok()).toBe(true);
+      expect(created.status(), await created.text()).toBe(201);
       const trip = (await created.json()).data.id;
       expect(
         (
