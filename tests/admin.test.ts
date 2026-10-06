@@ -15,6 +15,7 @@ beforeAll(async () => {
     const r = await a
       .post('/api/auth/register')
       .send({ name: 'Admin QA', email: emails[i], password: 'test-password-42', role: 'ADMIN' });
+    expect(r.status, r.body.error).toBe(201);
     expect(r.body.user.role).toBe('MEMBER');
     if (i === 0) aid = r.body.user.id;
     else mid = r.body.user.id;
@@ -50,10 +51,28 @@ it('자기 권한 변경과 잘못된 입력 차단', async () => {
       })
     ).status,
   ).toBe(409);
-  expect(
-    (await versioned(admin, 'patch', '/api/admin/users/' + mid, { role: 'ROOT', status: 'ACTIVE' }))
-      .status,
-  ).toBe(400);
+  const invalid = await versioned(admin, 'patch', '/api/admin/users/' + mid, {
+    role: 'ROOT',
+    status: 'ACTIVE',
+  });
+  // Preserve the real failure; inspect only safe state rather than retrying auth or logging cookies.
+  const diagnostic =
+    invalid.status === 400
+      ? undefined
+      : {
+          code: invalid.body.code,
+          error: invalid.body.error,
+          requestId: invalid.body.requestId,
+          actor: (
+            await pool.query(
+              `SELECT role,status,EXISTS(SELECT 1 FROM planner.session s
+               WHERE s.user_id=u.id AND s.expires_at>now()) AS has_valid_session
+               FROM planner.app_user u WHERE id=$1`,
+              [aid],
+            )
+          ).rows[0],
+        };
+  expect(invalid.status, JSON.stringify(diagnostic)).toBe(400);
 });
 it('이용정지 시 세션·로그인 차단, 복원 시 재로그인, 변경 이력 기록', async () => {
   expect(

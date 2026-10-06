@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 export class OperationError extends Error {
-  constructor(public code: 'REQUEST_DEADLINE_EXCEEDED' | 'REQUEST_CANCELLED') {
+  constructor(
+    public code: 'REQUEST_DEADLINE_EXCEEDED' | 'REQUEST_CANCELLED' | 'READ_QUERY_TIMEOUT',
+  ) {
     super(code);
   }
 }

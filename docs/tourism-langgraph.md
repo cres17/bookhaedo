@@ -252,4 +252,4 @@ CI는 `node scripts/audit-dependencies.mjs`로 기존 production 의존성 high/
 
 ### 2026-10-06 추천 운영 경계 수정
 
-[리뷰 기반 운영 수정](research/tourism-operational-implementation-20261006.md)에 따라 공통 장소 적격성과 시설 중복, 전체 15초/SQL 3초 예산, 조회 취소, 날씨의 캐시 이전 검증, 응답 전 권리 재검사와 동일 시점 일정 조회를 적용했다. TRANSIT 합계·시간 증감은 null이며 구간별 같은 시각 비교와 `timelineStatus=NOT_EVALUATED`를 표시한다. `evidenceValidatedAt`은 source 수집 시간이 아닌 최종 DB 자료 검사 시각이다. 생성 중 일정·이동 수단이 바뀌면 409를 반환하고, 조회 취소는 저장 COMMIT을 취소하지 않는다. AWS·LLM·연속 시간표 기능은 별도 범위다.
+[리뷰 기반 운영 수정](research/tourism-operational-implementation-20261006.md)에 따라 공통 장소 적격성과 시설 중복, 전체 15초/SQL 3초/연결 획득 뒤 응답 확인 3.5초 예산, 조회 취소, 날씨의 캐시 이전 검증, 응답 전 권리 재검사와 동일 시점 일정 조회를 적용했다. TRANSIT 합계·시간 증감은 null이며 구간별 같은 시각 비교와 `timelineStatus=NOT_EVALUATED`를 표시한다. `evidenceValidatedAt`은 source 수집 시간이 아닌 최종 DB 자료 검사 시각이다. 생성 중 일정·이동 수단이 바뀌면 409를 반환하고, 조회 취소는 저장 COMMIT을 취소하지 않는다. AWS·LLM·연속 시간표 기능은 별도 범위다.

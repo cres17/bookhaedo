@@ -53,9 +53,16 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
     return res
       .status(409)
       .json({ error: '현재 데이터와 충돌합니다. 새로고침 후 다시 시도해주세요.' });
-  const unavailable = ['ECONNREFUSED', 'ETIMEDOUT', '57P01', '57P03', '53300', '08006'].includes(
-    error.code,
-  );
+  const unavailable = [
+    'ECONNREFUSED',
+    'ECONNRESET',
+    'EPIPE',
+    'ETIMEDOUT',
+    '57P01',
+    '57P03',
+    '53300',
+    '08006',
+  ].includes(error.code);
   logger.error('API_ERROR', {
     requestId: res.locals.requestId,
     code: unavailable ? 'DATABASE_UNAVAILABLE' : 'INTERNAL_ERROR',
