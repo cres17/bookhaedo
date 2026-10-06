@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "label": "test-ci",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-test-ci.log"
+    },
+    {
+      "label": "python",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-python.log"
+    },
+    {
+      "label": "typecheck",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-typecheck.log"
+    },
+    {
+      "label": "lint",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-lint.log"
+    },
+    {
+      "label": "format-check",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-format-check.log"
+    },
+    {
+      "label": "spec-check",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-spec-check.log"
+    },
+    {
+      "label": "build",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-recovery-fix-verified-build.log"
+    }
+  ],
+  "disposableDatabaseRemoved": true
+}

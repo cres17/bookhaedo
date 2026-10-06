@@ -169,6 +169,11 @@ paths['/trips/{id}/days/{date}/ai-recommendations'].post.responses[429]={
  ...response(ref('Error'),'추천 POST는 사용자당 60초에 30회. 모든 여행·날짜·로그인 세션이 한도를 공유하며 수락한 동행자는 별도 한도. 초과 시 AI_RECOMMENDATION_RATE_LIMITED. 전역 API 제한이 먼저 적용되면 RATE_LIMITED. Retry-After(초) 이후 재시도. 제한 응답은 추천·경로 생성 전에 반환하며 일정을 변경하지 않는다.'),
  headers:{'Retry-After':{description:'다시 요청할 때까지 기다릴 초',schema:{type:'integer',minimum:1}},RateLimit:{description:'현재 적용된 한도·남은 횟수·초 단위 초기화 시간 (draft-7)',schema:{type:'string'}},'RateLimit-Policy':{description:'추천 제한 정책은 30;w=60. 전역 API 제한이 먼저 적용되면 해당 정책을 반환',schema:{type:'string'}}}
 };
+// These writes acquire the parent trip lock and may return a bounded conflict.
+schemas.TripWriteConflict=requiredObject({...schemas.Error.properties,code:{type:'string',enum:['TRIP_WRITE_BUSY','CONFLICT']}},['error','code','requestId']);
+for(const [path,method] of [['/trips/{id}','patch'],['/trips/{id}/cost-settings','patch'],['/trips/{id}','delete']]) {
+  paths[path][method].responses[409]=response(ref('TripWriteConflict'),'여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.');
+}
 const document={openapi:'3.1.0',info:{title:'Book해도. REST API',version:'2.0.0',description:'쿠키 인증, 소유권 검증, 날짜별 optimistic concurrency. 전체 일정/메모/대안 변경에 expectedRevision 필수(누락 428, 충돌 409). POST 장소 추가는 원자적 append. X-Request-ID로 오류 추적.'},tags:['관리자','시스템','인증','장소','추천','여행','경로','날씨'].map(name=>({name})),servers:[{url:'/api',description:'동일 출처 API'}],paths,components:{securitySchemes:{cookieAuth:{type:'apiKey',in:'cookie',name:'kita_session'}},schemas}};
 const rendered=JSON.stringify(document,null,2);
 const outputs=[['docs/openapi-rest.json',rendered],['frontend/public/openapi.json',rendered],['docs/Bookhaedo-API.yml',dump(document,{lineWidth:120,noRefs:true})]];

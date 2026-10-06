@@ -1,0 +1,6 @@
+
+> bookhaedo@2.0.0 spec:check
+> node scripts/write-api-spec.mjs --check && node scripts/check-dbml.mjs
+
+OpenAPI verified: 45 paths
+DBML valid: 29 tables

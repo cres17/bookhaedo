@@ -1,0 +1,636 @@
+[
+  {
+    "revision": "c217502",
+    "typescript": [
+      {
+        "name": "furano-places captured URL",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+        "expected": true,
+        "allowed": false
+      },
+      {
+        "name": "furano-events captured URL",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8258/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7.csv",
+        "expected": true,
+        "allowed": false
+      },
+      {
+        "name": "eniwa-events captured URL",
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+        "expected": true,
+        "allowed": true
+      },
+      {
+        "name": "%2e%2e/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2e%2e/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%2E%2E/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2E%2E/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": ".%2e/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/.%2e/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%2fother.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2fother.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%5Cother.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%5Cother.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%252e%252e/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%252e%252e/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%25E8.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%25E8.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%2.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%2.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%GG.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%GG.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%C0%AF.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%C0%AF.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%FF.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%FF.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%00.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%00.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%0a.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%0a.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "../other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/../other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x\\other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x\\other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv?token=x",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?token=x",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv#anchor",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#anchor",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv?",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv#",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x%3Fquery.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%3Fquery.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x%23fragment.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%23fragment.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "cross dataset",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8257/safe.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "lookalike host",
+        "url": "https://www.harp.lg.jp.example.test/opendata/dataset/2207/resource/8257/safe.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "credentials",
+        "url": "https://user:pass@www.harp.lg.jp/opendata/dataset/2207/resource/8257/safe.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "raw Japanese filename",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/観光施設一覧.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "valid encoded space",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/hello%20world.csv",
+        "expected": true,
+        "allowed": false
+      },
+      {
+        "name": "valid lowercase UTF8",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%e8%a6%b3%e5%85%89%e6%96%bd%e8%a8%ad%e4%b8%80%e8%a6%a7.csv",
+        "expected": true,
+        "allowed": false
+      }
+    ],
+    "python": [
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8258/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+        "allowed": true
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2e%2e/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2E%2E/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/.%2e/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2fother.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%5Cother.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%252e%252e/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%25E8.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%2.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%GG.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%C0%AF.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%FF.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%00.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%0a.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/../other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x\\other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?token=x",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#anchor",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%3Fquery.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%23fragment.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8257/safe.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp.example.test/opendata/dataset/2207/resource/8257/safe.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://user:pass@www.harp.lg.jp/opendata/dataset/2207/resource/8257/safe.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/観光施設一覧.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/hello%20world.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%e8%a6%b3%e5%85%89%e6%96%bd%e8%a8%ad%e4%b8%80%e8%a6%a7.csv",
+        "allowed": false
+      }
+    ]
+  },
+  {
+    "revision": "454a870",
+    "typescript": [
+      {
+        "name": "furano-places captured URL",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+        "expected": true,
+        "allowed": true
+      },
+      {
+        "name": "furano-events captured URL",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8258/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7.csv",
+        "expected": true,
+        "allowed": true
+      },
+      {
+        "name": "eniwa-events captured URL",
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+        "expected": true,
+        "allowed": true
+      },
+      {
+        "name": "%2e%2e/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2e%2e/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%2E%2E/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2E%2E/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": ".%2e/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/.%2e/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%2fother.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2fother.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%5Cother.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%5Cother.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%252e%252e/other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%252e%252e/other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "%25E8.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%25E8.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%2.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%2.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%GG.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%GG.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%C0%AF.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%C0%AF.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%FF.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%FF.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%00.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%00.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "bad%0a.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%0a.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "../other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/../other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x\\other.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x\\other.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv?token=x",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?token=x",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv#anchor",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#anchor",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv?",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x.csv#",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x%3Fquery.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%3Fquery.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "x%23fragment.csv",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%23fragment.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "cross dataset",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8257/safe.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "lookalike host",
+        "url": "https://www.harp.lg.jp.example.test/opendata/dataset/2207/resource/8257/safe.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "credentials",
+        "url": "https://user:pass@www.harp.lg.jp/opendata/dataset/2207/resource/8257/safe.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "raw Japanese filename",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/観光施設一覧.csv",
+        "expected": false,
+        "allowed": false
+      },
+      {
+        "name": "valid encoded space",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/hello%20world.csv",
+        "expected": true,
+        "allowed": true
+      },
+      {
+        "name": "valid lowercase UTF8",
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%e8%a6%b3%e5%85%89%e6%96%bd%e8%a8%ad%e4%b8%80%e8%a6%a7.csv",
+        "expected": true,
+        "allowed": true
+      }
+    ],
+    "python": [
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%E8%A6%B3%E5%85%89%E6%96%BD%E8%A8%AD%E4%B8%80%E8%A6%A7.csv",
+        "allowed": true
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8258/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7.csv",
+        "allowed": true
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+        "allowed": true
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2e%2e/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2E%2E/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/.%2e/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%2fother.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%5Cother.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%252e%252e/other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%25E8.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%2.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%GG.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%C0%AF.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%FF.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%00.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/bad%0a.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/../other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x\\other.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?token=x",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#anchor",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv?",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x.csv#",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%3Fquery.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/x%23fragment.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2208/resource/8257/safe.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp.example.test/opendata/dataset/2207/resource/8257/safe.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://user:pass@www.harp.lg.jp/opendata/dataset/2207/resource/8257/safe.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/観光施設一覧.csv",
+        "allowed": false
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/hello%20world.csv",
+        "allowed": true
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/2207/resource/8257/%e8%a6%b3%e5%85%89%e6%96%bd%e8%a8%ad%e4%b8%80%e8%a6%a7.csv",
+        "allowed": true
+      }
+    ]
+  }
+]

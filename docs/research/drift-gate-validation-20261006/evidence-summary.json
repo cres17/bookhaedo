@@ -1,0 +1,111 @@
+{
+  "dateKST": "2026-10-06",
+  "bookhaedoHead": "454a8707078d46d50db978df3ce539b9b0fa775c",
+  "driftGateHead": "01e28e1620941a539d3e9c14972201b30adafd3b",
+  "base": "3fa83a1cb386ca721ac2528b6401cf70592c8684",
+  "trackedChangedFiles": 38,
+  "gate": {
+    "configuredRules": 7,
+    "matchedPassed": 5,
+    "unmatched": 2,
+    "optionalLLM": false,
+    "policyAuthoredDuringAssessment": true,
+    "policyMode": "paths (co-change only)",
+    "controls": [
+      {
+        "case": "no-policy",
+        "result": "pass",
+        "exit": 0,
+        "violations": []
+      },
+      {
+        "case": "current",
+        "result": "pass",
+        "exit": 0,
+        "violations": []
+      },
+      {
+        "case": "control-missing-api-docs",
+        "result": "fail",
+        "exit": 1,
+        "violations": [
+          "api-contract"
+        ]
+      },
+      {
+        "case": "control-old-provider-code",
+        "result": "pass",
+        "exit": 0,
+        "violations": []
+      },
+      {
+        "case": "control-missing-recovery-test",
+        "result": "fail",
+        "exit": 1,
+        "violations": [
+          "recommendation-recovery"
+        ]
+      }
+    ]
+  },
+  "freshTests": {
+    "vitest": 463,
+    "vitestFiles": 54,
+    "ciSubset": 395,
+    "ciSubsetFiles": 48,
+    "python": 34,
+    "e2e": 35,
+    "defectExistenceDbProbe": 1,
+    "defectExistenceBrowserProbe": 2
+  },
+  "ciExcludedTestFiles": [
+    "tests/admin.test.ts",
+    "tests/api.test.ts",
+    "tests/collaboration.test.ts",
+    "tests/day-alternatives.test.ts",
+    "tests/place-search.test.ts",
+    "tests/weather-alternatives.test.ts"
+  ],
+  "mutation": {
+    "oldProviderCodeGate": "pass",
+    "oldProviderCodeTestsFailed": 9,
+    "oldProviderCodeTestsPassed": 32
+  },
+  "historicalPolicy": {
+    "urlCases": 31,
+    "c217502MismatchesPerRuntime": 4,
+    "454a870MismatchesPerRuntime": 0,
+    "pythonTypescriptAgree": true,
+    "liveDownload": false
+  },
+  "findings": [
+    {
+      "id": "B1",
+      "priority": "P2",
+      "fact": "Unknown save outcome state lost after recommendation hide/show on desktop and mobile",
+      "proof": "browser-probe.log",
+      "notProven": "No automatic duplicate write or data corruption demonstrated"
+    },
+    {
+      "id": "B2",
+      "priority": "P2",
+      "fact": "PATCH trip, PATCH cost-settings, DELETE trip return 409/TRIP_WRITE_BUSY under lock but OpenAPI omits 409",
+      "proof": "contract-probe.test.ts.fixture + contract-probe.log",
+      "status": "all three live HTTP assertions passed"
+    },
+    {
+      "id": "D1",
+      "priority": "P2 for mandatory CI integration",
+      "fact": "No policy gives pass/exit0; JSON omits no_policy while Markdown warns",
+      "proof": "no-policy.json + no-policy.md"
+    }
+  ],
+  "ci": {
+    "url": "https://github.com/cres17/bookhaedo/actions/runs/37410713995",
+    "head": "454a8707078d46d50db978df3ce539b9b0fa775c",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "productionCodeModified": false,
+  "deployed": false
+}

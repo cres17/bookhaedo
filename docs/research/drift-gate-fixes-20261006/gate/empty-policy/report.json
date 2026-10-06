@@ -1,0 +1,409 @@
+{
+  "summary": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "gate_decision": "pass"
+  },
+  "scan_metrics": {
+    "scanned_files": 75,
+    "skipped_ignored_files": 0,
+    "skipped_binary_files": 0,
+    "skipped_large_files": 0,
+    "evaluated_rules": 0,
+    "runtime_seconds": 0.010266915982356295,
+    "analysis_notes": [
+      {
+        "path": ".drift-gate.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": ".gitignore",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/Bookhaedo-API.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/architecture/recommendation-recovery.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/openapi-rest.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/quality-gates.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/bookhaedo-drift-gate-review-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/before-api-contract.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/before-late-success-e2e.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/before-recovery-e2e.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/build.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/checks.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/format-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/full-vitest.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/lint.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/python.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/regions-load-ci.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/run-controls.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/spec-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/test-ci.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/typecheck.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/README.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/boundary-probe-results.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/browser-probe.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/browser-probe.spec.ts.fixture",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/build.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/checks.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/contract-probe.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/contract-probe.test.ts.fixture",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-tests.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.html",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/evidence-summary.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/format-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/full-e2e.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/full-vitest.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/gate-summary.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/historical-url-rejection.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/lint.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/local-flow.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/manifest.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/no-policy.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/no-policy.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/no-policy.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/prepare-boundary-probes.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/python.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/review-policy.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/run-behavior-controls.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/run-boundary-probes.mts",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/run-gate.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/source-url-cases.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/spec-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/test-ci.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/typecheck.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/public/openapi.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/components/DayAlternatives.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/recommendation-recovery.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "frontend/src/views/Planner.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "package.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "scripts/check-drift-gate.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "scripts/write-api-spec.mjs",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "tests/e2e/tourism-save-recovery.spec.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "tests/recommendation-recovery.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/review-write-boundaries.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      }
+    ]
+  },
+  "result": "pass",
+  "change_types": [
+    "cli-public-interface",
+    "other"
+  ],
+  "violations": [],
+  "rule_decisions": [],
+  "skipped_rules": [],
+  "rejected_ignores": [],
+  "ignore_audit": [],
+  "temporal_warnings": [],
+  "gate": {
+    "fail_on_blocker": true,
+    "fail_on_major_count": 2
+  }
+}

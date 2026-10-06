@@ -1,0 +1,44 @@
+<!-- drift-gate-v1 -->
+## Drift Gate Report
+
+**Result:** `PASS`
+
+| Signal | Value |
+|---|---:|
+| Change types | `cli-public-interface, other` |
+| Scanned files | 75 |
+| Skipped ignored files | 0 |
+| Skipped binary files | 0 |
+| Skipped large files | 0 |
+| Evaluated rules | 0 |
+| Runtime | 0.010s |
+| BLOCKER | 0 |
+| MAJOR | 0 |
+| MINOR | 0 |
+| NIT | 0 |
+| Temporal warnings | 0 |
+
+**Analysis methods:** `grammar+heuristic`, `heuristic`
+Fallback and unavailable-input reasons are recorded in the JSON analysis_notes.
+
+**No contract drift found.** All configured policy rules passed.
+<details>
+<summary>Rule summary</summary>
+
+- Gate decision: `PASS`
+- Violations: 0
+- Skipped rules: 0
+- Rejected ignores: 0
+- Temporal warnings: 0
+
+</details>
+
+<details>
+<summary>Explain evaluation</summary>
+
+### Evaluated signals
+
+- Change types: `cli-public-interface, other`
+- Gate: fail_on_blocker=True, fail_on_major_count=2
+
+</details>

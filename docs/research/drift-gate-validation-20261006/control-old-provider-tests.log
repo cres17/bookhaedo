@@ -1,0 +1,79 @@
+
+ RUN  v5.0.0 /private/var/folders/2d/h0vh4j9s3fd1x6tq026j1frh0000gn/T/bookhaedo-behavior-control-3zrqleym/repo
+
+ ❯ tests/route-response-validation.test.ts (41 tests | 9 failed) 26ms
+   × rejects out-of-range valhalla geometry before caching and recovers 2ms
+   × rejects out-of-range google geometry before caching and recovers 0ms
+   × rejects malformed Google polyline case 0 0ms
+   × rejects malformed Google polyline case 1 0ms
+   × rejects malformed Google polyline case 2 0ms
+   × rejects malformed Google polyline case 3 0ms
+   × rejects malformed Google polyline case 4 0ms
+   × rejects malformed Google polyline case 5 0ms
+   × rejects malformed Google polyline case 6 1ms
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 32 passed (41)
+   Start at  14:27:41
+   Duration  167ms (import 40%, transform 33%, tests 25%, worker 2%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/route-response-validation.test.ts > rejects out-of-range valhalla geometry before caching and recovers
+AssertionError: expected 'valhalla' to be 'straight-line' // Object.is equality
+
+Expected: "straight-line"
+Received: "valhalla"
+
+ ❯ unavailable tests/route-response-validation.test.ts:28:26
+     26|   notice?: string;
+     27| }) => {
+     28|   expect(segment.source).toBe('straight-line');
+       |                          ^
+     29|   expect(segment.distanceMeters).toBe(straightDistance(a, b));
+     30|   expect(segment.durationSeconds).toBeNull();
+ ❯ tests/route-response-validation.test.ts:187:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/route-response-validation.test.ts > rejects out-of-range google geometry before caching and recovers
+AssertionError: expected 'google' to be 'straight-line' // Object.is equality
+
+Expected: "straight-line"
+Received: "google"
+
+ ❯ unavailable tests/route-response-validation.test.ts:28:26
+     26|   notice?: string;
+     27| }) => {
+     28|   expect(segment.source).toBe('straight-line');
+       |                          ^
+     29|   expect(segment.distanceMeters).toBe(straightDistance(a, b));
+     30|   expect(segment.durationSeconds).toBeNull();
+ ❯ tests/route-response-validation.test.ts:187:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 0
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 1
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 2
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 3
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 4
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 5
+ FAIL  tests/route-response-validation.test.ts > rejects malformed Google polyline case 6
+AssertionError: expected 'google' to be 'straight-line' // Object.is equality
+
+Expected: "straight-line"
+Received: "google"
+
+ ❯ unavailable tests/route-response-validation.test.ts:28:26
+     26|   notice?: string;
+     27| }) => {
+     28|   expect(segment.source).toBe('straight-line');
+       |                          ^
+     29|   expect(segment.distanceMeters).toBe(straightDistance(a, b));
+     30|   expect(segment.durationSeconds).toBeNull();
+ ❯ tests/route-response-validation.test.ts:196:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+

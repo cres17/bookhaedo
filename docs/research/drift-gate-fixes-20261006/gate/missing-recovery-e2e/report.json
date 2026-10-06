@@ -1,0 +1,639 @@
+{
+  "summary": {
+    "blocker": 1,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "gate_decision": "fail"
+  },
+  "scan_metrics": {
+    "scanned_files": 74,
+    "skipped_ignored_files": 0,
+    "skipped_binary_files": 0,
+    "skipped_large_files": 0,
+    "evaluated_rules": 6,
+    "runtime_seconds": 0.01648554200073704,
+    "analysis_notes": [
+      {
+        "path": ".drift-gate.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": ".gitignore",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/Bookhaedo-API.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/architecture/recommendation-recovery.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/openapi-rest.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/quality-gates.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/bookhaedo-drift-gate-review-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/before-api-contract.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/before-late-success-e2e.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/before-recovery-e2e.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/build.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/checks.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/format-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/full-vitest.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/lint.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/python.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/regions-load-ci.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/run-controls.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/spec-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/test-ci.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-fixes-20261006/typecheck.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/README.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/boundary-probe-results.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/browser-probe.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/browser-probe.spec.ts.fixture",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/build.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/checks.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/contract-probe.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/contract-probe.test.ts.fixture",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/control-old-provider-tests.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.html",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/current.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/evidence-summary.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/format-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/full-e2e.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/full-vitest.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/gate-summary.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/historical-url-rejection.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/lint.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/local-flow.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/manifest.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/no-policy.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/no-policy.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/no-policy.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/prepare-boundary-probes.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/python.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/review-policy.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/run-behavior-controls.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/run-boundary-probes.mts",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/run-gate.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/source-url-cases.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/spec-check.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/test-ci.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/drift-gate-validation-20261006/typecheck.log",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/public/openapi.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/components/DayAlternatives.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/recommendation-recovery.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "frontend/src/views/Planner.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "package.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "scripts/check-drift-gate.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "scripts/write-api-spec.mjs",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "tests/recommendation-recovery.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/review-write-boundaries.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      }
+    ]
+  },
+  "result": "fail",
+  "change_types": [
+    "cli-public-interface",
+    "other"
+  ],
+  "violations": [
+    {
+      "rule_id": "course-recovery",
+      "severity": "BLOCKER",
+      "confidence": "low",
+      "change_types": [
+        "other"
+      ],
+      "change_type": "other",
+      "message": "",
+      "trigger_files": [
+        {
+          "path": "frontend/src/components/DayAlternatives.vue",
+          "status": "modified",
+          "previous_path": null,
+          "patch": "diff --git a/frontend/src/components/DayAlternatives.vue b/frontend/src/components/DayAlternatives.vue\nindex 3d46813..4ab9271 100644\n--- a/frontend/src/components/DayAlternatives.vue\n+++ b/frontend/src/components/DayAlternatives.vue\n@@ -1,7 +1,9 @@\n <script setup lang=\"ts\">\n import PanelHeader from './PanelHeader.vue';\n import { computed, ref, onMounted, onUnmounted, watch } from 'vue';\n-import type { Place } from '../types';\n+import type { Place, Trip } from '../types';\n+import { state } from '../store';\n+import { recommendationRecovery, type RecoveryContext } from '../recommendation-recovery';\n import { api, json, ApiError } from '../api';\n import { adverseWeather, weatherReason } from '../../../shared/weather-policy';\n const props = defineProps<{\n@@ -13,19 +15,37 @@ const props = defineProps<{\n   weather: any;\n   disabled: boolean;\n }>();\n-const emit = defineEmits<{ saved: []; refresh: []; preview: [value: any]; dismiss: [] }>();\n+const emit = defineEmits<{\n+  refresh: [snapshot: Trip];\n+  preview: [value: any];\n+  dismiss: [];\n+}>();\n const opened = ref(false),\n   result = ref<any>(null),\n   busy = ref(false),\n-  saving = ref(false),\n   error = ref(''),\n   count = ref(4),\n   selected = ref(''),\n   useKnowledge = ref(false),\n   interests = ref(''),\n   keepPlaceIds = ref<string[]>([]),\n-  conditionsChanged = ref(false),\n-  outcomeUnknown = ref(false);\n+  conditionsChanged = ref(false);\n+const context = computed(() => ({\n+  userId: state.user?.id || '',\n+  tripId: props.tripId,\n+  date: props.date,\n+}));\n+const commandState = computed(() => recommendationRecovery.get(context.value)?.status);\n+const saving = computed(() => commandState.value === 'saving' || commandState.value === 'checking');\n+const outcomeUnknown = computed(\n+  () => commandState.value === 'unknown' || commandState.value === 'checking',\n+);\n+let alive = true;\n+const isCurrent = (command: RecoveryContext) =>\n+  alive &&\n+  command.userId === context.value.userId &&\n+  command.tripId === props.tripId &&\n+  command.date === props.date;\n const mobile = ref(false),\n   media = window.matchMedia('(max-width:760px)');\n let generation = 0;\n@@ -43,6 +63,7 @@ onMounted(() => {\n   media.addEventListener('change', resize);\n });\n onUnmounted(() => {\n+  alive = false;\n   generation++;\n   cancelPending();\n   media.removeEventListener('change', resize);\n@@ -95,7 +116,7 @@ const weatherCopy = computed(() =>\n     : '맑은 날에도 동선을 새로 짤 수 있어요.',\n );\n async function load(strategy = '') {\n-  if (outcomeUnknown.value) return;\n+  if (outcomeUnknown.value || saving.value) return;\n   cancelPending();\n   const controller = new AbortController();\n   pending = controller;\n@@ -169,54 +190,56 @@ async function replaceDay() {\n     result.value.date !== props.date\n   )\n     return;\n-  saving.value = true;\n+  const command = recommendationRecovery.begin(context.value);\n+  if (!command) return;\n+  const target = endpoint.value;\n+  const payload = {\n+    placeIds: preview.plan.places.map((p: any) => p.id),\n+    expectedPlaceIds: result.value.expectedPlaceIds,\n+    expectedRevision: result.value.expectedRevision,\n+    ...(result.value.transportMode ? { expectedTransportMode: result.value.transportMode } : {}),\n+  };\n   error.value = '';\n   try {\n-    await api(endpoint.value, {\n-      ...json('PATCH', {\n-        placeIds: preview.plan.places.map((p: any) => p.id),\n-        expectedPlaceIds: result.value.expectedPlaceIds,\n-        expectedRevision: result.value.expectedRevision,\n-        ...(result.value.transportMode\n-          ? { expectedTransportMode: result.value.transportMode }\n-          : {}),\n-      }),\n+    await api(target, {\n+      ...json('PATCH', payload),\n       // Transport wait only: aborting this fetch does not assert that COMMIT was cancelled.\n       signal: AbortSignal.timeout(30000),\n     });\n-    saving.value = false;\n-    close();\n-    emit('saved');\n+    recommendationRecovery.succeeded(command);\n+    if (isCurrent(command)) close();\n   } catch (e: any) {\n-    if (!result.value) return;\n-    result.value = { ...result.value, preview: null };\n+    const unknown = !(e instanceof ApiError) || e.status >= 500;\n+    if (unknown) recommendationRecovery.unknown(command);\n+    else recommendationRecovery.complete(command);\n+    // Always settle the captured command, even if its panel or date has changed.\n+    if (!isCurrent(command)) return;\n+    if (result.value) result.value = { ...result.value, preview: null };\n     selected.value = '';\n     emit('preview', null);\n-    if (!(e instanceof ApiError) || e.status >= 500) {\n-      outcomeUnknown.value = true;\n-      error.value = '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.';\n-    } else\n-      error.value =\n-        e.status === 409\n-          ? '일정이나 이동 수단이 변경됐어요. 최신 일정을 확인하고 코스를 다시 선택해주세요.'\n-          : e.message;\n-  } finally {\n-    saving.value = false;\n+    error.value = unknown\n+      ? '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.'\n+      : e.status === 409\n+        ? '일정이나 이동 수단이 변경됐어요. 최신 일정을 확인하고 코스를 다시 선택해주세요.'\n+        : e.message;\n   }\n }\n async function checkSavedState() {\n-  if (saving.value) return;\n-  saving.value = true;\n+  const command = recommendationRecovery.check(context.value);\n+  if (!command) return;\n   try {\n-    await api('/trips/' + props.tripId, { signal: AbortSignal.timeout(15000) });\n-    outcomeUnknown.value = false;\n-    saving.value = false;\n-    close();\n-    emit('refresh');\n-  } catch (e: any) {\n-    error.value = '현재 일정을 확인하지 못했어요. 잠시 후 다시 확인해주세요.';\n-  } finally {\n-    saving.value = false;\n+    const snapshot = await api<{ data: Trip }>('/trips/' + command.tripId, {\n+      signal: AbortSignal.timeout(15000),\n+    });\n+    if (snapshot?.data?.id !== command.tripId || !Array.isArray(snapshot.data.days))\n+      throw Error('INVALID_RECOVERY_SNAPSHOT');\n+    if (isCurrent(command)) emit('refresh', snapshot.data);\n+    recommendationRecovery.complete(command);\n+    if (isCurrent(command)) close();\n+  } catch {\n+    recommendationRecovery.unknown(command);\n+    if (isCurrent(command))\n+      error.value = '현재 일정을 확인하지 못했어요. 잠시 후 다시 확인해주세요.';\n   }\n }\n const km = (m: number | null) => (m === null ? '확인 불가' : `${(m / 1000).toFixed(1)}km`);\n@@ -309,6 +332,7 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round\n       <p v-if=\"conditionsChanged\" role=\"status\">\n         추천 조건이 바뀌었어요. 조건 적용해 다시 추천한 뒤 코스를 선택해주세요.\n       </p>\n+      <p v-if=\"saving\" role=\"status\">이 날짜의 변경 결과를 확인하고 있어요…</p>\n       <p v-if=\"busy\" role=\"status\">예보와 주변 장소를 확인하고 있어요…</p>\n       <p v-if=\"outcomeUnknown || error\" role=\"alert\" class=\"form-error\">\n         {{ error || '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.' }}\n@@ -410,7 +434,11 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round\n             제외되는 장소의 메모·예상 비용은 삭제됩니다. 동행자의 일정에도 함께 반영됩니다.\n           </small>\n           <div class=\"actions\">\n-            <button class=\"button dark\" :disabled=\"saving || disabled\" @click=\"replaceDay\">\n+            <button\n+              class=\"button dark\"\n+              :disabled=\"saving || disabled || outcomeUnknown\"\n+              @click=\"replaceDay\"\n+            >\n               {{ saving ? '저장 중…' : '이 코스로 하루 교체' }}\n             </button>\n             <button class=\"button subtle\" :disabled=\"saving\" @click=\"close\">기존 일정 유지</button>\n",
+          "semantic_signals": [],
+          "semantic_evidence": [
+            "No grammar-backed detector for this file type"
+          ],
+          "analysis_method": "heuristic",
+          "analysis_reason": "No grammar-backed detector for this file type",
+          "documented_env_keys": null
+        },
+        {
+          "path": "frontend/src/recommendation-recovery.ts",
+          "status": "added",
+          "previous_path": null,
+          "patch": "diff --git a/frontend/src/recommendation-recovery.ts b/frontend/src/recommendation-recovery.ts\nnew file mode 100644\nindex 0000000..0b5b538\n--- /dev/null\n+++ b/frontend/src/recommendation-recovery.ts\n@@ -0,0 +1,109 @@\n+import { reactive } from 'vue';\n+export type RecoveryContext = { userId: string; tripId: string; date: string };\n+type Command = RecoveryContext & { commandId: string };\n+type Entry = {\n+  tripId: string;\n+  date: string;\n+  commandId: string;\n+  status: 'saving' | 'unknown' | 'checking';\n+};\n+type StoragePort = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;\n+const prefix = 'bookhaedo-course-recovery:v1:';\n+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n+const valid = (entry: Entry) =>\n+  uuid.test(entry.tripId) && uuid.test(entry.commandId) && /^\\d{4}-\\d{2}-\\d{2}$/.test(entry.date);\n+export function createRecommendationRecovery(storage?: StoragePort) {\n+  const entries = reactive(new Map<string, Entry>());\n+  const successes = reactive(new Map<string, number>());\n+  const hydrated = new Set<string>();\n+  const key = (context: RecoveryContext) => `${context.userId}|${context.tripId}|${context.date}`;\n+  function hydrate(userId: string) {\n+    if (!uuid.test(userId) || hydrated.has(userId)) return;\n+    hydrated.add(userId);\n+    try {\n+      const saved: unknown = JSON.parse(storage?.getItem(prefix + userId) || '[]');\n+      if (!Array.isArray(saved)) return;\n+      for (const raw of saved) {\n+        if (!raw || typeof raw !== 'object') continue;\n+        const entry = raw as Entry;\n+        if (\n+          typeof entry.tripId !== 'string' ||\n+          typeof entry.date !== 'string' ||\n+          typeof entry.commandId !== 'string' ||\n+          !valid(entry)\n+        )\n+          continue;\n+        // After page reload, a previous in-flight request has an unknown result.\n+        entries.set(key({ userId, tripId: entry.tripId, date: entry.date }), {\n+          tripId: entry.tripId,\n+          date: entry.date,\n+          commandId: entry.commandId,\n+          status: 'unknown',\n+        });\n+      }\n+    } catch {\n+      /* Unavailable storage never prevents in-memory recovery. */\n+    }\n+  }\n+  function persist(userId: string) {\n+    const saved = [...entries.entries()]\n+      .filter(([id]) => id.startsWith(userId + '|'))\n+      .map(([, entry]) => ({ tripId: entry.tripId, date: entry.date, commandId: entry.commandId }));\n+    try {\n+      if (saved.length) storage?.setItem(prefix + userId, JSON.stringify(saved));\n+      else storage?.removeItem(prefix + userId);\n+    } catch {\n+      /* Keep the live tab's state if browser storage is denied or full. */\n+    }\n+  }\n+  function get(context: RecoveryContext) {\n+    hydrate(context.userId);\n+    return entries.get(key(context));\n+  }\n+  function begin(context: RecoveryContext): Command | undefined {\n+    if (!uuid.test(context.userId) || !uuid.test(context.tripId) || get(context)) return;\n+    const command = { ...context, commandId: crypto.randomUUID() };\n+    entries.set(key(context), {\n+      tripId: context.tripId,\n+      date: context.date,\n+      commandId: command.commandId,\n+      status: 'saving',\n+    });\n+    persist(context.userId);\n+    return command;\n+  }\n+  function unknown(command: Command) {\n+    const entry = get(command);\n+    if (entry?.commandId !== command.commandId) return;\n+    entries.set(key(command), { ...entry, status: 'unknown' });\n+    persist(command.userId);\n+  }\n+  function complete(command: Command) {\n+    if (get(command)?.commandId !== command.commandId) return;\n+    entries.delete(key(command));\n+    persist(command.userId);\n+  }\n+  function successVersion(context: Pick<RecoveryContext, 'userId' | 'tripId'>) {\n+    return successes.get(`${context.userId}|${context.tripId}`) || 0;\n+  }\n+  function succeeded(command: Command) {\n+    if (get(command)?.commandId !== command.commandId) return;\n+    complete(command);\n+    // Notify the current trip screen even if the originating panel/day is gone.\n+    successes.set(`${command.userId}|${command.tripId}`, successVersion(command) + 1);\n+  }\n+  function check(context: RecoveryContext): Command | undefined {\n+    const entry = get(context);\n+    if (entry?.status !== 'unknown') return;\n+    entries.set(key(context), { ...entry, status: 'checking' });\n+    return { ...context, commandId: entry.commandId };\n+  }\n+  return { get, begin, unknown, complete, succeeded, successVersion, check };\n+}\n+let storage: StoragePort | undefined;\n+try {\n+  storage = typeof window === 'undefined' ? undefined : window.sessionStorage;\n+} catch {\n+  /* Use memory only. */\n+}\n+export const recommendationRecovery = createRecommendationRecovery(storage);\n",
+          "semantic_signals": [
+            "class-interface-type-changed",
+            "public-export-added",
+            "route-contract-change"
+          ],
+          "semantic_evidence": [
+            "TS/JS public class/interface/type changed",
+            "TS/JS public export added",
+            "TS/JS route handler changed"
+          ],
+          "analysis_method": "grammar+heuristic",
+          "analysis_reason": "",
+          "documented_env_keys": null
+        },
+        {
+          "path": "frontend/src/views/Planner.vue",
+          "status": "modified",
+          "previous_path": null,
+          "patch": "diff --git a/frontend/src/views/Planner.vue b/frontend/src/views/Planner.vue\nindex e4ed6a5..ba3f101 100644\n--- a/frontend/src/views/Planner.vue\n+++ b/frontend/src/views/Planner.vue\n@@ -12,6 +12,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'\n import { useRoute, useRouter } from 'vue-router';\n import { api, json } from '../api';\n import { state, selectTrip, notify, categoryName } from '../store';\n+import { recommendationRecovery } from '../recommendation-recovery';\n import type { Trip, Segment, Day, Place } from '../types';\n import TravelMap from '../components/TravelMap.vue';\n import Icon from '../components/Icon.vue';\n@@ -95,6 +96,22 @@ const current = computed(() => trip.value?.days.find((d) => d.date === active.va\n const center = computed(() => current.value?.items[0] || { latitude: 43.4, longitude: 142.6 });\n let loadGeneration = 0,\n   controller: AbortController | undefined;\n+watch(\n+  () => {\n+    const context = { userId: state.user?.id || '', tripId: String(route.params.id) };\n+    return { ...context, version: recommendationRecovery.successVersion(context) };\n+  },\n+  (current, previous) => {\n+    if (\n+      current.userId !== previous.userId ||\n+      current.tripId !== previous.tripId ||\n+      current.version === previous.version\n+    )\n+      return;\n+    void load();\n+    notify('새로운 하루 코스를 저장했어요.');\n+  },\n+);\n onBeforeUnmount(() => {\n   loadGeneration++;\n   generation++;\n@@ -105,32 +122,44 @@ async function load() {\n   try {\n     const data = await api<{ data: Trip }>('/trips/' + route.params.id);\n     if (token !== loadGeneration) return;\n-    trip.value = data.data;\n-    const slug =\n-      trip.value.title\n-        .normalize('NFKC')\n-        .replace(/[^\\p{L}\\p{N}]+/gu, '-')\n-        .replace(/^-|-$/g, '')\n-        .slice(0, 80) || 'travel';\n-    if (route.params.slug !== slug)\n-      await router.replace({\n-        name: 'trip',\n-        params: { id: route.params.id, slug },\n-        query: route.query,\n-        hash: route.hash,\n-      });\n-    markSynchronized();\n-    if (!trip.value.days.some((d) => d.date === active.value))\n-      active.value = trip.value.days[0]?.date || '';\n-    selectTrip(String(route.params.id), active.value);\n-    costs.value = { ...(trip.value.costSettings || {}) };\n-    title.value = trip.value.title;\n-    mode.value = trip.value.transportMode;\n-    void loadRoutes();\n+    await applyTripSnapshot(data.data, token);\n   } catch (e: any) {\n     if (token === loadGeneration) error.value = e.message;\n   }\n }\n+async function applyTripSnapshot(snapshot: Trip, token: number) {\n+  if (token !== loadGeneration || snapshot.id !== String(route.params.id)) return;\n+  trip.value = snapshot;\n+  const slug =\n+    trip.value.title\n+      .normalize('NFKC')\n+      .replace(/[^\\p{L}\\p{N}]+/gu, '-')\n+      .replace(/^-|-$/g, '')\n+      .slice(0, 80) || 'travel';\n+  if (route.params.slug !== slug)\n+    await router.replace({\n+      name: 'trip',\n+      params: { id: route.params.id, slug },\n+      query: route.query,\n+      hash: route.hash,\n+    });\n+  if (token !== loadGeneration) return;\n+  markSynchronized();\n+  if (!trip.value.days.some((d) => d.date === active.value))\n+    active.value = trip.value.days[0]?.date || '';\n+  selectTrip(String(route.params.id), active.value);\n+  costs.value = { ...(trip.value.costSettings || {}) };\n+  title.value = trip.value.title;\n+  mode.value = trip.value.transportMode;\n+  void loadRoutes();\n+}\n+function refreshTrip(snapshot: Trip) {\n+  const token = ++loadGeneration;\n+  error.value = '';\n+  void applyTripSnapshot(snapshot, token).catch((e) => {\n+    if (token === loadGeneration) error.value = e.message;\n+  });\n+}\n async function loadRoutes() {\n   if (!current.value) return;\n   controller?.abort();\n@@ -493,11 +522,7 @@ const duration = (seconds: number) => {\n             dayPreview = $event;\n             alternativePreview = null;\n           \"\n-          @refresh=\"load()\"\n-          @saved=\"\n-            load();\n-            notify('새로운 하루 코스를 저장했어요.');\n-          \"\n+          @refresh=\"refreshTrip\"\n         />\n         <WeatherAlternatives\n           v-if=\"showRecommendations\"\n",
+          "semantic_signals": [],
+          "semantic_evidence": [
+            "No grammar-backed detector for this file type"
+          ],
+          "analysis_method": "heuristic",
+          "analysis_reason": "No grammar-backed detector for this file type",
+          "documented_env_keys": null
+        }
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Recovery contract",
+          "required": [
+            "docs/architecture/recommendation-recovery.md"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": [
+        {
+          "name": "State and browser regressions",
+          "required": [
+            "tests/recommendation-recovery.test.ts",
+            "tests/e2e/tourism-save-recovery.spec.ts"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ],
+      "checklist": [
+        "State and browser regressions 업데이트"
+      ],
+      "ignored": false,
+      "change_intensity": "auth-policy-change",
+      "change_intensities": [
+        "auth-policy-change",
+        "export-added",
+        "signature-change"
+      ],
+      "trigger_patterns": [
+        "frontend/src/components/DayAlternatives.vue",
+        "frontend/src/recommendation-recovery.ts",
+        "frontend/src/views/Planner.vue"
+      ],
+      "blast_radius": [
+        "authorization behavior",
+        "missing requirement group: State and browser regressions",
+        "role/permission owners",
+        "security documentation"
+      ],
+      "missing_docs_explanation": "",
+      "changed_contract_summary": "",
+      "docs_update_draft": "",
+      "false_positive_note": "",
+      "cross_file_relations": []
+    }
+  ],
+  "rule_decisions": [
+    {
+      "rule_id": "api-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "scripts/write-api-spec.mjs"
+      ],
+      "trigger_files": [
+        "scripts/write-api-spec.mjs"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Generated OpenAPI copies",
+          "required": [
+            "docs/openapi-rest.json",
+            "docs/Bookhaedo-API.yml",
+            "frontend/public/openapi.json"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        },
+        {
+          "name": "Actual API regressions",
+          "required": [
+            "tests/api-contract.test.ts",
+            "tests/review-write-boundaries.test.ts",
+            "tests/ai-recommendations.test.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "course-recovery",
+      "severity": "BLOCKER",
+      "status": "fail",
+      "reason": "required groups are missing",
+      "matched_patterns": [
+        "frontend/src/components/DayAlternatives.vue",
+        "frontend/src/recommendation-recovery.ts",
+        "frontend/src/views/Planner.vue"
+      ],
+      "trigger_files": [
+        "frontend/src/components/DayAlternatives.vue",
+        "frontend/src/recommendation-recovery.ts",
+        "frontend/src/views/Planner.vue"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Recovery contract",
+          "required": [
+            "docs/architecture/recommendation-recovery.md"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": [
+        {
+          "name": "State and browser regressions",
+          "required": [
+            "tests/recommendation-recovery.test.ts",
+            "tests/e2e/tourism-save-recovery.spec.ts"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "rule_id": "trip-write-contract",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "provider-boundary",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "schema-contract",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "quality-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        ".drift-gate.yml",
+        "package.json",
+        "scripts/check-drift-gate.py"
+      ],
+      "trigger_files": [
+        ".drift-gate.yml",
+        "package.json",
+        "scripts/check-drift-gate.py"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Quality contract",
+          "required": [
+            "docs/quality-gates.md"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    }
+  ],
+  "skipped_rules": [],
+  "rejected_ignores": [],
+  "ignore_audit": [],
+  "temporal_warnings": [],
+  "gate": {
+    "fail_on_blocker": true,
+    "fail_on_major_count": 1
+  }
+}
