@@ -340,7 +340,7 @@ it('reads committed items after waiting for a writer lock during confirmation', 
   }
 });
 
-it('falls back to the SQL statement bound if the cancellation transport fails, and still discards the target', async () => {
+it('physically discards the read connection if the cancellation transport fails', async () => {
   const db = new pg.Pool({ ...pool.options, max: 1 });
   const controller = new AbortController();
   const tag = 'cancel-fallback-' + randomUUID();
