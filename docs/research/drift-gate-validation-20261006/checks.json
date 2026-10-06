@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "label": "test-ci",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-test-ci.log"
+    },
+    {
+      "label": "python",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-python.log"
+    },
+    {
+      "label": "typecheck",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-typecheck.log"
+    },
+    {
+      "label": "lint",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-lint.log"
+    },
+    {
+      "label": "format-check",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-format-check.log"
+    },
+    {
+      "label": "spec-check",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-spec-check.log"
+    },
+    {
+      "label": "build",
+      "code": 0,
+      "log": "/private/tmp/bookhaedo-drift-validation-build.log"
+    }
+  ],
+  "disposableDatabaseRemoved": true
+}

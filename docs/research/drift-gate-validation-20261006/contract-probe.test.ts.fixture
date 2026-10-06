@@ -1,0 +1,22 @@
+import {it,expect} from 'vitest';
+import request from 'supertest';
+import {randomUUID} from 'node:crypto';
+import {readFileSync} from 'node:fs';
+import {app} from '../server/app';
+import {pool,migrate} from '../server/db';
+it('diagnostic: actual busy responses omitted from generated OpenAPI',async()=>{
+ await migrate();const owner=request.agent(app);const email=randomUUID()+'@example.test';let blocker:any;
+ const spec=JSON.parse(readFileSync('docs/openapi-rest.json','utf8'));
+ try{
+ expect((await owner.post('/api/auth/register').send({email,name:'probe',password:'probe-password'})).status).toBe(201);
+ const created=await owner.post('/api/trips').send({title:'probe',startDate:'2026-10-10',days:1,transportMode:'WALK'});
+ expect(created.status).toBe(201);const id=created.body.data.id;
+ blocker=await pool.connect();await blocker.query('BEGIN');await blocker.query('SELECT id FROM planner.trip WHERE id=$1 FOR UPDATE',[id]);
+ for(const [method,suffix,body] of [['patch','',{title:'new',transportMode:'WALK'}],['patch','/cost-settings',{}],['delete','',{}]] as const){
+ const res=await owner[method]('/api/trips/'+id+suffix).send(body);
+ expect(res.status,JSON.stringify(res.body)).toBe(409);expect(res.body.code).toBe('TRIP_WRITE_BUSY');
+ const documented=Object.keys(spec.paths['/trips/{id}'+suffix][method].responses);expect(documented).not.toContain('409');
+ console.log(JSON.stringify({probe:'undocumented-write-busy',method,path:'/trips/{id}'+suffix,status:res.status,code:res.body.code,documented}));
+ }
+ }finally{if(blocker){await blocker.query('ROLLBACK');blocker.release();}await pool.query('DELETE FROM planner.app_user WHERE email=$1',[email]);await pool.end();}
+},20000);

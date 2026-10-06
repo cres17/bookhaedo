@@ -1,0 +1,12 @@
+[
+  {
+    "label": "full-vitest",
+    "code": 0,
+    "log": "/private/tmp/bookhaedo-drift-validation-full-vitest.log"
+  },
+  {
+    "label": "full-e2e",
+    "code": 0,
+    "log": "/private/tmp/bookhaedo-drift-validation-full-e2e.log"
+  }
+]

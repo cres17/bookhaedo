@@ -1,0 +1,4 @@
+
+> bookhaedo@2.0.0 typecheck
+> vue-tsc -p tsconfig.vue.json
+

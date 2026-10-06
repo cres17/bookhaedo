@@ -1,0 +1,125 @@
+rules:
+- id: api-contract
+  when:
+    any_changed:
+    - server/routes/**
+    - server/day-alternatives.ts
+    - server/weather-alternatives.ts
+  require:
+    groups:
+    - name: OpenAPI copies
+      all_changed:
+      - docs/openapi-rest.json
+      - docs/Bookhaedo-API.yml
+      - frontend/public/openapi.json
+      content: paths
+  severity: blocker
+  allow_ignore: false
+- id: trip-write-contract
+  when:
+    any_changed:
+    - server/trip-write.ts
+    - server/trip-snapshot.ts
+    - server/itinerary-write.ts
+    - server/collaboration.ts
+  require:
+    groups:
+    - name: Write and snapshot contract
+      any_changed: &id001
+      - docs/research/tourism-rereview-implementation-20261006.md
+      content: paths
+    - name: Database regression
+      any_changed:
+      - tests/review-write-boundaries.test.ts
+      content: paths
+  severity: blocker
+  allow_ignore: false
+- id: provider-boundary
+  when:
+    any_changed:
+    - server/route-response.ts
+    - server/routing.ts
+    - server/providers.ts
+    - shared/route-shape-policy.ts
+  require:
+    groups:
+    - name: Provider limits
+      any_changed: *id001
+      content: paths
+    - name: Provider regressions
+      any_changed:
+      - tests/route-response-validation.test.ts
+      content: paths
+  severity: blocker
+  allow_ignore: false
+- id: recommendation-recovery
+  when:
+    any_changed:
+    - frontend/src/components/DayAlternatives.vue
+  require:
+    groups:
+    - name: Recovery contract
+      any_changed: *id001
+      content: paths
+    - name: Browser regressions
+      any_changed:
+      - tests/e2e/tourism-save-recovery.spec.ts
+      content: paths
+  severity: blocker
+  allow_ignore: false
+- id: schema-contract
+  when:
+    any_changed:
+    - db/schema.sql
+    - db/planner.sql
+    - db/migrations/**
+  require:
+    groups:
+    - name: ERD
+      any_changed:
+      - docs/erd.dbml
+      content: paths
+    - name: Migration verification
+      any_changed:
+      - tests/migrations.test.ts
+      content: paths
+  severity: blocker
+  allow_ignore: false
+- id: ci-contract
+  when:
+    any_changed:
+    - .github/workflows/**
+    - package.json
+  require:
+    groups:
+    - name: Verification scope
+      any_changed: *id001
+      content: paths
+  severity: blocker
+  allow_ignore: false
+- id: source-policy
+  when:
+    any_changed:
+    - server/tourism-source-policy.ts
+    - scripts/tourism/source_policy.py
+    - ops/tourism/source-policy.json
+  require:
+    groups:
+    - name: Source policy notes
+      any_changed:
+      - docs/tourism-langgraph.md
+      - docs/operations.md
+      - docs/research/*.md
+      content: paths
+    - name: Source policy regressions
+      any_changed:
+      - tests/tourism-source-policy.test.ts
+      - tests/tourism-pipeline.test.ts
+      content: paths
+  severity: blocker
+  allow_ignore: false
+gate:
+  fail_on_blocker: true
+  fail_on_major_count: 1
+suppression:
+  allow_ignores: false

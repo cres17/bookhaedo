@@ -1,0 +1,94 @@
+[WebServer] (node:23892) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:23894) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:23975) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:23976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) (7.5s)
+(node:24031) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) (7.2s)
+
+
+  1) tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) ──────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('region', { name: '하루 코스 추천', exact: true }).getByRole('button', { name: '현재 일정 확인', exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('region', { name: '하루 코스 추천', exact: true }).getByRole('button', { name: '현재 일정 확인', exact: true }) with timeout 5000ms
+      - waiting for getByRole('region', { name: '하루 코스 추천', exact: true }).getByRole('button', { name: '현재 일정 확인', exact: true })
+
+
+      129 |       await page.getByRole('button', {name: '하루 코스 추천 켜기', exact: true}).click();
+      130 |       await open();
+    > 131 |       await expect(panel.getByRole('button', {name: '현재 일정 확인', exact: true})).toBeVisible();
+          |                                                                                ^
+      132 |       await expect(panel.getByRole('button', {name: '이 코스 동선 미리보기'})).toHaveCount(0);
+      133 |       await page.reload();
+      134 |       await open();
+        at /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project/tests/e2e/tourism-save-recovery.spec.ts:131:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) ───────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('region', { name: '하루 코스 추천', exact: true }).getByRole('button', { name: '현재 일정 확인', exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('region', { name: '하루 코스 추천', exact: true }).getByRole('button', { name: '현재 일정 확인', exact: true }) with timeout 5000ms
+      - waiting for getByRole('region', { name: '하루 코스 추천', exact: true }).getByRole('button', { name: '현재 일정 확인', exact: true })
+
+
+      129 |       await page.getByRole('button', {name: '하루 코스 추천 켜기', exact: true}).click();
+      130 |       await open();
+    > 131 |       await expect(panel.getByRole('button', {name: '현재 일정 확인', exact: true})).toBeVisible();
+          |                                                                                ^
+      132 |       await expect(panel.getByRole('button', {name: '이 코스 동선 미리보기'})).toHaveCount(0);
+      133 |       await page.reload();
+      134 |       await open();
+        at /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project/tests/e2e/tourism-save-recovery.spec.ts:131:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) ───────────────────
+    tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) ────────────────────

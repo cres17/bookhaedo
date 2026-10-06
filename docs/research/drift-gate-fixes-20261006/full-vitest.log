@@ -1,0 +1,16 @@
+
+> bookhaedo@2.0.0 test
+> vitest run --config vitest.config.ts
+
+
+ RUN  v5.0.0 /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project
+
+
+ Test Files  55 passed (55)
+      Tests  471 passed (471)
+   Start at  15:01:32
+   Duration  53.11s (tests 90%, import 9%, transform 1%)
+
+    Isolate  55 workers spawned · ~50ms startup each (spawn + environment, per file)
+             at least ~2.70s faster with isolate: false — reuses workers across files instead of one per file
+

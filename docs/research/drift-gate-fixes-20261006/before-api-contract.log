@@ -1,0 +1,26 @@
+
+ RUN  v5.0.0 /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project
+
+ ❯ tests/review-write-boundaries.test.ts (11 tests | 1 failed) 7968ms
+   × declares real trip-setting, cost-setting and deletion lock conflicts in OpenAPI 3025ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/review-write-boundaries.test.ts > declares real trip-setting, cost-setting and deletion lock conflicts in OpenAPI
+AssertionError: patch  declares actual 409: expected undefined to be defined
+ ❯ tests/review-write-boundaries.test.ts:429:67
+    427|       expect(response.headers['cache-control']).toBe('no-store');
+    428|       const contract = spec.paths['/trips/{id}' + suffix][method].resp…
+    429|       expect(contract, `${method} ${suffix} declares actual 409`).toBe…
+       |                                                                   ^
+    430|       const schema = spec.components.schemas[contract.content['applica…
+    431|       expect(schema.required).toEqual(expect.arrayContaining(['error',…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  14:49:12
+   Duration  8.61s (tests 93%, import 5%, transform 2%)
+

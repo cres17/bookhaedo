@@ -1,0 +1,226 @@
+{
+  "dateKST": "2026-10-06",
+  "sourceHead": "454a8707078d46d50db978df3ce539b9b0fa775c",
+  "files": [
+    {
+      "path": "docs/research/bookhaedo-drift-gate-review-20261006.md",
+      "sha256": "60461c43354ec9f0c3aae4fdc382c614e3bfa986f13de224fa836af255da684b",
+      "bytes": 23600
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/README.md",
+      "sha256": "20d3d1da18a3966882dd579f29e173d12a81d6e06793031453991ecc2df80045",
+      "bytes": 4896
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/boundary-probe-results.json",
+      "sha256": "dd9c39145fdf7ecfd50911dfdef95e6751d442741364c96ca2aa07fac5ee3261",
+      "bytes": 181
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/browser-probe.log",
+      "sha256": "45d4192d9423fb1560b97e1e0bd668e585bd800abfbe2acebfd323ecd99e63fd",
+      "bytes": 1362
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/browser-probe.spec.ts.fixture",
+      "sha256": "aad33c0054bcf5b157bb849cc441b7539080ed1e3f6966fa5f7a7a431bfb89be",
+      "bytes": 5742
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/build.log",
+      "sha256": "fc609f8221ba4628fc873b65dbce52364a3c46918e12d7d067766f5acd394245",
+      "bytes": 423
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/checks.json",
+      "sha256": "598e92283a795993f901e7085fe6137f142cccb3ac9a77dd359193be1401f70b",
+      "bytes": 927
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/contract-probe.log",
+      "sha256": "656c352c1fae9753be14c2a87d693019df3b1c72e1e141aa55107312629f533a",
+      "bytes": 192
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/contract-probe.test.ts.fixture",
+      "sha256": "206ce2ae5f1d950340012a3241e9e85f0b8908a8c7bf4b07e8af7ff0324f0395",
+      "bytes": 1691
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.json",
+      "sha256": "828586ec7351adfcffe7a084dd740ef4bc710683ba9d1bf633456e22ae3d6ffb",
+      "bytes": 31589
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.log",
+      "sha256": "debd9a909016cd30c02172ec12c604763bc65861fb5a5d81a143e60ec256a765",
+      "bytes": 4514
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-missing-api-docs.md",
+      "sha256": "3224b357763239f5338278cf6e45a4db10f514ba00d0371f5b43352375ac69ec",
+      "bytes": 4513
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.json",
+      "sha256": "35fe9176340f6ee1e7ebf1bd8ea37749ea06ae2a66373a8ba444c1032e8b2ed8",
+      "bytes": 20492
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.log",
+      "sha256": "360fdc53988dd9e327007b397ac6ab7f5672c419f9a1269765ceeaa287fbbcb7",
+      "bytes": 3712
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-missing-recovery-test.md",
+      "sha256": "baa0abd77315973bd64d0bb4d7091e463e90fd2f0208fa665ef692855c71dd53",
+      "bytes": 3711
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.json",
+      "sha256": "3583cef35cdc9845963cd007ca3519dd8221bb1e08c6db6d89e615f311b9d761",
+      "bytes": 11158
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.log",
+      "sha256": "da007ca5695d3b0e1c82cbce6203429ed33b548874b226f0648c4849231d3056",
+      "bytes": 925
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-old-provider-code.md",
+      "sha256": "b24860a36a6505a03edfdbcdd6a5a5a701ac4a16547405ee290dcf9cf99709c8",
+      "bytes": 924
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/control-old-provider-tests.log",
+      "sha256": "010cdae87e9729f7be59f5d4dfbec92c219afa47e49af80d2dae3f9dfa89cdc4",
+      "bytes": 3538
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/current.html",
+      "sha256": "515cc840fa1eda31e748131083efff37318c8521bb8b025b890f1a78398d3f9a",
+      "bytes": 27468
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/current.json",
+      "sha256": "23c69f046c5e7969e1149e32904c24a2a43e8e93f0193f93daa89178233f9b63",
+      "bytes": 11644
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/current.log",
+      "sha256": "0d473c69c85e46383e05ad564d561a8a41f0556e742cab93eaee08bf4c630716",
+      "bytes": 925
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/current.md",
+      "sha256": "ff5fa9e99f33baafd2d374aeb3975a5668ffcaa0b84630d9dd823efaf5cbe751",
+      "bytes": 924
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/evidence-summary.json",
+      "sha256": "7b2370c49da9cae9c3b7241dc728cff341042ef67498bac4546dff76293e73f6",
+      "bytes": 3005
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/format-check.log",
+      "sha256": "2b0a9675e569241f3061846866f06affbd36e7785f21882559cfafd1f6cdf2ed",
+      "bytes": 169
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/full-e2e.log",
+      "sha256": "806d2d47def8f22a7fbc70dd9f5d4565dbbf9c8874067e113c7aa17051662dfc",
+      "bytes": 9211
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/full-vitest.log",
+      "sha256": "60b6e61850b517c7331b83c885c9dd5bbeeb2b112adbcbf8a0b8b27a0e96c019",
+      "bytes": 479
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/gate-summary.json",
+      "sha256": "f32c44f1f603a8fc9cdba2ec924b2f1b7b747def81792e5440f6e238d3dce9c1",
+      "bytes": 35852
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/historical-url-rejection.json",
+      "sha256": "759edaed0d2a11006490f60d63eca9ee21ef92cb31bb1ecfcbfa4d5d5130775e",
+      "bytes": 20964
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/lint.log",
+      "sha256": "e0e9f2431cbaef52a4725ea7dcdc7da7def742ed8ca2307460056cf98968d3d9",
+      "bytes": 67
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/local-flow.json",
+      "sha256": "c6b67e5568d58a1f111ae391521b0bd50a1d45d8ff7bade0bd99acf8e48cc3c1",
+      "bytes": 238
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/no-policy.json",
+      "sha256": "c775a84d7a1dfc3cc1877642732559f68781b2cb6ca24f249414ba714af13162",
+      "bytes": 6598
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/no-policy.log",
+      "sha256": "b8c8f71c488321fc54093f62782c3b4d5ea182db10187fec779278128a301ca9",
+      "bytes": 493
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/no-policy.md",
+      "sha256": "566f2d0750ac517aea3d381868e42b1ecd35f1bc66f544a17ba2156244a42bb3",
+      "bytes": 492
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/prepare-boundary-probes.py",
+      "sha256": "fc7b5df5e67c35d06e38d6465ad946f072b8747cfcb3dd1797d162ffbf3265d5",
+      "bytes": 1223
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/python.log",
+      "sha256": "d61a17a9d0657ab3f3b965e4163a570f341f34f77d035f7a38aa434c3baf8e2a",
+      "bytes": 134
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/review-policy.yml",
+      "sha256": "0089a3fed0197232897eea39aa69c9f9be7e03703e55744d41371c6844ec8c5e",
+      "bytes": 2904
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/run-behavior-controls.py",
+      "sha256": "85415230631d60056573d8f0c962be6cbcf39740c1cc5a813bd763b87f9f5939",
+      "bytes": 3545
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/run-boundary-probes.mts",
+      "sha256": "5526bf492a61516b74807b61bdf44e19726270259ac2161be450204d1b6e4739",
+      "bytes": 1851
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/run-gate.py",
+      "sha256": "1e2f8c94da0e02308850a8b53e309f37132dc2f8041a5fda64304b825d490c96",
+      "bytes": 5925
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/source-url-cases.json",
+      "sha256": "963b2e8f9451ae83c1d3f9391e842a1f2e25e55d5c9d3d21965acb3e09266937",
+      "bytes": 5712
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/spec-check.log",
+      "sha256": "2305286e2625cb3982d5c7148cee8e3ac050ea37a16351ac86a563492dabde1b",
+      "bytes": 153
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/test-ci.log",
+      "sha256": "9049c2f16e491c8c3aae2b858a45fc5661ffd5e0dbfacc3ce9d62f251bec09ce",
+      "bytes": 1979
+    },
+    {
+      "path": "docs/research/drift-gate-validation-20261006/typecheck.log",
+      "sha256": "45dc492e0447376af3412da8d3c163d5b9c126b94ce7af16b73307d9c5f9dfe4",
+      "bytes": 61
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+
+> bookhaedo@2.0.0 build
+> vue-tsc -p tsconfig.vue.json && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 112 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.74 kB │ gzip:   0.48 kB
+dist/assets/index-gQ-AMmB6.css  120.53 kB │ gzip:  24.53 kB
+dist/assets/index-DMVHUIWG.js   459.78 kB │ gzip: 160.25 kB
+
+✓ built in 272ms

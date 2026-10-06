@@ -1,0 +1,4 @@
+
+> bookhaedo@2.0.0 lint
+> eslint server shared frontend/src tests
+

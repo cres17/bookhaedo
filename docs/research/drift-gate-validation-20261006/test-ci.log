@@ -1,0 +1,16 @@
+
+> bookhaedo@2.0.0 test:ci
+> vitest run --config vitest.config.ts tests/domain.test.ts tests/bookhaedo.test.ts tests/improvements.test.ts tests/map-focus.test.ts tests/place-dedupe.test.ts tests/website-check.test.ts tests/reliability.test.ts tests/concurrency.test.ts tests/search-assist.test.ts tests/platform.test.ts tests/migrations.test.ts tests/api-contract.test.ts tests/expense-export.test.ts tests/schedule.test.ts tests/rate-limit.test.ts tests/api-rate-limit-identity.test.ts tests/observability.test.ts tests/security.test.ts tests/provider-performance.test.ts tests/boot-performance.test.ts tests/tourism-graph.test.ts tests/tourism-knowledge.test.ts tests/ai-recommendations.test.ts tests/tourism-search-distance.test.ts tests/tourism-maintenance.test.ts tests/routing-policy.test.ts tests/route-response-validation.test.ts tests/tourism-matching.test.ts tests/tourism-comparison.test.ts tests/ai-recommendation-rate-limit.test.ts tests/valhalla-gate.test.ts tests/tourism-alias.test.ts tests/tourism-reference.test.ts tests/tourism-source-policy.test.ts tests/tourism-pipeline.test.ts tests/dependency-audit.test.ts tests/tourism-alias-cache.test.ts tests/dependency-audit-integration.test.ts tests/recommendation-boundaries.test.ts tests/weather-response-validation.test.ts tests/http-disconnect.test.ts tests/operation-budget.test.ts tests/operational-database.test.ts tests/recommendation-context.test.ts tests/recommendation-deadline.test.ts tests/read-query-network.test.ts tests/review-write-boundaries.test.ts tests/route-map-policy.test.ts
+
+
+ RUN  v5.0.0 /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project
+
+
+ Test Files  48 passed (48)
+      Tests  395 passed (395)
+   Start at  14:28:05
+   Duration  39.19s (tests 87%, import 12%, transform 1%)
+
+    Isolate  48 workers spawned · ~56ms startup each (spawn + environment, per file)
+             at least ~2.61s faster with isolate: false — reuses workers across files instead of one per file
+

@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { beforeAll, afterAll, afterEach, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { randomUUID } from 'node:crypto';
@@ -405,4 +406,37 @@ it('returns a bounded lock conflict with no itinerary mutation', async () => {
     blocker.release();
   }
   expect((await owner.get('/api/trips/' + trip)).body.data.days).toEqual(before.days);
+});
+
+it('declares real trip-setting, cost-setting and deletion lock conflicts in OpenAPI', async () => {
+  const before = await setup();
+  const spec = JSON.parse(
+    await readFile(new URL('../docs/openapi-rest.json', import.meta.url), 'utf8'),
+  );
+  const blocker = await actualConnect();
+  try {
+    await blocker.query('BEGIN');
+    await blocker.query('SELECT id FROM planner.trip WHERE id=$1 FOR UPDATE', [trip]);
+    for (const [method, suffix, body] of [
+      ['patch', '', { title: 'updated', transportMode: 'BICYCLE' }],
+      ['patch', '/cost-settings', {}],
+      ['delete', '', {}],
+    ] as const) {
+      const response = await owner[method]('/api/trips/' + trip + suffix).send(body);
+      expect(response.status, response.body.error).toBe(409);
+      expect(response.body.code).toBe('TRIP_WRITE_BUSY');
+      expect(response.body.requestId).toEqual(expect.any(String));
+      expect(response.headers['cache-control']).toBe('no-store');
+      const contract = spec.paths['/trips/{id}' + suffix][method].responses[response.status];
+      expect(contract, `${method} ${suffix} declares actual 409`).toBeDefined();
+      const schema =
+        spec.components.schemas[contract.content['application/json'].schema.$ref.split('/').at(-1)];
+      expect(schema.required).toEqual(expect.arrayContaining(['error', 'code', 'requestId']));
+      expect(schema.properties.code.enum).toContain(response.body.code);
+    }
+  } finally {
+    await blocker.query('ROLLBACK');
+    blocker.release();
+  }
+  expect((await owner.get('/api/trips/' + trip)).body.data).toEqual(before);
 });

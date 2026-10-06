@@ -1,0 +1,17 @@
+[WebServer] (node:12084) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12085) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12101) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:12106) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"probe":"unmount-loses-unknown-outcome","width":1440,"reproduced":true,"automaticWrites":0,"explicitRecoveryClicked":false,"saveEnabledAfterRemount":true}
+  ✓  1 tests/e2e/drift-boundary-probe.spec.ts:5:3 › 진단: 추천 숨기기 후 저장 결과 확인 상태 소실 (1440px) (3.3s)
+{"probe":"unmount-loses-unknown-outcome","width":390,"reproduced":true,"automaticWrites":0,"explicitRecoveryClicked":false,"saveEnabledAfterRemount":true}
+  ✓  2 tests/e2e/drift-boundary-probe.spec.ts:5:3 › 진단: 추천 숨기기 후 저장 결과 확인 상태 소실 (390px) (1.7s)
+
+  2 passed (7.1s)

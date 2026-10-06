@@ -12,6 +12,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { api, json } from '../api';
 import { state, selectTrip, notify, categoryName } from '../store';
+import { recommendationRecovery } from '../recommendation-recovery';
 import type { Trip, Segment, Day, Place } from '../types';
 import TravelMap from '../components/TravelMap.vue';
 import Icon from '../components/Icon.vue';
@@ -95,6 +96,22 @@ const current = computed(() => trip.value?.days.find((d) => d.date === active.va
 const center = computed(() => current.value?.items[0] || { latitude: 43.4, longitude: 142.6 });
 let loadGeneration = 0,
   controller: AbortController | undefined;
+watch(
+  () => {
+    const context = { userId: state.user?.id || '', tripId: String(route.params.id) };
+    return { ...context, version: recommendationRecovery.successVersion(context) };
+  },
+  (current, previous) => {
+    if (
+      current.userId !== previous.userId ||
+      current.tripId !== previous.tripId ||
+      current.version === previous.version
+    )
+      return;
+    void load();
+    notify('새로운 하루 코스를 저장했어요.');
+  },
+);
 onBeforeUnmount(() => {
   loadGeneration++;
   generation++;
@@ -105,31 +122,43 @@ async function load() {
   try {
     const data = await api<{ data: Trip }>('/trips/' + route.params.id);
     if (token !== loadGeneration) return;
-    trip.value = data.data;
-    const slug =
-      trip.value.title
-        .normalize('NFKC')
-        .replace(/[^\p{L}\p{N}]+/gu, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 80) || 'travel';
-    if (route.params.slug !== slug)
-      await router.replace({
-        name: 'trip',
-        params: { id: route.params.id, slug },
-        query: route.query,
-        hash: route.hash,
-      });
-    markSynchronized();
-    if (!trip.value.days.some((d) => d.date === active.value))
-      active.value = trip.value.days[0]?.date || '';
-    selectTrip(String(route.params.id), active.value);
-    costs.value = { ...(trip.value.costSettings || {}) };
-    title.value = trip.value.title;
-    mode.value = trip.value.transportMode;
-    void loadRoutes();
+    await applyTripSnapshot(data.data, token);
   } catch (e: any) {
     if (token === loadGeneration) error.value = e.message;
   }
+}
+async function applyTripSnapshot(snapshot: Trip, token: number) {
+  if (token !== loadGeneration || snapshot.id !== String(route.params.id)) return;
+  trip.value = snapshot;
+  const slug =
+    trip.value.title
+      .normalize('NFKC')
+      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 80) || 'travel';
+  if (route.params.slug !== slug)
+    await router.replace({
+      name: 'trip',
+      params: { id: route.params.id, slug },
+      query: route.query,
+      hash: route.hash,
+    });
+  if (token !== loadGeneration) return;
+  markSynchronized();
+  if (!trip.value.days.some((d) => d.date === active.value))
+    active.value = trip.value.days[0]?.date || '';
+  selectTrip(String(route.params.id), active.value);
+  costs.value = { ...(trip.value.costSettings || {}) };
+  title.value = trip.value.title;
+  mode.value = trip.value.transportMode;
+  void loadRoutes();
+}
+function refreshTrip(snapshot: Trip) {
+  const token = ++loadGeneration;
+  error.value = '';
+  void applyTripSnapshot(snapshot, token).catch((e) => {
+    if (token === loadGeneration) error.value = e.message;
+  });
 }
 async function loadRoutes() {
   if (!current.value) return;
@@ -493,11 +522,7 @@ const duration = (seconds: number) => {
             dayPreview = $event;
             alternativePreview = null;
           "
-          @refresh="load()"
-          @saved="
-            load();
-            notify('새로운 하루 코스를 저장했어요.');
-          "
+          @refresh="refreshTrip"
         />
         <WeatherAlternatives
           v-if="showRecommendations"

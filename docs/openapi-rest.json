@@ -1113,6 +1113,16 @@
               }
             }
           },
+          "409": {
+            "description": "여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripWriteConflict"
+                }
+              }
+            }
+          },
           "429": {
             "description": "요청 제한. Retry-After 후 재시도",
             "content": {
@@ -1250,6 +1260,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripWriteConflict"
                 }
               }
             }
@@ -2348,6 +2368,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripWriteConflict"
                 }
               }
             }
@@ -7945,6 +7975,51 @@
             "format": "date-time"
           }
         }
+      },
+      "TripWriteConflict": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "TRIP_WRITE_BUSY",
+              "CONFLICT"
+            ]
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "currentRevision": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가"
+          }
+        },
+        "required": [
+          "error",
+          "code",
+          "requestId"
+        ]
       }
     }
   }

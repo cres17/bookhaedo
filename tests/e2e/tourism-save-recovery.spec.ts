@@ -13,7 +13,8 @@ for (const width of [1440, 390])
     });
     let trip = '',
       writes = 0;
-    let fault: 'conflict' | 'before' | 'after' = 'conflict';
+    let fault: 'conflict' | 'before' | 'after' | 'pending' | 'pending-success' = 'conflict';
+    let releaseWrite: (() => void) | undefined;
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     try {
@@ -30,7 +31,7 @@ for (const width of [1440, 390])
         ).status(),
       ).toBe(201);
       const created = await page.request.post('/api/trips', {
-        data: { title: '코스 저장 복구', startDate: '2026-10-10', days: 1, transportMode: 'WALK' },
+        data: { title: '코스 저장 복구', startDate: '2026-10-10', days: 2, transportMode: 'WALK' },
       });
       expect(created.status()).toBe(201);
       trip = (await created.json()).data.id;
@@ -38,6 +39,13 @@ for (const width of [1440, 390])
       expect(
         (
           await page.request.put(base + '/items', {
+            data: { placeIds: ids.slice(0, 2), expectedRevision: 0 },
+          })
+        ).status(),
+      ).toBe(200);
+      expect(
+        (
+          await page.request.put(`/api/trips/${trip}/days/2026-10-11/items`, {
             data: { placeIds: ids.slice(0, 2), expectedRevision: 0 },
           })
         ).status(),
@@ -66,18 +74,30 @@ for (const width of [1440, 390])
               status: 409,
               json: { error: '문맥 변경', code: 'RECOMMENDATION_CONTEXT_CHANGED' },
             });
+          if (fault === 'pending' || fault === 'pending-success')
+            await new Promise<void>((resolve) => {
+              releaseWrite = resolve;
+            });
+          if (fault === 'pending-success') {
+            const response = await r.fetch();
+            expect(response.status()).toBe(200);
+            return r.fulfill({ response });
+          }
           if (fault === 'after') expect((await r.fetch()).status()).toBe(200);
           return r.abort('failed');
         }
         const current = (await (await page.request.get('/api/trips/' + trip)).json()).data;
-        const selected = new URL(r.request().url()).searchParams.get('strategy');
+        const url = new URL(r.request().url());
+        const date = url.pathname.split('/days/')[1]!.split('/')[0]!;
+        const day = current.days.find((d: any) => d.date === date);
+        const selected = url.searchParams.get('strategy');
         return r.fulfill({
           json: {
             tripId: trip,
-            date: '2026-10-10',
-            transportMode: 'WALK',
-            expectedRevision: current.days[0].revision,
-            expectedPlaceIds: current.days[0].items.map((p: any) => p.id),
+            date,
+            transportMode: current.transportMode,
+            expectedRevision: day.revision,
+            expectedPlaceIds: day.items.map((p: any) => p.id),
             weather: { available: false },
             plans: [plan],
             preview: selected
@@ -85,7 +105,7 @@ for (const width of [1440, 390])
                   plan,
                   segments: [],
                   complete: true,
-                  mode: 'WALK',
+                  mode: current.transportMode,
                   distanceMeters: 2000,
                   durationSeconds: 600,
                 }
@@ -93,6 +113,10 @@ for (const width of [1440, 390])
           },
         });
       });
+      const ownerId = (await (await page.request.get('/api/auth/me')).json()).user.id;
+      await page.addInitScript((id) => {
+        (window as any).__recoveryOwner = id;
+      }, ownerId);
       await page.goto('/trips/' + trip);
       const open = () => page.getByRole('button', { name: '하루 코스 추천', exact: true }).click();
       const select = () => page.getByRole('button', { name: '이 코스 동선 미리보기' }).click();
@@ -113,6 +137,44 @@ for (const width of [1440, 390])
       await save();
       await expect(panel.getByRole('alert')).toContainText('저장 응답을 확인하지 못했어요');
       expect(writes).toBe(2);
+      // Unknown outcomes survive unmount, refresh and transport-mode remounts.
+      await panel.getByRole('button', { name: '하루 코스 추천 닫기', exact: true }).click();
+      await page.getByRole('button', { name: '추천 숨기기', exact: true }).click();
+      await page.getByRole('button', { name: '하루 코스 추천 켜기', exact: true }).click();
+      await open();
+      await expect(
+        panel.getByRole('button', { name: '현재 일정 확인', exact: true }),
+      ).toBeVisible();
+      await expect(panel.getByRole('button', { name: '이 코스 동선 미리보기' })).toHaveCount(0);
+      await page.reload();
+      await open();
+      await expect(
+        panel.getByRole('button', { name: '현재 일정 확인', exact: true }),
+      ).toBeVisible();
+      await panel.getByRole('button', { name: '하루 코스 추천 닫기', exact: true }).click();
+      await page.getByRole('button', { name: '여행 설정', exact: true }).click();
+      const settings = page.getByRole('dialog', { name: '여행 설정', exact: true });
+      await settings.getByLabel('이동 방법').selectOption('BICYCLE');
+      await settings.getByRole('button', { name: '저장하기', exact: true }).click();
+      await expect(settings).toHaveCount(0);
+      await open();
+      await expect(
+        panel.getByRole('button', { name: '현재 일정 확인', exact: true }),
+      ).toBeVisible();
+      // Recovery is scoped to the affected date, rather than blocking a different day.
+      await page.locator('.day-tabs button').nth(1).click();
+      await open();
+      await select();
+      await expect(panel.getByRole('button', { name: '현재 일정 확인', exact: true })).toHaveCount(
+        0,
+      );
+      await panel.getByRole('button', { name: '하루 코스 추천 닫기', exact: true }).click();
+      await page.locator('.day-tabs button').nth(0).click();
+      await open();
+      await expect(
+        panel.getByRole('button', { name: '현재 일정 확인', exact: true }),
+      ).toBeVisible();
+      expect(writes).toBe(2);
       await panel.getByRole('button', { name: '현재 일정 확인', exact: true }).click();
       await expect(panel).toHaveCount(0);
       let current = (await (await page.request.get('/api/trips/' + trip)).json()).data.days[0];
@@ -130,8 +192,61 @@ for (const width of [1440, 390])
       expect(current.revision).toBe(2);
       expect(current.items.map((p: any) => p.id)).toEqual(ids.slice(2));
       expect(writes).toBe(3);
+      // A late failed response belongs to the original day even if its panel is gone.
+      await open();
+      await select();
+      fault = 'pending';
+      await save();
+      await expect.poll(() => !!releaseWrite).toBe(true);
+      await page.locator('.day-tabs button').nth(1).click();
+      await open();
+      await select();
+      releaseWrite?.();
+      releaseWrite = undefined;
+      await expect
+        .poll(() =>
+          page.evaluate(() =>
+            sessionStorage.getItem(
+              'bookhaedo-course-recovery:v1:' + (window as any).__recoveryOwner,
+            ),
+          ),
+        )
+        .toBeTruthy();
+      await expect(panel.getByRole('button', { name: '현재 일정 확인', exact: true })).toHaveCount(
+        0,
+      );
+      await panel.getByRole('button', { name: '하루 코스 추천 닫기', exact: true }).click();
+      await page.locator('.day-tabs button').nth(0).click();
+      await open();
+      await expect(
+        panel.getByRole('button', { name: '현재 일정 확인', exact: true }),
+      ).toBeVisible();
+      await panel.getByRole('button', { name: '현재 일정 확인', exact: true }).click();
+      await expect(panel).toHaveCount(0);
+      expect(writes).toBe(4);
+      // A known success on a no-longer-visible day still refreshes this trip.
+      await page.locator('.day-tabs button').nth(1).click();
+      await open();
+      await select();
+      fault = 'pending-success';
+      await save();
+      await expect.poll(() => !!releaseWrite).toBe(true);
+      await page.locator('.day-tabs button').nth(0).click();
+      releaseWrite?.();
+      releaseWrite = undefined;
+      await expect(page.getByText('새로운 하루 코스를 저장했어요.', { exact: true })).toBeVisible();
+      await page.locator('.day-tabs button').nth(1).click();
+      await expect(page.locator('.itinerary-stop .stop-name')).toHaveText([
+        '복구 시설 2',
+        '복구 시설 3',
+        '복구 시설 4',
+      ]);
+      current = (await (await page.request.get('/api/trips/' + trip)).json()).data.days[1];
+      expect(current.revision).toBe(2);
+      expect(writes).toBe(5);
       expect(errors).toEqual([]);
     } finally {
+      releaseWrite?.();
       await db.query('DELETE FROM planner.app_user WHERE email=$1', [email]);
       await db.query('DELETE FROM geo_data.place WHERE id=ANY($1::text[])', [ids]);
       await db.end();

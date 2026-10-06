@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "label": "contract-probe",
+      "code": 0
+    },
+    {
+      "label": "browser-probe",
+      "code": 0
+    }
+  ],
+  "disposableDatabaseRemoved": true
+}

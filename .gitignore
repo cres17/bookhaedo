@@ -50,3 +50,6 @@ __pycache__/
 
 # Personal experience-writing draft
 /docs/e04-bookhaedo-base-supplement.md
+
+# Local Drift Gate evidence (durable reviewed evidence lives under docs/research).
+.drift-gate-report/

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import PanelHeader from './PanelHeader.vue';
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
-import type { Place } from '../types';
+import type { Place, Trip } from '../types';
+import { state } from '../store';
+import { recommendationRecovery, type RecoveryContext } from '../recommendation-recovery';
 import { api, json, ApiError } from '../api';
 import { adverseWeather, weatherReason } from '../../../shared/weather-policy';
 const props = defineProps<{
@@ -13,19 +15,37 @@ const props = defineProps<{
   weather: any;
   disabled: boolean;
 }>();
-const emit = defineEmits<{ saved: []; refresh: []; preview: [value: any]; dismiss: [] }>();
+const emit = defineEmits<{
+  refresh: [snapshot: Trip];
+  preview: [value: any];
+  dismiss: [];
+}>();
 const opened = ref(false),
   result = ref<any>(null),
   busy = ref(false),
-  saving = ref(false),
   error = ref(''),
   count = ref(4),
   selected = ref(''),
   useKnowledge = ref(false),
   interests = ref(''),
   keepPlaceIds = ref<string[]>([]),
-  conditionsChanged = ref(false),
-  outcomeUnknown = ref(false);
+  conditionsChanged = ref(false);
+const context = computed(() => ({
+  userId: state.user?.id || '',
+  tripId: props.tripId,
+  date: props.date,
+}));
+const commandState = computed(() => recommendationRecovery.get(context.value)?.status);
+const saving = computed(() => commandState.value === 'saving' || commandState.value === 'checking');
+const outcomeUnknown = computed(
+  () => commandState.value === 'unknown' || commandState.value === 'checking',
+);
+let alive = true;
+const isCurrent = (command: RecoveryContext) =>
+  alive &&
+  command.userId === context.value.userId &&
+  command.tripId === props.tripId &&
+  command.date === props.date;
 const mobile = ref(false),
   media = window.matchMedia('(max-width:760px)');
 let generation = 0;
@@ -43,6 +63,7 @@ onMounted(() => {
   media.addEventListener('change', resize);
 });
 onUnmounted(() => {
+  alive = false;
   generation++;
   cancelPending();
   media.removeEventListener('change', resize);
@@ -95,7 +116,7 @@ const weatherCopy = computed(() =>
     : '맑은 날에도 동선을 새로 짤 수 있어요.',
 );
 async function load(strategy = '') {
-  if (outcomeUnknown.value) return;
+  if (outcomeUnknown.value || saving.value) return;
   cancelPending();
   const controller = new AbortController();
   pending = controller;
@@ -169,54 +190,56 @@ async function replaceDay() {
     result.value.date !== props.date
   )
     return;
-  saving.value = true;
+  const command = recommendationRecovery.begin(context.value);
+  if (!command) return;
+  const target = endpoint.value;
+  const payload = {
+    placeIds: preview.plan.places.map((p: any) => p.id),
+    expectedPlaceIds: result.value.expectedPlaceIds,
+    expectedRevision: result.value.expectedRevision,
+    ...(result.value.transportMode ? { expectedTransportMode: result.value.transportMode } : {}),
+  };
   error.value = '';
   try {
-    await api(endpoint.value, {
-      ...json('PATCH', {
-        placeIds: preview.plan.places.map((p: any) => p.id),
-        expectedPlaceIds: result.value.expectedPlaceIds,
-        expectedRevision: result.value.expectedRevision,
-        ...(result.value.transportMode
-          ? { expectedTransportMode: result.value.transportMode }
-          : {}),
-      }),
+    await api(target, {
+      ...json('PATCH', payload),
       // Transport wait only: aborting this fetch does not assert that COMMIT was cancelled.
       signal: AbortSignal.timeout(30000),
     });
-    saving.value = false;
-    close();
-    emit('saved');
+    recommendationRecovery.succeeded(command);
+    if (isCurrent(command)) close();
   } catch (e: any) {
-    if (!result.value) return;
-    result.value = { ...result.value, preview: null };
+    const unknown = !(e instanceof ApiError) || e.status >= 500;
+    if (unknown) recommendationRecovery.unknown(command);
+    else recommendationRecovery.complete(command);
+    // Always settle the captured command, even if its panel or date has changed.
+    if (!isCurrent(command)) return;
+    if (result.value) result.value = { ...result.value, preview: null };
     selected.value = '';
     emit('preview', null);
-    if (!(e instanceof ApiError) || e.status >= 500) {
-      outcomeUnknown.value = true;
-      error.value = '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.';
-    } else
-      error.value =
-        e.status === 409
-          ? '일정이나 이동 수단이 변경됐어요. 최신 일정을 확인하고 코스를 다시 선택해주세요.'
-          : e.message;
-  } finally {
-    saving.value = false;
+    error.value = unknown
+      ? '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.'
+      : e.status === 409
+        ? '일정이나 이동 수단이 변경됐어요. 최신 일정을 확인하고 코스를 다시 선택해주세요.'
+        : e.message;
   }
 }
 async function checkSavedState() {
-  if (saving.value) return;
-  saving.value = true;
+  const command = recommendationRecovery.check(context.value);
+  if (!command) return;
   try {
-    await api('/trips/' + props.tripId, { signal: AbortSignal.timeout(15000) });
-    outcomeUnknown.value = false;
-    saving.value = false;
-    close();
-    emit('refresh');
-  } catch (e: any) {
-    error.value = '현재 일정을 확인하지 못했어요. 잠시 후 다시 확인해주세요.';
-  } finally {
-    saving.value = false;
+    const snapshot = await api<{ data: Trip }>('/trips/' + command.tripId, {
+      signal: AbortSignal.timeout(15000),
+    });
+    if (snapshot?.data?.id !== command.tripId || !Array.isArray(snapshot.data.days))
+      throw Error('INVALID_RECOVERY_SNAPSHOT');
+    if (isCurrent(command)) emit('refresh', snapshot.data);
+    recommendationRecovery.complete(command);
+    if (isCurrent(command)) close();
+  } catch {
+    recommendationRecovery.unknown(command);
+    if (isCurrent(command))
+      error.value = '현재 일정을 확인하지 못했어요. 잠시 후 다시 확인해주세요.';
   }
 }
 const km = (m: number | null) => (m === null ? '확인 불가' : `${(m / 1000).toFixed(1)}km`);
@@ -309,6 +332,7 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
       <p v-if="conditionsChanged" role="status">
         추천 조건이 바뀌었어요. 조건 적용해 다시 추천한 뒤 코스를 선택해주세요.
       </p>
+      <p v-if="saving" role="status">이 날짜의 변경 결과를 확인하고 있어요…</p>
       <p v-if="busy" role="status">예보와 주변 장소를 확인하고 있어요…</p>
       <p v-if="outcomeUnknown || error" role="alert" class="form-error">
         {{ error || '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.' }}
@@ -410,7 +434,11 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
             제외되는 장소의 메모·예상 비용은 삭제됩니다. 동행자의 일정에도 함께 반영됩니다.
           </small>
           <div class="actions">
-            <button class="button dark" :disabled="saving || disabled" @click="replaceDay">
+            <button
+              class="button dark"
+              :disabled="saving || disabled || outcomeUnknown"
+              @click="replaceDay"
+            >
               {{ saving ? '저장 중…' : '이 코스로 하루 교체' }}
             </button>
             <button class="button subtle" :disabled="saving" @click="close">기존 일정 유지</button>

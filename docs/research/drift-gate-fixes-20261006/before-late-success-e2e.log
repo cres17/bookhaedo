@@ -1,0 +1,94 @@
+[WebServer] (node:38777) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:38778) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:38802) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:38803) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) (9.3s)
+(node:38919) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) (9.9s)
+
+
+  1) tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) ──────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('새로운 하루 코스를 저장했어요.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('새로운 하루 코스를 저장했어요.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('새로운 하루 코스를 저장했어요.', { exact: true })
+
+
+      235 |       releaseWrite?.();
+      236 |       releaseWrite = undefined;
+    > 237 |       await expect(page.getByText('새로운 하루 코스를 저장했어요.', { exact: true })).toBeVisible();
+          |                                                                          ^
+      238 |       await page.locator('.day-tabs button').nth(1).click();
+      239 |       await expect(page.locator('.itinerary-stop .stop-name')).toHaveText([
+      240 |         '복구 시설 2',
+        at /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project/tests/e2e/tourism-save-recovery.spec.ts:237:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-1440px-/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) ───────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('새로운 하루 코스를 저장했어요.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('새로운 하루 코스를 저장했어요.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('새로운 하루 코스를 저장했어요.', { exact: true })
+
+
+      235 |       releaseWrite?.();
+      236 |       releaseWrite = undefined;
+    > 237 |       await expect(page.getByText('새로운 하루 코스를 저장했어요.', { exact: true })).toBeVisible();
+          |                                                                          ^
+      238 |       await page.locator('.day-tabs button').nth(1).click();
+      239 |       await expect(page.locator('.itinerary-stop .stop-name')).toHaveText([
+      240 |         '복구 시설 2',
+        at /Users/moon/.codex/worktrees/bookhaedo-ver2/web-mini-project/tests/e2e/tourism-save-recovery.spec.ts:237:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/tourism-save-recovery-코스-확정-충돌과-저장-응답-유실-복구-390px-/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) ───────────────────
+    tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) ────────────────────

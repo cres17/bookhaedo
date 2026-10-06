@@ -1,0 +1,9 @@
+
+ RUN  v5.0.0 /private/tmp/bookhaedo-drift-boundary-probes
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  14:31:00
+   Duration  9.81s (tests 95%, import 3%, transform 2%)
+

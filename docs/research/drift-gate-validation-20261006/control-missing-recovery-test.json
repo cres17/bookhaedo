@@ -1,0 +1,467 @@
+{
+  "summary": {
+    "blocker": 1,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "gate_decision": "fail"
+  },
+  "scan_metrics": {
+    "scanned_files": 37,
+    "skipped_ignored_files": 0,
+    "skipped_binary_files": 0,
+    "skipped_large_files": 0,
+    "evaluated_rules": 7,
+    "runtime_seconds": 0.01797191600780934,
+    "analysis_notes": [
+      {
+        "path": "docs/Bookhaedo-API.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/openapi-rest.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/probes/README.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/probes/tourism-rereview-20261006.mts",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/probes/tourism-rereview-runner-20261006.mts",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-architecture-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-evidence-20261006.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-implementation-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-implementation-evidence-20261006.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/public/openapi.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/components/DayAlternatives.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/components/TravelMap.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/route-map-policy.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "frontend/src/views/Planner.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "package.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "scripts/load_postgis.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "scripts/write-api-spec.mjs",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "server/collaboration.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/day-alternatives.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/http/middleware.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/itinerary-write.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/observability/metrics.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/providers.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/route-response.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/routes/ai-recommendations.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/routes/trips.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/routing.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/trip-snapshot.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/trip-write.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/weather-alternatives.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "shared/route-shape-policy.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/domain.test.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "tests/review-write-boundaries.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/route-map-policy.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/route-response-validation.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/valhalla-gate.test.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      }
+    ]
+  },
+  "result": "fail",
+  "change_types": [
+    "cli-public-interface",
+    "other"
+  ],
+  "violations": [
+    {
+      "rule_id": "recommendation-recovery",
+      "severity": "BLOCKER",
+      "confidence": "low",
+      "change_types": [
+        "other"
+      ],
+      "change_type": "other",
+      "message": "",
+      "trigger_files": [
+        {
+          "path": "frontend/src/components/DayAlternatives.vue",
+          "status": "modified",
+          "previous_path": null,
+          "patch": "diff --git a/frontend/src/components/DayAlternatives.vue b/frontend/src/components/DayAlternatives.vue\nindex ce18bc5..3d46813 100644\n--- a/frontend/src/components/DayAlternatives.vue\n+++ b/frontend/src/components/DayAlternatives.vue\n@@ -2,17 +2,18 @@\n import PanelHeader from './PanelHeader.vue';\n import { computed, ref, onMounted, onUnmounted, watch } from 'vue';\n import type { Place } from '../types';\n-import { api, json } from '../api';\n+import { api, json, ApiError } from '../api';\n import { adverseWeather, weatherReason } from '../../../shared/weather-policy';\n const props = defineProps<{\n   tripId: string;\n   date: string;\n   revision: number;\n+  transportMode: string;\n   items: Place[];\n   weather: any;\n   disabled: boolean;\n }>();\n-const emit = defineEmits<{ saved: []; preview: [value: any]; dismiss: [] }>();\n+const emit = defineEmits<{ saved: []; refresh: []; preview: [value: any]; dismiss: [] }>();\n const opened = ref(false),\n   result = ref<any>(null),\n   busy = ref(false),\n@@ -23,7 +24,8 @@ const opened = ref(false),\n   useKnowledge = ref(false),\n   interests = ref(''),\n   keepPlaceIds = ref<string[]>([]),\n-  conditionsChanged = ref(false);\n+  conditionsChanged = ref(false),\n+  outcomeUnknown = ref(false);\n const mobile = ref(false),\n   media = window.matchMedia('(max-width:760px)');\n let generation = 0;\n@@ -46,7 +48,9 @@ onUnmounted(() => {\n   media.removeEventListener('change', resize);\n });\n const endpoint = computed(() => `/trips/${props.tripId}/days/${props.date}/day-alternatives`);\n-const signature = computed(() => `${props.tripId}|${props.date}|${props.revision}`);\n+const signature = computed(\n+  () => `${props.tripId}|${props.date}|${props.revision}|${props.transportMode}`,\n+);\n const conditions = computed(() =>\n   JSON.stringify({\n     count: count.value,\n@@ -91,6 +95,7 @@ const weatherCopy = computed(() =>\n     : '맑은 날에도 동선을 새로 짤 수 있어요.',\n );\n async function load(strategy = '') {\n+  if (outcomeUnknown.value) return;\n   cancelPending();\n   const controller = new AbortController();\n   pending = controller;\n@@ -155,6 +160,7 @@ async function replaceDay() {\n   const preview = result.value?.preview;\n   if (\n     !preview ||\n+    outcomeUnknown.value ||\n     busy.value ||\n     saving.value ||\n     props.disabled ||\n@@ -166,9 +172,8 @@ async function replaceDay() {\n   saving.value = true;\n   error.value = '';\n   try {\n-    await api(\n-      endpoint.value,\n-      json('PATCH', {\n+    await api(endpoint.value, {\n+      ...json('PATCH', {\n         placeIds: preview.plan.places.map((p: any) => p.id),\n         expectedPlaceIds: result.value.expectedPlaceIds,\n         expectedRevision: result.value.expectedRevision,\n@@ -176,12 +181,40 @@ async function replaceDay() {\n           ? { expectedTransportMode: result.value.transportMode }\n           : {}),\n       }),\n-    );\n+      // Transport wait only: aborting this fetch does not assert that COMMIT was cancelled.\n+      signal: AbortSignal.timeout(30000),\n+    });\n     saving.value = false;\n     close();\n     emit('saved');\n   } catch (e: any) {\n-    error.value = e.message;\n+    if (!result.value) return;\n+    result.value = { ...result.value, preview: null };\n+    selected.value = '';\n+    emit('preview', null);\n+    if (!(e instanceof ApiError) || e.status >= 500) {\n+      outcomeUnknown.value = true;\n+      error.value = '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.';\n+    } else\n+      error.value =\n+        e.status === 409\n+          ? '일정이나 이동 수단이 변경됐어요. 최신 일정을 확인하고 코스를 다시 선택해주세요.'\n+          : e.message;\n+  } finally {\n+    saving.value = false;\n+  }\n+}\n+async function checkSavedState() {\n+  if (saving.value) return;\n+  saving.value = true;\n+  try {\n+    await api('/trips/' + props.tripId, { signal: AbortSignal.timeout(15000) });\n+    outcomeUnknown.value = false;\n+    saving.value = false;\n+    close();\n+    emit('refresh');\n+  } catch (e: any) {\n+    error.value = '현재 일정을 확인하지 못했어요. 잠시 후 다시 확인해주세요.';\n   } finally {\n     saving.value = false;\n   }\n@@ -226,7 +259,7 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round\n         방문 장소 수\n         <select\n           v-model.number=\"count\"\n-          :disabled=\"busy || saving\"\n+          :disabled=\"busy || saving || outcomeUnknown\"\n           @change=\"\n             keepPlaceIds = keepPlaceIds.slice(0, count);\n             load();\n@@ -238,7 +271,7 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round\n           <option :value=\"6\">6곳</option>\n         </select>\n       </label>\n-      <fieldset class=\"knowledge-controls\" :disabled=\"busy || saving\">\n+      <fieldset class=\"knowledge-controls\" :disabled=\"busy || saving || outcomeUnknown\">\n         <legend>추천에 참고할 정보</legend>\n         <label class=\"knowledge-option\">\n           <input v-model=\"useKnowledge\" type=\"checkbox\" @change=\"load()\" />\n@@ -277,9 +310,24 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round\n         추천 조건이 바뀌었어요. 조건 적용해 다시 추천한 뒤 코스를 선택해주세요.\n       </p>\n       <p v-if=\"busy\" role=\"status\">예보와 주변 장소를 확인하고 있어요…</p>\n-      <p v-if=\"error\" role=\"alert\" class=\"form-error\">\n-        {{ error }}\n-        <button @click=\"load(selected)\">다시 조회</button>\n+      <p v-if=\"outcomeUnknown || error\" role=\"alert\" class=\"form-error\">\n+        {{ error || '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.' }}\n+        <button\n+          v-if=\"outcomeUnknown\"\n+          class=\"button subtle small\"\n+          :disabled=\"saving\"\n+          @click=\"checkSavedState\"\n+        >\n+          현재 일정 확인\n+        </button>\n+        <button\n+          v-else\n+          class=\"button subtle small\"\n+          :disabled=\"saving || busy\"\n+          @click=\"load(selected)\"\n+        >\n+          다시 조회\n+        </button>\n       </p>\n       <template v-if=\"result && !busy\">\n         <p v-if=\"result.weather?.available\" class=\"forecast\">\n@@ -325,7 +373,11 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round\n               <span>{{ place.category === 'RESTAURANT' ? '먹을 곳' : '가볼 곳' }}</span>\n             </li>\n           </ol>\n-          <button class=\"button subtle small\" :disabled=\"saving\" @click=\"load(plan.id)\">\n+          <button\n+            class=\"button subtle small\"\n+            :disabled=\"saving || outcomeUnknown\"\n+            @click=\"load(plan.id)\"\n+          >\n             이 코스 동선 미리보기\n           </button>\n         </article>\n",
+          "semantic_signals": [],
+          "semantic_evidence": [
+            "No grammar-backed detector for this file type"
+          ],
+          "analysis_method": "heuristic",
+          "analysis_reason": "No grammar-backed detector for this file type",
+          "documented_env_keys": null
+        }
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Recovery contract",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": [
+        {
+          "name": "Browser regressions",
+          "required": [
+            "tests/e2e/tourism-save-recovery.spec.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "checklist": [
+        "Browser regressions 업데이트"
+      ],
+      "ignored": false,
+      "change_intensity": "auth-policy-change",
+      "change_intensities": [
+        "auth-policy-change"
+      ],
+      "trigger_patterns": [
+        "frontend/src/components/DayAlternatives.vue"
+      ],
+      "blast_radius": [
+        "authorization behavior",
+        "missing requirement group: Browser regressions",
+        "role/permission owners",
+        "security documentation"
+      ],
+      "missing_docs_explanation": "",
+      "changed_contract_summary": "",
+      "docs_update_draft": "",
+      "false_positive_note": "",
+      "cross_file_relations": []
+    }
+  ],
+  "rule_decisions": [
+    {
+      "rule_id": "api-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "server/day-alternatives.ts",
+        "server/routes/**",
+        "server/weather-alternatives.ts"
+      ],
+      "trigger_files": [
+        "server/day-alternatives.ts",
+        "server/routes/ai-recommendations.ts",
+        "server/routes/trips.ts",
+        "server/weather-alternatives.ts"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "OpenAPI copies",
+          "required": [
+            "docs/openapi-rest.json",
+            "docs/Bookhaedo-API.yml",
+            "frontend/public/openapi.json"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "trip-write-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "server/collaboration.ts",
+        "server/itinerary-write.ts",
+        "server/trip-snapshot.ts",
+        "server/trip-write.ts"
+      ],
+      "trigger_files": [
+        "server/collaboration.ts",
+        "server/itinerary-write.ts",
+        "server/trip-snapshot.ts",
+        "server/trip-write.ts"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Write and snapshot contract",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        },
+        {
+          "name": "Database regression",
+          "required": [
+            "tests/review-write-boundaries.test.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "provider-boundary",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "server/providers.ts",
+        "server/route-response.ts",
+        "server/routing.ts",
+        "shared/route-shape-policy.ts"
+      ],
+      "trigger_files": [
+        "server/providers.ts",
+        "server/route-response.ts",
+        "server/routing.ts",
+        "shared/route-shape-policy.ts"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Provider limits",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        },
+        {
+          "name": "Provider regressions",
+          "required": [
+            "tests/route-response-validation.test.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "recommendation-recovery",
+      "severity": "BLOCKER",
+      "status": "fail",
+      "reason": "required groups are missing",
+      "matched_patterns": [
+        "frontend/src/components/DayAlternatives.vue"
+      ],
+      "trigger_files": [
+        "frontend/src/components/DayAlternatives.vue"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Recovery contract",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": [
+        {
+          "name": "Browser regressions",
+          "required": [
+            "tests/e2e/tourism-save-recovery.spec.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "rule_id": "schema-contract",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "ci-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "package.json"
+      ],
+      "trigger_files": [
+        "package.json"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Verification scope",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "source-policy",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    }
+  ],
+  "skipped_rules": [],
+  "rejected_ignores": [],
+  "ignore_audit": [],
+  "temporal_warnings": [],
+  "gate": {
+    "fail_on_blocker": true,
+    "fail_on_major_count": 1
+  }
+}
