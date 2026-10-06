@@ -12,7 +12,7 @@
 
 이제 활성 사용자·유효한 세션을 DB에서 검증한 쿠키만 세션 버킷을 받는다. 나머지는 쿠키 없는 요청과 같은 IP 버킷을 공유한다. 검증된 세션끼리는 같은 NAT IP에서도 한도를 분리한다. IPv6의 기본 /56 집계는 유지한다. 인증 조회 결과는 같은 응답 객체 안에서만 공유해 보호된 API의 중복 조회를 피하고, 다음 요청에서는 만료·철회·정지 상태를 다시 확인한다. DB 장애는 검증 없이 허용하지 않고 503으로 처리한다.
 
-최종 회귀 테스트 12개는 쿠키 회전, 익명 요청과의 한도 공유, 유효 세션 분리, IPv6, 다음 요청의 인증 무효화, 요청당 인증 조회 1회, 토큰·해시 응답 제외, DB 장애를 검증한다. 두 신규 테스트 파일 모두 `test:ci`에 포함했다.
+최종 회귀 테스트 14개는 쿠키 회전, 익명 요청과의 한도 공유, 유효 세션 분리, IPv6, 다음 요청의 인증 무효화, 요청당 인증 조회 1회, 토큰·해시 응답 제외, DB 장애를 검증한다. 프록시가 없으면 위조 X-Forwarded-For를 무시하고, 한 hop을 신뢰하면 임의로 앞에 붙인 주소로 한도를 바꿀 수 없는지도 확인한다. 두 신규 테스트 파일 모두 `test:ci`에 포함했다.
 
 ### P2: 외부 경로의 잘못된 수치를 실제 이동정보로 수락
 
@@ -30,10 +30,16 @@ Google 거리에는 음이 아닌 int32 정수, 시간에는 완전한 protobuf 
 
 - 운영: `ip-address` 10.7.0 → 10.7.3
 - 개발: `brace-expansion` 1.1.18 → 1.1.21, 5.0.9 → 5.0.12
+- 추가 CI 보안 gate 확인 후: `proxy-addr` 2.0.7 → 2.0.8, `source-map-js` 1.2.1 → 1.2.2
 
 패치 전 전체 감사는 새 `brace-expansion` high 항목 1건을 보고했다. 패치 후 실제 npm 전체 감사와 운영 감사 래퍼는 모두 0건이다. 이 수치는 검사 시점의 공개 advisory 기준이며 앱에서 원격 공격이 가능했음을 입증한 결과는 아니다. 원본 작업 폴더의 설치본은 변경하지 않고 검증 worktree에 독립적으로 설치했다.
 
 [ip-address 보안 공지](https://github.com/advisories/GHSA-j6r3-76f7-8jcv), [brace-expansion 보안 공지](https://github.com/advisories/GHSA-q2hr-2g5m-vwhr).
+
+첫 푸시 `1451b4b`의 [원격 CI](https://github.com/cres17/bookhaedo/actions/runs/37398263501)는 관광 E2E가 통과했지만 보안 gate에서 `proxy-addr` critical 1건·`source-map-js` high 1건을 발견해 즉시 실패했다. 같은 잠금 파일로 로컬 재조회도 동일한 두 건을 보고했다. 앞선 로컬 0건 결과와 조회 결과가 달라진 원인은 단정하지 않는다. 실패를 재시도하거나 검사를 끄지 않고 호환 패치를 적용했다.
+
+`proxy-addr` 공지는 특정 IPv4-mapped IPv6 신뢰 CIDR 구성의 문제다. 현재 앱은 정수 hop 설정을 사용하며 해당 CIDR을 구성하지 않는다. 라이브러리 자체를 원본 2.0.7과 패치 2.0.8로 대조하면, 신뢰하면 안 되는 `203.0.113.9`가 문제 CIDR `::ffff:10.0.0.0/8`에서 `true` → `false`로 바뀐다. `source-map-js`도 공개 API에서 임의 source map을 입력받는 기능이 있는 것은 아니다. 알려진 의존성 취약점과 현재 앱에서의 공격 재현은 구분한다. [proxy-addr 공지](https://github.com/advisories/GHSA-jqcg-44mw-7w3h), [source-map-js 공지](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
+
 
 ## 수정 후 코드 검토
 
@@ -70,9 +76,9 @@ LangGraph `StateGraph`는 실제 코드로 구현되어 있으며 기본 생성�
 
 | 검사 | 최종 결과 |
 | --- | --- |
-| 전체 Vitest | 44개 파일, 370개 통과 |
-| `test:ci` | 38개 파일, 302개 통과 |
-| 새 회귀 | 인증/한도 12개, provider 응답 26개 통과 |
+| 전체 Vitest | 44개 파일, 372개 통과 |
+| `test:ci` | 38개 파일, 304개 통과 |
+| 새 회귀 | 인증/한도·프록시 14개, provider 응답 26개 통과 |
 | 실제 npm 10.9.9 감사 테스트 | 44개 통과 |
 | Python unittest | 34개 통과 |
 | lint / typecheck / format / spec / build | 통과; OpenAPI 45 paths·DBML 29 tables |

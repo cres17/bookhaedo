@@ -171,3 +171,31 @@ it('fails closed if session verification cannot reach the database', async () =>
       .rowCount,
   ).toBe(0);
 });
+
+it('ignores rotating forwarded addresses when no reverse proxy is trusted', async () => {
+  vi.stubEnv('TRUST_PROXY_HOPS', '');
+  try {
+    const direct = createApp();
+    for (let i = 0; i < 4; i++) {
+      const r = await request(direct)
+        .get('/api/regions')
+        .set('X-Forwarded-For', `198.51.100.${i + 1}`);
+      expect(r.status).toBe(i < 3 ? 200 : 429);
+    }
+  } finally {
+    vi.stubEnv('TRUST_PROXY_HOPS', '1');
+  }
+});
+
+it('with one trusted proxy, rotating prepended addresses cannot reset the nearest client quota', async () => {
+  for (let i = 0; i < 4; i++) {
+    const r = await request(app)
+      .get('/api/regions')
+      .set('X-Forwarded-For', `198.51.100.${i + 1}, 203.0.113.50`);
+    expect(r.status).toBe(i < 3 ? 200 : 429);
+  }
+  expect(
+    (await request(app).get('/api/regions').set('X-Forwarded-For', '198.51.100.1, 203.0.113.51'))
+      .status,
+  ).toBe(200);
+});
