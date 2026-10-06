@@ -1,0 +1,42 @@
+# 관광 추천 운영 코드 수정 — 2026-10-06
+
+기준 코드 `ver2@9e29e46`의 [심층 리뷰](tourism-deep-review-20261006.md), [설계](tourism-architecture-workflows-20261006.md), [기준 재현 자료](tourism-deep-review-evidence-20261006.json)를 바탕으로 R1–R5와 D1–D3를 구현했다. AWS·외부 LLM·수집 자동화 배포는 이 수정의 범위가 아니다. 코드 품질 개선과 실제 운영 검증은 구분한다.
+
+## 반영 내용
+
+| 항목 | 운영 변경 | 회귀 검사 |
+| --- | --- | --- |
+| R1 장소 적격성 | 공통 `eligibleRecommendationPlace`를 일반·관광·날씨 대안과 추천 확정에 사용. `closed` 두 필드, 접근 제한, 폐기, 숙박을 제외. 알 수 없는 영업시간은 허용. 기존 일정은 조회만으로 삭제하지 않음 | 두 closed 필드, unknown 대조군, 조회 이후 폐쇄된 후보의 확정 거절, 기존 일정·revision 보존 |
+| R2 시설 중복 | 같은 ID 또는 동일 지역/분류/정규화 일본어명/10m 이내를 보수적인 추천 중복으로 취급. 유지 장소와 겹치는 후보 제외, 직접 근거가 있는 대표 우선. 별도 catalog ID에 근거를 옮기지 않음 | node/way 입력 순서 두 경우, 두 번째 ID에만 근거, 유지 장소 중복, 같은 이름의 떨어진 지점, 확정의 다른 ID 중복 |
+| R3 시간 의미 | `complete`는 구간 조회 성공. `timelineStatus=NOT_EVALUATED`, `mode`, `departureNotice` 제공. TRANSIT 합계와 전후 시간 증감은 null. 각 구간은 동일 여행일 09:00 JST의 독립 조회 | 관광·일반·날씨 대안의 API, 구간별 시간 보존, WALK 합계 대조군, 데스크톱/모바일 표시 |
+| R4 연결 종료 지표 | finish/close 공통 finalizer로 한 번만 감소. 미완료 연결은 `bookhaedo_http_aborted_requests_total`로 별도 계수, 성공 200 집계에서 제외 | 실제 HTTP 중단, finish 후 close, 추적 가능한 504 |
+| R5 날씨 검증 | 10일 연속 날짜, 배열 길이, 유한 숫자, 최고≥최저, 알려진 WMO 코드, 확률 0–100, 음수 강수/적설/풍속 검사. 검증 후에만 typed cache에 저장 | 불가능한 온도, 잘못된 타입/길이/날짜/코드/확률/음수, 정상 재시도, 0·null 보존, 캐시 재사용 |
+| D1 취소·전체 예산 | 추천 핸들러와 그래프 전체 15초, 부모 신호를 검색·날씨·경로·대기열로 전달. 화면 닫기/조건/날짜/해제 시 GET·POST 조회를 AbortController로 취소 | 응답 없는 검색, 이미 취소된 부모, 늦은 provider 실패, 경로 대기 취소, 브라우저 실제 signal |
+| D2 권리 시점 | 경로 뒤 별도 `revalidate_sources` 노드. 현재 승인 출처·active snapshot·철회 marker/record·90일 신선도·여행일 유효기간·정확한 record/place 관계 재검사. 사라진 인용과 KNOWLEDGE·preview 제외, 기본 코스 유지. DB의 최종 검사 시각 `evidenceValidatedAt` 제공 | 실제 DB 철회가 경로 중 커밋되는 barrier, 비활성/권리 철회/active 변경/노후/기간 만료, 최신 출처 표시 정보 |
+| D3 문맥 일관성 | 하나의 SELECT에서 날짜 revision·순서·메모·이동 수단을 함께 조회. 확정은 day 잠금을 먼저 얻은 뒤 새 SELECT. 관광 추천 생성 중 revision/순서/mode 변경은 409. 화면은 확정에 expectedTransportMode도 전달 | SQL 응답 직후 실제 동시 커밋, 잠금 대기 중 변경, 생성 중 revision/mode 변경, mode 불일치 확정 |
+
+공통 시설 규칙은 추천 후보의 중복 억제를 위한 휴리스틱이다. catalog를 병합하거나 두 ID가 법적으로 같은 시설임을 선언하지 않는다. 기존 체인 다양성 규칙은 실제 시설 중복과 구분해 유지한다. 시간표의 연속 실행 가능성, 체류시간, 요일별 영업시간을 새로 추정하지 않는다.
+
+## 취소되는 SQL의 안전 경계
+
+`readQuery`는 짧은 READ ONLY 트랜잭션과 문장당 3초 상한을 사용한다. 부모가 취소되면 별도 연결에서 `pg_cancel_backend`를 호출한다. 이 transport는 앱의 10개 풀 슬롯과 별도로 최대 2개 실행/32개 대기이며, 대기 예산 1초·연결/문장/클라이언트 대기 각 500ms를 둔다. source 값·SQL·좌표·인증 정보는 오류 로그에 기록하지 않는다.
+
+취소 전송 성공을 실제 쿼리 종료로 간주하지 않는다. 대상 query가 끝나고 취소 transport가 정리된 뒤 rollback하고, 취소된 연결은 풀에서 폐기한다. 풀 획득이 늦게 완료되는 요청도 SQL을 실행하지 않고 연결을 반환한다. 취소 전달 실패 시 고정 이벤트를 기록하고 SQL의 3초 상한으로 정리한다. 응답 종료와 내부 DB 정리 완료는 같은 시각이 아니다. 쓰기 확정의 COMMIT에는 HTTP 취소를 적용하지 않는다.
+
+PostgreSQL의 [취소 권한·동작](https://www.postgresql.org/docs/17/functions-admin.html)과 [pool 연결 반환 계약](https://node-postgres.com/apis/pool)을 기준으로 구현했다. API 역할과 취소 연결은 같은 DB 설정을 사용하며, 별도 특권이나 외부 취소 도구를 요구하지 않는다. 배포 환경에서도 해당 역할·연결·timeout 설정을 확인해야 한다.
+
+## 검증과 원본 보존
+
+새 회귀 24개를 운영 수정 전에 실행했을 때 19개 실패/5개 통과했다. 이는 별도 [기준 반례](probes/README.md)와 함께 보존한다. 이후 SQL/HTTP/동시성 경계까지 새 Vitest 50개와 브라우저 2개를 추가했다. 최종 검증은 전체 Vitest 422개(50파일), 일회용 DB CI 묶음 354개(44파일), Python 34개, 전체 브라우저 33개(실제 발행 자료 6개 포함), 관광 CI 브라우저 4개 통과다. 타입·lint·전체 서식·OpenAPI/DBML·빌드 및 기존 지역 조회 부하 gate도 통과했다. 최종 결과와 검증 범위는 [실행 증거](tourism-operational-verification-20261006.json)에 기록한다.
+
+기존 날씨 양성 테스트의 1일 축약 응답을 요청 계약인 10일로 수정했고, 후보 없음 테스트의 모의 조회를 실제 새 readQuery 경계로 옮겼다. 검사 강도를 낮추거나 정상 데이터 보호 규칙을 완화하지 않았다. 신규 테스트는 `test:ci`에, 브라우저 취소·시간 비교는 기존 CI의 `test:e2e:tourism`에 포함한다.
+
+일회용 PostgreSQL에서 CI 묶음을 실행하고 DB를 제거했다. 전체 로컬 Vitest와 브라우저 검사는 기존 catalog·발행 자료가 있는 DB에서 실행하되 생성한 계정/장소/자료를 정리하고, 시작·종료의 catalog 수와 관광 snapshot/record/withdrawal 수 및 출처 상태를 대조한다. `.env`와 실행 중 생성된 화면/로그는 커밋하지 않는다. 기준 리뷰·반례는 과거 커밋의 상태를 설명하며 현재 결함으로 읽으면 안 된다.
+
+## 남은 운영 검증
+
+- 15초·SQL 3초·취소 transport 상한은 시작 설정이다. 다중 API 인스턴스, 실제 Valhalla/Google/Open-Meteo 용량과 장애율에 맞춘 수치는 아직 아니다.
+- 최종 자료 재검사는 `evidenceValidatedAt`의 DB 문장 시점 기준이다. 그 뒤 철회되거나 이미 전송한 응답을 즉시 회수하는 프로토콜은 없다. 원문 수집 시각과 최종 권리 검사 시각은 다르다.
+- TRANSIT 연속 일정은 체류시간·출발시각·도착 이후 다음 출발을 연결하는 별도 기능이다. 현재 화면은 구간 비교만 제공한다.
+- 권한은 기존 requireAuth/requireTrip과 호출 제한에서 검사한다. 장시간 요청 중 동행 권한 철회를 모든 단계에서 즉시 반영하는 새 접근 프로토콜은 추가하지 않았다.
+- 배포 부하, 복원 RPO/RTO, 실외 현장 영업·행사 최신성, LLM 품질·AWS 배포 완료를 로컬 회귀와 CI 성공으로 주장하지 않는다.

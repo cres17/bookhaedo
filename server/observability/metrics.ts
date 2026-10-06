@@ -7,6 +7,7 @@ import { providerCaches } from '../provider-cache.js';
 
 const durationBuckets = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
 const requests = new Map<string, number>();
+const aborted = new Map<string, number>();
 const durations = new Map<string, number[]>();
 let inFlight = 0;
 
@@ -24,11 +25,21 @@ const metricKey = (method: string, route: string, status: number) =>
 export const observeRequests: RequestHandler = (req, res, next) => {
   const started = process.hrtime.bigint();
   inFlight++;
-  res.once('finish', () => {
+  let finalized = false;
+  const finalize = (completed: boolean) => {
+    if (finalized) return;
+    finalized = true;
+    res.off('finish', finish);
+    res.off('close', close);
     inFlight--;
     const seconds = Number(process.hrtime.bigint() - started) / 1e9;
     const matchedRoute = typeof req.route?.path === 'string' ? req.route.path : undefined;
     const route = matchedRoute ? routeLabel(matchedRoute) : '/api/:unmatched';
+    if (!completed) {
+      const key = `${req.method}\0${route}`;
+      aborted.set(key, (aborted.get(key) || 0) + 1);
+      return;
+    }
     const key = metricKey(req.method, route, res.statusCode);
     requests.set(key, (requests.get(key) || 0) + 1);
     const counts = durations.get(key) || Array(durationBuckets.length + 2).fill(0);
@@ -49,7 +60,11 @@ export const observeRequests: RequestHandler = (req, res, next) => {
         status: res.statusCode,
         durationMs: Math.round(seconds * 1000),
       });
-  });
+  };
+  const finish = () => finalize(true);
+  const close = () => finalize(res.writableFinished);
+  res.once('finish', finish);
+  res.once('close', close);
   next();
 };
 
@@ -65,6 +80,16 @@ export function renderMetrics(database: Pool = pool) {
   ];
   for (const [key, value] of requests)
     lines.push(`bookhaedo_http_requests_total{${labels(key)}} ${value}`);
+  lines.push(
+    '# HELP bookhaedo_http_aborted_requests_total HTTP requests closed before completion.',
+    '# TYPE bookhaedo_http_aborted_requests_total counter',
+  );
+  for (const [key, value] of aborted) {
+    const [method, route] = key.split('\0');
+    lines.push(
+      `bookhaedo_http_aborted_requests_total{method="${method}",route="${route}"} ${value}`,
+    );
+  }
   lines.push(
     '# HELP bookhaedo_http_request_duration_seconds HTTP request duration.',
     '# TYPE bookhaedo_http_request_duration_seconds histogram',
@@ -127,6 +152,7 @@ export const metricsEndpoint: RequestHandler = (req, res) => {
 
 export function resetMetricsForTest() {
   requests.clear();
+  aborted.clear();
   durations.clear();
   inFlight = 0;
 }

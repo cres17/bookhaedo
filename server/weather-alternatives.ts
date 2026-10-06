@@ -1,3 +1,8 @@
+import { dayContext } from './day-alternatives.js';
+import { summarizeRecommendationRoutes } from './recommendation-preview.js';
+import { recommendationRequestBudget, abortable } from './operation-budget.js';
+import { readQuery } from './read-query.js';
+import { eligibleRecommendationPlace } from './recommendation-policy.js';
 import { rollback, release } from './transactions.js';
 import { Router } from 'express';
 import { z } from 'zod';
@@ -12,20 +17,8 @@ import { requireRevision } from './itinerary-version.js';
 export const alternatives = Router({ mergeParams: true });
 const wrap = (fn: any) => (req: any, res: any, next: any) =>
   Promise.resolve(fn(req, res)).catch(next);
-const itemsSQL = `SELECT ${placeSelect} FROM geo_data.place WHERE id IN (SELECT place_id FROM planner.itinerary_item WHERE day_id=$1) ORDER BY (SELECT position FROM planner.itinerary_item WHERE day_id=$1 AND place_id=geo_data.place.id)`;
-async function context(tripId: string, date: string) {
-  const day = await pool.query(
-    'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2',
-    [tripId, date],
-  );
-  if (!day.rowCount) return null;
-  return {
-    items: (await pool.query(itemsSQL, [day.rows[0].id])).rows,
-    revision: day.rows[0].revision,
-  };
-}
 export function rankAlternatives(places: any[], items: any[], target: any) {
-  const index = items.findIndex((p) => p.id === target.id),
+  const index = items.findIndex((p: any) => p.id === target.id),
     before = items[index - 1],
     after = items[index + 1];
   const length = (p: any) =>
@@ -33,6 +26,7 @@ export function rankAlternatives(places: any[], items: any[], target: any) {
   return dedupePlaces(places)
     .filter(
       (p) =>
+        eligibleRecommendationPlace(p) &&
         indoorEvidence(p) &&
         !items.some(
           (i) => i.id === p.id || (straightDistance(i, p) < 100 && i.nameJa === p.nameJa),
@@ -54,44 +48,47 @@ export function rankAlternatives(places: any[], items: any[], target: any) {
     )
     .slice(0, 3);
 }
-async function legs(items: any[], index: number, p: any, mode: string, date: string) {
+async function legs(
+  items: any[],
+  index: number,
+  p: any,
+  mode: string,
+  date: string,
+  signal?: AbortSignal,
+) {
   const pairs: any[] = [];
   if (items[index - 1]) pairs.push([items[index - 1], p]);
   if (items[index + 1]) pairs.push([p, items[index + 1]]);
   const segments = await Promise.all(
     pairs.map(([a, b]) =>
-      routeSegment(a, b, mode, fetch, new Date(date + 'T09:00:00+09:00').toISOString()),
+      routeSegment(a, b, mode, fetch, new Date(date + 'T09:00:00+09:00').toISOString(), signal),
     ),
   );
-  const complete = segments.every(
-    (s) => s.source !== 'straight-line' && s.durationSeconds !== null && s.distanceMeters !== null,
-  );
-  return {
-    segments,
-    complete,
-    distanceMeters: complete ? segments.reduce((n, s) => n + (s.distanceMeters || 0), 0) : null,
-    durationSeconds: complete ? segments.reduce((n, s) => n + (s.durationSeconds || 0), 0) : null,
-  };
+  return { segments, ...summarizeRecommendationRoutes(segments, mode, date) };
 }
 alternatives.get(
   '/',
   wrap(async (req: any, res: any) => {
+    const budget = recommendationRequestBudget(req, res);
     res.set('Cache-Control', 'no-store');
     const date = dateOnly.parse(req.params.date),
       query = z.object({ targetId: uuid, previewId: uuid.optional() }).parse(req.query);
-    const state = await context(req.params.id, date);
+    const state = await dayContext(req.params.id, date, false, pool, budget.signal);
     if (!state) return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
     const { items } = state;
-    const target = items.find((p) => p.id === query.targetId);
+    const target = items.find((p: any) => p.id === query.targetId);
     if (!target) return res.status(404).json({ error: '현재 일정의 장소를 선택해주세요.' });
-    const weather = await forecast(target.latitude, target.longitude, date);
+    const weather = await abortable(
+      () => forecast(target.latitude, target.longitude, date, fetch, budget.signal),
+      budget.signal,
+    );
     const base = {
       tripId: req.params.id,
       date,
       expectedRevision: state.revision,
       weather,
       target,
-      expectedPlaceIds: items.map((p) => p.id),
+      expectedPlaceIds: items.map((p: any) => p.id),
       data: [],
       preview: null,
     };
@@ -110,9 +107,10 @@ alternatives.get(
         status: 'NOT_OUTDOOR',
         notice: '야외 장소로 확인된 일정에서 대안을 찾을 수 있어요.',
       });
-    const q = await pool.query(
+    const q = await readQuery(
       `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND (osm_tags->>'indoor'='yes' OR osm_tags->>'tourism' IN ('museum','gallery','aquarium'))`,
       [target.longitude, target.latitude],
+      budget.signal,
     );
     const data = rankAlternatives(q.rows, items, target);
     let preview: any = null;
@@ -120,17 +118,23 @@ alternatives.get(
       const candidate = data.find((p) => p.id === query.previewId);
       if (!candidate)
         return res.status(409).json({ error: '추천 후보가 변경됐어요. 다시 선택해주세요.' });
-      const index = items.findIndex((p) => p.id === target.id);
+      const index = items.findIndex((p: any) => p.id === target.id);
       const [before, after] = await Promise.all([
-        legs(items, index, target, res.locals.trip.transportMode, date),
-        legs(items, index, candidate, res.locals.trip.transportMode, date),
+        abortable(
+          () => legs(items, index, target, state.transportMode, date, budget.signal),
+          budget.signal,
+        ),
+        abortable(
+          () => legs(items, index, candidate, state.transportMode, date, budget.signal),
+          budget.signal,
+        ),
       ]);
       preview = {
         candidate,
         before,
         after,
         durationDeltaSeconds:
-          before.complete && after.complete
+          before.durationSeconds !== null && after.durationSeconds !== null
             ? after.durationSeconds! - before.durationSeconds!
             : null,
       };
@@ -189,6 +193,7 @@ alternatives.patch(
         !target ||
         !replacement ||
         !isOutdoor(target) ||
+        !eligibleRecommendationPlace(replacement) ||
         !indoorEvidence(replacement) ||
         straightDistance(target, replacement) > 20000
       ) {

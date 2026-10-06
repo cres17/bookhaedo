@@ -27,6 +27,11 @@ const opened = ref(false),
 const mobile = ref(false),
   media = window.matchMedia('(max-width:760px)');
 let generation = 0;
+let pending: AbortController | undefined;
+const cancelPending = () => {
+  pending?.abort();
+  pending = undefined;
+};
 let resultConditions = '';
 const resize = () => {
   mobile.value = media.matches;
@@ -37,6 +42,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
   generation++;
+  cancelPending();
   media.removeEventListener('change', resize);
 });
 const endpoint = computed(() => `/trips/${props.tripId}/days/${props.date}/day-alternatives`);
@@ -55,6 +61,7 @@ watch(
   () => {
     if (!opened.value) return;
     generation++;
+    cancelPending();
     resultConditions = '';
     result.value = null;
     busy.value = false;
@@ -67,6 +74,7 @@ watch(
 );
 watch(signature, () => {
   generation++;
+  cancelPending();
   opened.value = false;
   result.value = null;
   busy.value = false;
@@ -83,6 +91,9 @@ const weatherCopy = computed(() =>
     : '맑은 날에도 동선을 새로 짤 수 있어요.',
 );
 async function load(strategy = '') {
+  cancelPending();
+  const controller = new AbortController();
+  pending = controller;
   const g = ++generation;
   const requestedConditions = conditions.value;
   busy.value = true;
@@ -99,16 +110,16 @@ async function load(strategy = '') {
       ...(strategy ? { strategy } : {}),
     });
     const data = useKnowledge.value
-      ? await api(
-          `/trips/${props.tripId}/days/${props.date}/ai-recommendations`,
-          json('POST', {
+      ? await api(`/trips/${props.tripId}/days/${props.date}/ai-recommendations`, {
+          ...json('POST', {
             count: count.value,
             interests: interests.value,
             keepPlaceIds: keepPlaceIds.value,
             ...(strategy ? { strategy } : {}),
           }),
-        )
-      : await api(endpoint.value + '?' + q);
+          signal: controller.signal,
+        })
+      : await api(endpoint.value + '?' + q, { signal: controller.signal });
     if (g === generation && requestedConditions === conditions.value) {
       resultConditions = requestedConditions;
       result.value = data;
@@ -118,8 +129,9 @@ async function load(strategy = '') {
       );
     }
   } catch (e: any) {
-    if (g === generation) error.value = e.message;
+    if (g === generation && !controller.signal.aborted) error.value = e.message;
   } finally {
+    if (pending === controller) pending = undefined;
     if (g === generation) busy.value = false;
   }
 }
@@ -130,6 +142,7 @@ async function open() {
 function close() {
   if (saving.value) return;
   generation++;
+  cancelPending();
   opened.value = false;
   result.value = null;
   busy.value = false;
@@ -159,6 +172,9 @@ async function replaceDay() {
         placeIds: preview.plan.places.map((p: any) => p.id),
         expectedPlaceIds: result.value.expectedPlaceIds,
         expectedRevision: result.value.expectedRevision,
+        ...(result.value.transportMode
+          ? { expectedTransportMode: result.value.transportMode }
+          : {}),
       }),
     );
     saving.value = false;
@@ -319,9 +335,20 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
             <strong>{{ result.preview.plan.label }}</strong>
             · {{ result.preview.plan.places.length }}곳
           </p>
+          <p v-if="result.preview.departureNotice">{{ result.preview.departureNotice }}</p>
+          <ul v-if="result.preview.mode === 'TRANSIT'" aria-label="대중교통 구간별 비교 시간">
+            <li
+              v-for="(segment, index) in result.preview.segments"
+              :key="segment.from + ':' + segment.to"
+            >
+              {{ Number(index) + 1 }}번째 구간 · {{ time(segment.durationSeconds) }}
+            </li>
+          </ul>
           <p v-if="result.preview.complete">
-            실제 경로 {{ km(result.preview.distanceMeters) }} · 약
-            {{ time(result.preview.durationSeconds) }}
+            실제 경로 {{ km(result.preview.distanceMeters) }}
+            <template v-if="result.preview.durationSeconds !== null">
+              · 약 {{ time(result.preview.durationSeconds) }}
+            </template>
           </p>
           <p v-else>
             일부 구간의 실제 경로를 확인하지 못했어요. 직선거리로 이동시간을 만들지 않습니다.

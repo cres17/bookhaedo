@@ -1,3 +1,4 @@
+import { OperationError } from '../operation-budget.js';
 import type { RequestHandler, ErrorRequestHandler } from 'express';
 import { randomUUID } from 'node:crypto';
 import { ZodError } from 'zod';
@@ -12,6 +13,7 @@ const codes: Record<number, string> = {
   429: 'RATE_LIMITED',
   500: 'INTERNAL_ERROR',
   503: 'SERVICE_UNAVAILABLE',
+  504: 'REQUEST_DEADLINE_EXCEEDED',
 };
 export const requestContext: RequestHandler = (_req, res, next) => {
   res.locals.requestId = randomUUID();
@@ -31,6 +33,12 @@ export const requestContext: RequestHandler = (_req, res, next) => {
   next();
 };
 export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
+  if (res.destroyed) return;
+  if (error instanceof OperationError || error.code === '57014')
+    return res.status(error.code === 'REQUEST_CANCELLED' ? 503 : 504).json({
+      code: error.code === '57014' ? 'READ_QUERY_TIMEOUT' : error.code,
+      error: '조회 시간이 초과됐어요. 조건을 확인하고 다시 시도해주세요.',
+    });
   if (res.headersSent) return next(error);
   if (error instanceof ZodError)
     return res.status(400).json({
