@@ -73,5 +73,5 @@ export function recommendationRequestBudget(req: Request, res: Response, ms = 15
   res.once('finish', cleanup);
   res.once('close', close);
   req.once('aborted', close);
-  return budget;
+  return { ...budget, run: <T>(work: () => Promise<T>) => abortable(work, budget.signal) };
 }

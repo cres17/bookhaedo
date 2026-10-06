@@ -29,7 +29,9 @@ aiRecommendations.post(
     const budget = recommendationRequestBudget(req, res);
     const date = dateOnly.parse(req.params.date),
       input = recommendationInput.parse(req.body);
-    const context = await dayContext(req.params.id as string, date, false, pool, budget.signal);
+    const context = await budget.run(() =>
+      dayContext(req.params.id as string, date, false, pool, budget.signal),
+    );
     if (!context) return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
     if (input.keepPlaceIds.some((id) => !context.items.some((p: any) => p.id === id)))
       return res.status(400).json({ error: '현재 일정에 있는 장소만 유지할 수 있어요.' });
@@ -60,7 +62,9 @@ aiRecommendations.post(
         notice: '첫 장소를 담으면 해당 지역의 공개 자료를 함께 확인할 수 있어요.',
       });
     const result = await proposeTourism(graphInput, budget.signal);
-    const current = await dayContext(req.params.id as string, date, false, pool, budget.signal);
+    const current = await budget.run(() =>
+      dayContext(req.params.id as string, date, false, pool, budget.signal),
+    );
     if (
       !current ||
       current.revision !== context.revision ||
