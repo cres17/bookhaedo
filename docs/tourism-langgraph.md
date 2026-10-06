@@ -248,3 +248,8 @@ GET 전용 정책을 사용해 관광 추천 POST 집계를 건너뛰던 문제�
 `ops/tourism/source-policy.json`은 등록부와 분리된 검토 대상 허용 정책이다. Python 수집기·정제기와 TypeScript 발행기가 각자 읽어 HARP HTTPS dataset 범위, 삿포로의 출처 ID·페이지·고정 CSV·파서, 최소 간격(60/10초)을 검사한다. 등록부의 승인·활성·라이선스 및 DB 운영 권한 검사는 계속 적용한다. 다른 CKAN 출처는 등록부 수정만으로 허용되지 않으며 정책 검토가 필요하다. 정제와 발행은 고정 파일, 같은 dataset 경로, 사용자 정보·query·fragment·상대 경로 우회를 검사한다. 후라노의 실제 일본어 CSV 파일명처럼 유효한 UTF-8 퍼센트 인코딩은 허용하고, 점·슬래시·역슬래시·query/fragment 구분자 인코딩, 이중 인코딩, 잘못된 UTF-8·제어 문자는 거절한다. 입력 URL은 출처 표시를 위해 그대로 보존하며 디코딩은 검증에만 사용한다. 실제 URL과 우회 반례 31개를 Python/TypeScript에 동일하게 적용하고, 승인·활성 등록부 전체의 자원 URL 호환성도 검사한다.
 
 CI는 `node scripts/audit-dependencies.mjs`로 기존 production 의존성 high/critical 게이트를 실행한다. 실제 npm 출력의 최상위 `statusCode`, `body.message`, 네트워크 오류 `message`를 읽으며, 429·500/502/503/504·알려진 통신 오류와 400 `Invalid package tree`만 최대 3회(2초/4초 대기) 재시도한다. 자식 프로세스는 회당 60초·출력 8MB로 제한한다. 취약점 목록이나 합계에 high/critical이 있으면 즉시 실패하고, 성공은 종료 코드 0·보고서 버전 2·정상 정수 합계·목록과 심각도별 개수 일치를 모두 요구한다. 영구 오류·잘못된 JSON·예상 밖 결과와 반복 오류는 실패하며 오류의 URL·헤더·본문을 로그에 출력하지 않는다. 정상/취약점 보고서도 심각도별 개수·패키지명·패치 여부만 기록한다. 실제 npm CLI를 loopback 레지스트리에 연결하는 장애·취약점·타임아웃 검증을 `test:ci`에 포함하고, npm 10.9.9의 실측 출력도 회귀 fixture로 보존한다. npm 버전과 기존 취약점 임계값은 변경하지 않았다. [실제 실패 재현과 검증 범위](research/tourism-hardening-20261006.md)를 참고한다.
+
+
+### 2026-10-06 추천 운영 경계 수정
+
+[리뷰 기반 운영 수정](research/tourism-operational-implementation-20261006.md)에 따라 공통 장소 적격성과 시설 중복, 전체 15초/SQL 3초 예산, 조회 취소, 날씨의 캐시 이전 검증, 응답 전 권리 재검사와 동일 시점 일정 조회를 적용했다. TRANSIT 합계·시간 증감은 null이며 구간별 같은 시각 비교와 `timelineStatus=NOT_EVALUATED`를 표시한다. `evidenceValidatedAt`은 source 수집 시간이 아닌 최종 DB 자료 검사 시각이다. 생성 중 일정·이동 수단이 바뀌면 409를 반환하고, 조회 취소는 저장 COMMIT을 취소하지 않는다. AWS·LLM·연속 시간표 기능은 별도 범위다.

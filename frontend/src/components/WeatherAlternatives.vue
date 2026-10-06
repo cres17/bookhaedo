@@ -26,6 +26,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
   generation++;
+  cancelPending();
   media.removeEventListener('change', resize);
 });
 const outdoor = computed(() => props.items.filter(isOutdoor));
@@ -37,11 +38,17 @@ const opened = ref(false),
   error = ref(''),
   dismissed = ref(false);
 let generation = 0;
+let pending: AbortController | undefined;
+const cancelPending = () => {
+  pending?.abort();
+  pending = undefined;
+};
 const signature = computed(
   () => props.tripId + props.date + props.revision + props.items.map((p) => p.id).join(','),
 );
 watch(signature, () => {
   generation++;
+  cancelPending();
   opened.value = false;
   result.value = null;
   busy.value = false;
@@ -52,6 +59,9 @@ watch(signature, () => {
 });
 const endpoint = computed(() => `/trips/${props.tripId}/days/${props.date}/weather-alternatives`);
 async function search(previewId?: string) {
+  cancelPending();
+  const controller = new AbortController();
+  pending = controller;
   const g = ++generation;
   busy.value = true;
   error.value = '';
@@ -62,14 +72,16 @@ async function search(previewId?: string) {
       endpoint.value +
         '?' +
         new URLSearchParams({ targetId: targetId.value, ...(previewId ? { previewId } : {}) }),
+      { signal: controller.signal },
     );
     if (g === generation) {
       result.value = data;
       emit('preview', data.preview ? { targetId: targetId.value, ...data.preview } : null);
     }
   } catch (e: any) {
-    if (g === generation) error.value = e.message;
+    if (g === generation && !controller.signal.aborted) error.value = e.message;
   } finally {
+    if (pending === controller) pending = undefined;
     if (g === generation) busy.value = false;
   }
 }
@@ -83,6 +95,7 @@ async function open() {
 function close() {
   if (saving.value) return;
   generation++;
+  cancelPending();
   opened.value = false;
   busy.value = false;
   result.value = null;
@@ -213,7 +226,9 @@ const minutes = (s: number) => Math.round(s / 60) + '분';
                 {{ key }} 인접 구간:
                 <template v-if="value.complete">
                   {{ (value.distanceMeters / 1000).toFixed(1) }}km ·
-                  {{ minutes(value.durationSeconds) }}
+                  {{
+                    value.durationSeconds === null ? '구간별 비교' : minutes(value.durationSeconds)
+                  }}
                 </template>
                 <template v-else>
                   실제 경로·시간 확인 불가 (직선거리는 이동시간 비교에 사용하지 않아요)
@@ -244,6 +259,9 @@ const minutes = (s: number) => Math.round(s / 60) + '분';
               </button>
             </div>
           </section>
+          <p v-if="result.preview?.after.departureNotice">
+            {{ result.preview.after.departureNotice }}
+          </p>
           <p class="alternative-notice">{{ result.notice }}</p>
         </template>
       </template>

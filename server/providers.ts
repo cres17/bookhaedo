@@ -1,3 +1,4 @@
+import { parseWeatherResponse } from './weather-response.js';
 import { straightDistance, dateOnly } from './domain.js';
 import { providerCaches, providerKey, providerSignal } from './provider-cache.js';
 type Point = { id: string; latitude: number; longitude: number };
@@ -159,22 +160,9 @@ export async function forecast(
         });
         if (!response.ok) throw new Error('UNAVAILABLE');
         const data = await response.json();
-        return data;
+        return parseWeatherResponse(data, today);
       },
-      (data) => {
-        const daily = data.daily;
-        return (
-          !signal?.aborted &&
-          Array.isArray(daily?.time) &&
-          daily.time.length === 10 &&
-          daily.time.every(
-            (day: string, i: number) =>
-              day === new Date(Date.parse(today) + i * 86400000).toISOString().slice(0, 10) &&
-              Number.isFinite(daily.temperature_2m_max?.[i]) &&
-              Number.isFinite(daily.temperature_2m_min?.[i]),
-          )
-        );
-      },
+      () => !signal?.aborted,
       !signal,
     );
     const daily = body.daily,
@@ -182,7 +170,7 @@ export async function forecast(
     const high = daily?.temperature_2m_max?.[index],
       low = daily?.temperature_2m_min?.[index];
     if (index < 0 || !Number.isFinite(high) || !Number.isFinite(low)) throw new Error('NO_DATE');
-    const code = daily.weather_code?.[index];
+    const code = daily.weather_code?.[index] ?? -1;
     const description =
       code === 0
         ? '맑음'

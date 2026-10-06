@@ -1,0 +1,143 @@
+{
+  "reviewedCommit": "9e29e468f686110013666d5ce9f1713520b4247b",
+  "reviewDate": "2026-10-06",
+  "remoteCi": {
+    "url": "https://github.com/cres17/bookhaedo/actions/runs/37399031674",
+    "conclusion": "success"
+  },
+  "boundaryExperiments": [
+    {
+      "id": "R1",
+      "closedPlaceInLegacyNearby": true,
+      "closedPlaceInGraph": false
+    },
+    {
+      "id": "R2",
+      "knowledge": [
+        "osm-node",
+        "osm-way",
+        "a"
+      ],
+      "nearby": [
+        "a",
+        "osm-node",
+        "b"
+      ]
+    },
+    {
+      "id": "R3",
+      "departures": [
+        {
+          "from": "a",
+          "to": "b",
+          "mode": "TRANSIT",
+          "departure": "2026-10-10T00:00:00.000Z"
+        },
+        {
+          "from": "b",
+          "to": "c",
+          "mode": "TRANSIT",
+          "departure": "2026-10-10T00:00:00.000Z"
+        }
+      ],
+      "complete": true,
+      "totalSeconds": 3600
+    },
+    {
+      "id": "D1",
+      "providerTimeoutMs": 10,
+      "searchDelayMs": 80,
+      "elapsedMs": 84,
+      "searchArguments": 1
+    },
+    {
+      "id": "D2",
+      "injectedWithdrawalDuringRoute": true,
+      "searches": 1,
+      "returnedEvidence": [
+        "src:a"
+      ],
+      "scope": "controlled dependency; no DB withdrawal performed"
+    },
+    {
+      "id": "R5",
+      "weather": {
+        "available": true,
+        "high": 5,
+        "low": 30,
+        "precipitationProbability": 999,
+        "windSpeedKmh": -10
+      },
+      "transportCallsForTwoReads": 1,
+      "scope": "malformed fixture; not observed real Open-Meteo response"
+    },
+    {
+      "id": "R4",
+      "actualOpenRequests": 0,
+      "inflightGauge": 1,
+      "scope": "real loopback HTTP client disconnect"
+    }
+  ],
+  "databaseExperiments": {
+    "D2": {
+      "withdrawalCommitted": true,
+      "responseStatus": "READY",
+      "responseEvidenceCount": 1,
+      "newSearchEvidenceCount": 0
+    },
+    "D3": {
+      "readRevision": 0,
+      "readItems": "new",
+      "committedRevision": 1,
+      "scope": "barrier inserted between actual SQL statements; real concurrent PG transaction"
+    },
+    "scope": "disposable PostgreSQL database; no original tourism source changed"
+  },
+  "checks": [
+    {
+      "name": "test-ci",
+      "exitCode": 0
+    },
+    {
+      "name": "dbprobe",
+      "exitCode": 0
+    },
+    {
+      "name": "python",
+      "exitCode": 0
+    },
+    {
+      "name": "typecheck",
+      "exitCode": 0
+    },
+    {
+      "name": "lint",
+      "exitCode": 0
+    },
+    {
+      "name": "spec-check",
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "exitCode": 0
+    }
+  ],
+  "counts": {
+    "vitestCiFiles": 38,
+    "vitestCiTests": 304,
+    "pythonTests": 34,
+    "openApiPaths": 45,
+    "dbmlTables": 29
+  },
+  "disposableDatabaseRemoved": true,
+  "notRun": [
+    "full Vitest",
+    "browser E2E",
+    "live provider probe",
+    "deployment load",
+    "new dependency audit"
+  ],
+  "productionCodeChanged": false,
+  "remoteBranchChanged": false
+}

@@ -1954,6 +1954,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '504':
+          description: 'REQUEST_DEADLINE_EXCEEDED 또는 READ_QUERY_TIMEOUT: 조회 기한 초과'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       parameters:
         - name: targetId
           in: query
@@ -1970,7 +1976,9 @@ paths:
       description: >-
         소유권 검증 후 대상 장소 좌표의 Open-Meteo 예보를 조회한다. 비/눈/이슬비/뇌우 또는 일 강수량 5mm, 적설 1cm, 강수확률 70%, 풍속 40km/h 이상 중 하나이면 실내 대안 탐색.
         공식 기상특보 기준이 아님. 실내 분류 및 직선 20km 이내 후보를 기존 일정에서 제외하고 최대 3곳 제시. previewId는 현재 추천 후보만 허용. 앞뒤 인접 구간의 실제 경로 조회 실패 시
-        비교 시간 null. 저장하지 않음.
+        비교 시간 null. 저장하지 않음. 추천 조회 전체는 15초, 취소 가능한 SQL은 문장당 3초로 제한한다. 클라이언트 연결 종료 시 조회 작업을 취소하고 저장 요청은 별도로 유지한다. 각 경로는
+        여행일 오전 9시(JST) 출발을 독립 비교하며 TRANSIT의 합산 시간과 시간 증감은 null. complete는 구간 경로 조회 성공만 의미하고 하루 시간표의 실행 가능성은
+        NOT_EVALUATED.
       tags:
         - 추천
       operationId: get__trips_id_days_date_weather_alternatives
@@ -2128,6 +2136,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '504':
+          description: 'REQUEST_DEADLINE_EXCEEDED 또는 READ_QUERY_TIMEOUT: 조회 기한 초과'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       parameters:
         - name: strategy
           in: query
@@ -2148,7 +2162,9 @@ paths:
             default: 4
       description: >-
         날씨가 좋거나 예보가 없어도 사용할 수 있다. 현재 일정 중심의 직선 20km 후보에서 날씨 맞춤, 실내 중심, 가까운 곳 중심 코스를 생성한다. strategy를 지정하면 선택 코스의 인접 실제
-        경로를 조회하지만 저장하지 않는다. 장소 운영 여부와 최적 동선을 보장하지 않는다.
+        경로를 조회하지만 저장하지 않는다. 장소 운영 여부와 최적 동선을 보장하지 않는다. 추천 조회 전체는 15초, 취소 가능한 SQL은 문장당 3초로 제한한다. 클라이언트 연결 종료 시 조회 작업을
+        취소하고 저장 요청은 별도로 유지한다. 각 경로는 여행일 오전 9시(JST) 출발을 독립 비교하며 TRANSIT의 합산 시간과 시간 증감은 null. complete는 구간 경로 조회 성공만 의미하고
+        하루 시간표의 실행 가능성은 NOT_EVALUATED.
       tags:
         - 추천
       operationId: get__trips_id_days_date_day_alternatives
@@ -2235,13 +2251,23 @@ paths:
                   maxItems: 30
                   uniqueItems: true
                   description: 미리보기 시점의 기존 하루 일정 순서
+                expectedTransportMode:
+                  type: string
+                  enum:
+                    - DRIVE
+                    - TAXI
+                    - TRANSIT
+                    - WALK
+                    - BICYCLE
                 expectedRevision:
                   type: integer
                   minimum: 0
                   description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
       description: >-
         날짜 행을 잠그고 기존 일정 순서와 expectedPlaceIds를 비교한다. 추천 코스의 장소 존재·중복·기존 중심과의 거리를 검증하고 트랜잭션으로 전체 순서를 교체한다. 새 코스에 남는 장소의
-        메모만 유지하며 오류나 충돌 시 기존 일정을 보존한다. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.
+        메모만 유지하며 오류나 충돌 시 기존 일정을 보존한다. 명시적으로 closed인 장소·비공개·폐기·숙박 분류와 동일 지역/분류/정규화 일본어명/10m 이내 중복 시설을 재검증한다. unknown
+        영업시간은 금지하지 않는다. expectedTransportMode를 전달하면 이동 수단 변경도 409로 거절한다. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면
+        revision을 증가시킨다.
       tags:
         - 추천
       operationId: patch__trips_id_days_date_day_alternatives
@@ -2288,6 +2314,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          description: 'RECOMMENDATION_CONTEXT_CHANGED: 일정 또는 이동 수단 변경'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: 'STRATEGY_UNAVAILABLE: 다른 코스가 있지만 요청 전략은 생성 불가'
           content:
@@ -2316,6 +2348,12 @@ paths:
               description: 추천 제한 정책은 30;w=60. 전역 API 제한이 먼저 적용되면 해당 정책을 반환
               schema:
                 type: string
+        '504':
+          description: 'REQUEST_DEADLINE_EXCEEDED 또는 READ_QUERY_TIMEOUT: 조회 기한 초과'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       requestBody:
         required: true
         content:
@@ -2352,7 +2390,10 @@ paths:
         정보로 반환. READY는 시설 근거를 인용한 코스가 있을 때만 사용. 빈 일정은 NEEDS_ANCHOR와 searchAttempts=0, 유효 코스 없음은 NO_CANDIDATES로 200 응답.
         다른 코스가 있지만 요청 전략이 없으면 422/STRATEGY_UNAVAILABLE. 승인된 최신 snapshot과 적용 날짜를 검사한다. 반복·날짜 미기재 행사는 referenceEvents에 최대
         20건 반환하며 날짜가 있는 종료 행사는 포함하지 않는다. 기본 생성은 규칙 기반이며 외부 LLM을 호출하지 않는다. strategy가 있으면 실제 인접 경로를 조회. 읽기 전용이며 확정은 기존
-        PATCH day-alternatives에 placeIds,expectedPlaceIds,expectedRevision을 전달한다. 409/428 revision 계약 유지.
+        PATCH day-alternatives에 placeIds,expectedPlaceIds,expectedRevision을 전달한다. 409/428 revision 계약 유지. 추천 조회 전체는 15초,
+        취소 가능한 SQL은 문장당 3초로 제한한다. 클라이언트 연결 종료 시 조회 작업을 취소하고 저장 요청은 별도로 유지한다. 각 경로는 여행일 오전 9시(JST) 출발을 독립 비교하며 TRANSIT의
+        합산 시간과 시간 증감은 null. complete는 구간 경로 조회 성공만 의미하고 하루 시간표의 실행 가능성은 NOT_EVALUATED. 경로 조회 후 응답 자료의 권리·활성 버전·철회·유효기간을
+        단일 최신 SQL 시점에서 재검증한다. 해당 시점 이후 철회는 전송 중인 응답에서 회수할 수 없다. 일정 revision·장소 순서·이동 수단이 생성 중 바뀌면 409.
       tags:
         - 여행
       operationId: post__trips_id_days_date_ai_recommendations
@@ -4410,6 +4451,19 @@ components:
                 before:
                   type: object
                   properties:
+                    mode:
+                      type: string
+                      enum:
+                        - DRIVE
+                        - TAXI
+                        - TRANSIT
+                        - WALK
+                        - BICYCLE
+                    timelineStatus:
+                      const: NOT_EVALUATED
+                    departureNotice:
+                      type: string
+                      description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                     segments:
                       type: array
                       items:
@@ -4424,9 +4478,23 @@ components:
                       type:
                         - number
                         - 'null'
+                      description: TRANSIT은 null. 구간별 시간은 segments에서 독립 비교.
                 after:
                   type: object
                   properties:
+                    mode:
+                      type: string
+                      enum:
+                        - DRIVE
+                        - TAXI
+                        - TRANSIT
+                        - WALK
+                        - BICYCLE
+                    timelineStatus:
+                      const: NOT_EVALUATED
+                    departureNotice:
+                      type: string
+                      description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                     segments:
                       type: array
                       items:
@@ -4441,6 +4509,7 @@ components:
                       type:
                         - number
                         - 'null'
+                      description: TRANSIT은 null. 구간별 시간은 segments에서 독립 비교.
                 durationDeltaSeconds:
                   type:
                     - number
@@ -4458,6 +4527,14 @@ components:
     DayAlternativeResult:
       type: object
       properties:
+        transportMode:
+          type: string
+          enum:
+            - DRIVE
+            - TAXI
+            - TRANSIT
+            - WALK
+            - BICYCLE
         status:
           type: string
           enum:
@@ -4503,6 +4580,19 @@ components:
             - type: 'null'
             - type: object
               properties:
+                mode:
+                  type: string
+                  enum:
+                    - DRIVE
+                    - TAXI
+                    - TRANSIT
+                    - WALK
+                    - BICYCLE
+                timelineStatus:
+                  const: NOT_EVALUATED
+                departureNotice:
+                  type: string
+                  description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                 plan:
                   type: object
                   properties:
@@ -4536,6 +4626,7 @@ components:
                   type:
                     - number
                     - 'null'
+                  description: TRANSIT은 null. 그 외 모드의 합계도 체류·시간 연결을 검증한 하루 일정이 아님.
         notice:
           type: string
         tripId:
@@ -4629,6 +4720,20 @@ components:
     AIRecommendation:
       type: object
       properties:
+        evidenceValidatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: 최종 자료 재검사 SQL 시점. 확인할 자료가 없으면 null.
+        transportMode:
+          type: string
+          enum:
+            - DRIVE
+            - TAXI
+            - TRANSIT
+            - WALK
+            - BICYCLE
         status:
           type: string
           enum:
@@ -4705,6 +4810,19 @@ components:
             - type: 'null'
             - type: object
               properties:
+                mode:
+                  type: string
+                  enum:
+                    - DRIVE
+                    - TAXI
+                    - TRANSIT
+                    - WALK
+                    - BICYCLE
+                timelineStatus:
+                  const: NOT_EVALUATED
+                departureNotice:
+                  type: string
+                  description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                 plan:
                   type: object
                   properties:
@@ -4796,6 +4914,7 @@ components:
                   type:
                     - number
                     - 'null'
+                  description: TRANSIT은 null. 그 외 모드의 합계도 체류·시간 연결을 검증한 하루 일정이 아님.
         evidence:
           type: array
           items:
@@ -4813,6 +4932,8 @@ components:
         notice:
           type: string
       required:
+        - evidenceValidatedAt
+        - transportMode
         - status
         - requestId
         - tripId

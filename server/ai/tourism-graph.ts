@@ -4,6 +4,7 @@ import { buildDayPlans, center, nearestOrder } from '../day-alternatives.js';
 import { straightDistance } from '../domain.js';
 import {
   searchTourism,
+  revalidateTourismEvidenceAt,
   type SearchResult,
   type TourismSearchInput,
   type Evidence,
@@ -12,6 +13,13 @@ import { forecast } from '../providers.js';
 import { routeSegment } from '../routing.js';
 import { adverseWeather, indoorEvidence } from '../../shared/weather-policy.js';
 import { mapConcurrent } from '../provider-cache.js';
+import {
+  eligibleRecommendationPlace,
+  sameRecommendationFacility,
+  uniqueRecommendationFacilities,
+} from '../recommendation-policy.js';
+import { summarizeRecommendationRoutes } from '../recommendation-preview.js';
+import { abortable, operationBudget } from '../operation-budget.js';
 
 export type GraphInput = {
   requestId: string;
@@ -54,7 +62,13 @@ export type DraftGenerator = (
   signal: AbortSignal,
 ) => Promise<unknown>;
 export type GraphDependencies = {
-  search: (input: TourismSearchInput) => Promise<SearchResult>;
+  search: (input: TourismSearchInput, signal?: AbortSignal) => Promise<SearchResult>;
+  revalidate?: (
+    evidence: Evidence[],
+    date: string,
+    signal?: AbortSignal,
+  ) => Promise<Evidence[] | { evidence: Evidence[]; validatedAt: string | null }>;
+  requestTimeoutMs?: number;
   weather: typeof forecast;
   route: typeof routeSegment;
   generate?: DraftGenerator;
@@ -65,6 +79,7 @@ const State = Annotation.Root({
   candidates: Annotation<any[]>(),
   evidence: Annotation<Evidence[]>(),
   referenceEvents: Annotation<Evidence[]>(),
+  evidenceValidatedAt: Annotation<string | null>(),
   snapshotIds: Annotation<string[]>(),
   weather: Annotation<any>(),
   plans: Annotation<Plan[]>(),
@@ -78,30 +93,19 @@ async function bounded<T>(
   work: (signal: AbortSignal) => Promise<T>,
   ms: number,
   fallback: T,
+  parent: AbortSignal,
 ): Promise<T> {
-  const controller = new AbortController();
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  const budget = operationBudget(ms, parent);
   try {
-    return await Promise.race([
-      work(controller.signal).catch(() => fallback),
-      new Promise<T>((resolve) => {
-        timer = setTimeout(() => {
-          controller.abort();
-          resolve(fallback);
-        }, ms);
-      }),
-    ]);
+    return await abortable(() => work(budget.signal), budget.signal);
+  } catch (error) {
+    if (parent.aborted) throw error;
+    return fallback;
   } finally {
-    clearTimeout(timer);
+    budget.dispose();
   }
 }
-const isUsable = (p: any) =>
-  p.category !== 'LODGING' &&
-  !['private', 'no'].includes(p.tags?.access) &&
-  p.tags?.disused !== 'yes' &&
-  p.tags?.abandoned !== 'yes' &&
-  p.openingHours !== 'closed' &&
-  p.tags?.opening_hours !== 'closed';
+const isUsable = eligibleRecommendationPlace;
 function evidenceFor(places: any[], evidence: Evidence[]) {
   const ids = new Set(places.map((p) => p.id));
   return evidence
@@ -173,6 +177,9 @@ export function validateTourismPlans(
         ids.length >= 2 &&
         ids.length <= s.input.count &&
         new Set(ids).size === ids.length &&
+        !plan.places.some((p, i) =>
+          plan.places.slice(i + 1).some((other) => sameRecommendationFacility(p, other)),
+        ) &&
         (plan.id !== 'KNOWLEDGE' || plan.evidenceIds.length > 0) &&
         JSON.stringify(ids.filter((id) => kept.includes(id))) === JSON.stringify(kept) &&
         plan.places.every(
@@ -195,41 +202,64 @@ export function validateTourismPlans(
 }
 export function createTourismGraph(deps: GraphDependencies) {
   const timeout = deps.timeoutMs ?? 10000;
-  return new StateGraph(State)
+  const compiled = new StateGraph(State)
     .addNode('interpret', (s) => ({
       attempts: 0,
       candidates: [],
       evidence: [],
       referenceEvents: [],
+      evidenceValidatedAt: null,
       snapshotIds: [],
       plans: [],
       preview: null,
       valid: false,
-      warnings:
-        s.input.keepPlaceIds.length === s.input.count
+      warnings: [
+        ...(s.input.items.some(
+          (p) => s.input.keepPlaceIds.includes(p.id) && !eligibleRecommendationPlace(p),
+        )
+          ? [
+              '유지한 장소 중 폐쇄·접근 제한·폐기·숙박 분류로 새 코스에 포함할 수 없는 곳이 있어요. 유지 선택을 바꿔 다시 추천해주세요.',
+            ]
+          : []),
+        ...(s.input.keepPlaceIds.length === s.input.count
           ? [
               '유지할 장소로 방문 수가 채워져 새 장소를 추가하지 않습니다. 기존 장소의 경로와 출처를 확인해주세요.',
             ]
-          : [],
+          : []),
+      ],
       input: { ...s.input, interests: s.input.interests.trim().slice(0, 200) },
     }))
-    .addNode('retrieve', async (s) => {
-      const result = await deps.search({
-        anchor: center(s.input.items),
-        regionId: s.input.regionId,
-        date: s.input.date,
-        radius: Math.min(20000, 10000 + s.attempts * 5000),
-        interests: s.input.interests,
-        ...(s.attempts ? { snapshotIds: s.snapshotIds } : {}),
-      });
+    .addNode('retrieve', async (s, config) => {
+      const result = await abortable(
+        () =>
+          deps.search(
+            {
+              anchor: center(s.input.items),
+              regionId: s.input.regionId,
+              date: s.input.date,
+              radius: Math.min(20000, 10000 + s.attempts * 5000),
+              interests: s.input.interests,
+              ...(s.attempts ? { snapshotIds: s.snapshotIds } : {}),
+            },
+            config.signal!,
+          ),
+        config.signal!,
+      );
+      const linked = new Set(
+        result.evidence.filter((e) => e.kind === 'place' && e.placeId).map((e) => e.placeId!),
+      );
       return {
         ...result,
         referenceEvents: result.referenceEvents ?? [],
-        candidates: result.candidates.filter(isUsable),
+        candidates: uniqueRecommendationFacilities(
+          result.candidates.filter(isUsable),
+          linked,
+          s.input.items,
+        ),
         attempts: s.attempts + 1,
       };
     })
-    .addNode('weather_lookup', async (s) => ({
+    .addNode('weather_lookup', async (s, config) => ({
       weather: await bounded(
         (signal) =>
           deps.weather(
@@ -241,9 +271,10 @@ export function createTourismGraph(deps: GraphDependencies) {
           ),
         timeout,
         { available: false, notice: '예보를 확인하지 못해 거리와 장소 자료를 참고합니다.' } as any,
+        config.signal!,
       ),
     }))
-    .addNode('generate', async (s) => {
+    .addNode('generate', async (s, config) => {
       const plans = rules(s);
       if (!deps.generate) return { plans };
       const unknownDraft = await bounded(
@@ -260,6 +291,7 @@ export function createTourismGraph(deps: GraphDependencies) {
           ),
         timeout,
         null,
+        config.signal!,
       );
       const draft = draftSchema.safeParse(unknownDraft);
       if (!draft.success)
@@ -288,7 +320,7 @@ export function createTourismGraph(deps: GraphDependencies) {
         valid: s.input.strategy ? plans.some((p) => p.id === s.input.strategy) : plans.length > 0,
       };
     })
-    .addNode('route_preview', async (s) => {
+    .addNode('route_preview', async (s, config) => {
       if (!s.input.strategy) return { preview: null };
       const plan = s.plans.find((p) => p.id === s.input.strategy);
       if (!plan) return { preview: null };
@@ -311,26 +343,63 @@ export function createTourismGraph(deps: GraphDependencies) {
             distanceMeters: null,
             durationSeconds: null,
           } as any,
+          config.signal!,
         ),
       );
-      const complete =
-        segments.length === plan.places.length - 1 &&
-        segments.every(
-          (r) =>
-            ['valhalla', 'google'].includes(r.source) &&
-            Number.isFinite(r.distanceMeters) &&
-            Number.isFinite(r.durationSeconds) &&
-            r.distanceMeters >= 0 &&
-            r.durationSeconds! >= 0,
-        );
       return {
         preview: {
           plan,
           segments,
-          complete,
-          distanceMeters: complete ? segments.reduce((n, r) => n + r.distanceMeters, 0) : null,
-          durationSeconds: complete ? segments.reduce((n, r) => n + r.durationSeconds!, 0) : null,
+          ...summarizeRecommendationRoutes(segments, s.input.transportMode, s.input.date),
         },
+      };
+    })
+    .addNode('revalidate_sources', async (s, config) => {
+      if (!deps.revalidate) return {};
+      const validation = await abortable(
+        () => deps.revalidate!([...s.evidence, ...s.referenceEvents], s.input.date, config.signal!),
+        config.signal!,
+      );
+      const checked = Array.isArray(validation) ? validation : validation.evidence;
+      const evidenceValidatedAt = Array.isArray(validation) ? null : validation.validatedAt;
+      const valid = new Set(checked.map((e) => `${e.snapshotId}:${e.id}`));
+      const evidence = checked.filter((e) =>
+        s.evidence.some((old) => old.snapshotId === e.snapshotId && old.id === e.id),
+      );
+      const referenceEvents = checked.filter((e) =>
+        s.referenceEvents.some((old) => old.snapshotId === e.snapshotId && old.id === e.id),
+      );
+      const plans = s.plans
+        .map((p) => ({
+          ...p,
+          evidenceIds: p.evidenceIds.filter((id) =>
+            evidence.some(
+              (e) =>
+                e.id === id &&
+                e.kind === 'place' &&
+                p.places.some((place) => place.id === e.placeId),
+            ),
+          ),
+        }))
+        .filter((p) => p.id !== 'KNOWLEDGE' || p.evidenceIds.length > 0);
+      const changed = [...s.evidence, ...s.referenceEvents].some(
+        (e) => !valid.has(`${e.snapshotId}:${e.id}`),
+      );
+      return {
+        evidence,
+        referenceEvents,
+        evidenceValidatedAt,
+        plans,
+        preview:
+          s.preview && plans.some((p) => p.id === s.preview.plan.id)
+            ? { ...s.preview, plan: plans.find((p) => p.id === s.preview.plan.id) }
+            : null,
+        warnings: changed
+          ? [
+              ...s.warnings,
+              '응답 전 권리·버전·적용 기간을 다시 확인해 사용할 수 없는 공개 자료를 제외했어요.',
+            ]
+          : s.warnings,
       };
     })
     .addEdge(START, 'interpret')
@@ -346,16 +415,38 @@ export function createTourismGraph(deps: GraphDependencies) {
       (s) => (!s.valid && s.attempts < 3 ? 'retrieve' : 'route_preview'),
       ['retrieve', 'route_preview'],
     )
-    .addEdge('route_preview', END)
+    .addEdge('route_preview', 'revalidate_sources')
+    .addEdge('revalidate_sources', END)
     .compile();
+  return {
+    invoke: async (
+      values: { input: GraphInput },
+      config: { signal?: AbortSignal; recursionLimit?: number } = {},
+    ) => {
+      const budget = operationBudget(deps.requestTimeoutMs ?? 15000, config.signal);
+      try {
+        return await abortable(
+          () => compiled.invoke(values, { ...config, signal: budget.signal }),
+          budget.signal,
+        );
+      } finally {
+        budget.dispose();
+      }
+    },
+  };
 }
-const graph = createTourismGraph({ search: searchTourism, weather: forecast, route: routeSegment });
+const graph = createTourismGraph({
+  search: searchTourism,
+  revalidate: revalidateTourismEvidenceAt,
+  weather: forecast,
+  route: routeSegment,
+});
 export function formatTourismResult(
   input: GraphInput,
   s: Pick<
     GraphState,
     'plans' | 'evidence' | 'snapshotIds' | 'weather' | 'attempts' | 'preview' | 'warnings'
-  > & { referenceEvents?: Evidence[] },
+  > & { referenceEvents?: Evidence[]; evidenceValidatedAt?: string | null },
 ) {
   const cited = new Set(s.plans.flatMap((p) => p.evidenceIds));
   const evidence = s.evidence.filter((e) => e.kind === 'event' || cited.has(e.id));
@@ -365,6 +456,7 @@ export function formatTourismResult(
     tripId: input.tripId,
     date: input.date,
     expectedRevision: input.revision,
+    transportMode: input.transportMode,
     expectedPlaceIds: input.items.map((p) => p.id),
     snapshotIds: s.snapshotIds,
     status: !s.plans.length ? 'NO_CANDIDATES' : hasPlaceEvidence ? 'READY' : 'CATALOG_FALLBACK',
@@ -377,6 +469,7 @@ export function formatTourismResult(
     preview: s.preview,
     evidence,
     referenceEvents: s.referenceEvents ?? [],
+    evidenceValidatedAt: s.evidenceValidatedAt ?? null,
     warnings: s.warnings,
     notice: !s.plans.length
       ? '조건에 맞는 코스를 만들지 못했어요. 유지할 장소나 방문 수를 바꿔 다시 확인해주세요.'
@@ -387,7 +480,7 @@ export function formatTourismResult(
           : '코스에 연결할 유효한 공개 자료가 없어 기존 장소와 예보를 바탕으로 추천합니다. 확정 전에는 일정이 바뀌지 않아요.',
   };
 }
-export async function proposeTourism(input: GraphInput) {
-  const s = await graph.invoke({ input }, { recursionLimit: 20 });
+export async function proposeTourism(input: GraphInput, signal?: AbortSignal) {
+  const s = await graph.invoke({ input }, { recursionLimit: 20, signal });
   return formatTourismResult(input, s);
 }

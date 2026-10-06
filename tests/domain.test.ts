@@ -78,10 +78,12 @@ describe('화이트박스: Google 응답과 실패 분기', () => {
       new Response(
         JSON.stringify({
           daily: {
-            time: [date],
-            temperature_2m_max: [24],
-            temperature_2m_min: [15],
-            weather_code: [71],
+            time: Array.from({ length: 10 }, (_, i) =>
+              new Date(Date.parse(date) + i * 86400000).toISOString().slice(0, 10),
+            ),
+            temperature_2m_max: Array(10).fill(24),
+            temperature_2m_min: Array(10).fill(15),
+            weather_code: Array(10).fill(71),
           },
         }),
       ),
