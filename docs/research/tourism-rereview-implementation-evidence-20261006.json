@@ -1,0 +1,352 @@
+{
+  "baseline": "3fa83a1cb386ca721ac2528b6401cf70592c8684",
+  "scope": "F1-F4/O1 operational fixes, retained item identity and explicit write-outcome UI recovery; no deployment, LLM/AWS or exactly-once claim",
+  "localVerification": {
+    "vitest": {
+      "files": 54,
+      "passed": 463
+    },
+    "ciVitest": {
+      "files": 48,
+      "passed": 395
+    },
+    "pythonPassed": 34,
+    "playwrightPassed": 35,
+    "tourismPublishedE2EEnabled": true,
+    "checks": [
+      {
+        "label": "test-ci",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-test-ci.log",
+        "sha256": "cae7b6c54084772ecbaab09e4bbd5a232ca7f71510e3b30b0ff2bd1ff932ccb9"
+      },
+      {
+        "label": "python",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-python.log",
+        "sha256": "d10e00749a0570b6f236ce423c5621dbbc480a31beaad99a04987d0709d29666"
+      },
+      {
+        "label": "typecheck",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-typecheck.log",
+        "sha256": "45dc492e0447376af3412da8d3c163d5b9c126b94ce7af16b73307d9c5f9dfe4"
+      },
+      {
+        "label": "lint",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-lint.log",
+        "sha256": "e0e9f2431cbaef52a4725ea7dcdc7da7def742ed8ca2307460056cf98968d3d9"
+      },
+      {
+        "label": "format-check",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-format-check.log",
+        "sha256": "2b0a9675e569241f3061846866f06affbd36e7785f21882559cfafd1f6cdf2ed"
+      },
+      {
+        "label": "spec-check",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-spec-check.log",
+        "sha256": "2305286e2625cb3982d5c7148cee8e3ac050ea37a16351ac86a563492dabde1b"
+      },
+      {
+        "label": "build",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-build.log",
+        "sha256": "77209b9f8d1eae0819756f90ff9cc528ecf210ec94121c89b906658ccefe1984"
+      },
+      {
+        "label": "full-vitest",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-full-vitest.log",
+        "sha256": "b05a794d22de2f96f1742064a225e799455a161b254be85f64edc87f088ffbd7"
+      },
+      {
+        "label": "full-e2e",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-boundary-fix-full-e2e.log",
+        "sha256": "3a69cefae0bc1741ce05dcd50112740aced88d3d4381f8261cf5fee5d7656c3d"
+      }
+    ],
+    "disposableDatabaseRemoved": true
+  },
+  "beforeFixRegression": {
+    "baseline": "3fa83a1",
+    "files": 2,
+    "failed": 14,
+    "passed": 29,
+    "logSha256": "5683f2d69db25fd6ddadced73b33ccb09c6904bb2023535e4fa0f5a4b47a70b8",
+    "note": "Earlier regression subset; later reverse-order, ACL, timeout, identity, body and map cases are additional tests"
+  },
+  "controls": [
+    "Concurrent mode commit first: 409 and no mutation",
+    "Confirmation first: later mode write serializes after commit",
+    "Single read snapshot despite intervening title/mode/revision/items change",
+    "NFKC/near duplicate rejected; distinct branch accepted",
+    "Membership loss during lock wait: 404 and unchanged itinerary",
+    "Lock wait timeout: 409/TRIP_WRITE_BUSY and unchanged itinerary",
+    "Retained item IDs, notes, cost and schedule survive reorder/confirmation",
+    "Invalid geometry is not cached; next normal response recovers",
+    "Body bytes/point caps; unresponsive cancellation does not block rejection",
+    "Map geometry absent/invalid: endpoint line, not a road geometry",
+    "Desktop/mobile: 409 invalidates preview; before/after-COMMIT network loss does not automatically retry PATCH"
+  ],
+  "originalDatabase": {
+    "exactBeforeAfterMatch": true,
+    "before": {
+      "counts": {
+        "places": 20810,
+        "snapshots": 7,
+        "records": 184,
+        "withdrawals": 0
+      },
+      "active": [
+        {
+          "id": "eniwa-events",
+          "active_snapshot_id": "a66f664e-ffe4-4089-b45c-ffc3ee5c89ea",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "恵庭市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-events",
+          "active_snapshot_id": "d7cf84b5-2b0e-4bc0-8f23-a0b513ce852a",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2208.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-places",
+          "active_snapshot_id": "f659c81a-beca-4415-96af-327e95d6e821",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2207.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "hokuto-places",
+          "active_snapshot_id": "4bd7b7d8-9f38-4743-a6b2-5bc0e17f0a9b",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "北斗市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1657.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "sapporo-places",
+          "active_snapshot_id": "88d799d5-4405-41b4-8b7e-030f946ecd65",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "札幌市",
+          "source_url": "https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ]
+    },
+    "after": {
+      "counts": {
+        "places": 20810,
+        "snapshots": 7,
+        "records": 184,
+        "withdrawals": 0
+      },
+      "active": [
+        {
+          "id": "eniwa-events",
+          "active_snapshot_id": "a66f664e-ffe4-4089-b45c-ffc3ee5c89ea",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "恵庭市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-events",
+          "active_snapshot_id": "d7cf84b5-2b0e-4bc0-8f23-a0b513ce852a",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2208.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-places",
+          "active_snapshot_id": "f659c81a-beca-4415-96af-327e95d6e821",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2207.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "hokuto-places",
+          "active_snapshot_id": "4bd7b7d8-9f38-4743-a6b2-5bc0e17f0a9b",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "北斗市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1657.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "sapporo-places",
+          "active_snapshot_id": "88d799d5-4405-41b4-8b7e-030f946ecd65",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "札幌市",
+          "source_url": "https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "path": "docs/Bookhaedo-API.yml",
+      "sha256": "87f454e74f61ef1547603b345e18f0e6c24d70a2f08f16a7eab857a33bb6253c"
+    },
+    {
+      "path": "docs/openapi-rest.json",
+      "sha256": "84466f47d54213b9307db78b21944dc6c1c5d0fdca2fd6fd71e441eb2b59f4f3"
+    },
+    {
+      "path": "docs/research/probes/README.md",
+      "sha256": "ccb85ddd91c39095f10165f83ce8a60015cc5d31eb21e6c20fedbe244d1f66cf"
+    },
+    {
+      "path": "frontend/public/openapi.json",
+      "sha256": "84466f47d54213b9307db78b21944dc6c1c5d0fdca2fd6fd71e441eb2b59f4f3"
+    },
+    {
+      "path": "frontend/src/components/DayAlternatives.vue",
+      "sha256": "cd0a99e9499603b386b77d64306b66cb9a83dbaf5c1ee0ce3f86450e4503ed85"
+    },
+    {
+      "path": "frontend/src/components/TravelMap.vue",
+      "sha256": "ed50336dd466525aaec0711e42c52b9ede08ac9e6ca4531a752a10d46588fcf7"
+    },
+    {
+      "path": "frontend/src/route-map-policy.ts",
+      "sha256": "06dcefdf7b0b53ee96d273b209c4404c415099bfcf6a7a62f0dc44625795bcb6"
+    },
+    {
+      "path": "frontend/src/views/Planner.vue",
+      "sha256": "8f3f53a39ea6c078bd558953539e3f7dffa75d086d0c1754b7cf485cfe613308"
+    },
+    {
+      "path": "package.json",
+      "sha256": "1fb1c8c8c64e6e71f83bf1aacb8a7b12f0e0ac6d844e0088c4645fd634c6dd88"
+    },
+    {
+      "path": "scripts/load_postgis.py",
+      "sha256": "fd668b9258f4243f12ff09ec3b6cd1a89a436b3de2cdb0994a6ced3593ae5471"
+    },
+    {
+      "path": "scripts/write-api-spec.mjs",
+      "sha256": "3c006ba1a5d4051740d304d914d7156aa914d4289c76c0e2a37d2a93a4851765"
+    },
+    {
+      "path": "server/collaboration.ts",
+      "sha256": "8d3342afd0be470781dde06a0ce5f1f60c6481c570c5e2ec8ad1222027420d13"
+    },
+    {
+      "path": "server/day-alternatives.ts",
+      "sha256": "15b59549d08681766f206643239e02662218cf81fb45c9069cdd0ab87f61933c"
+    },
+    {
+      "path": "server/http/middleware.ts",
+      "sha256": "0e08bda06e4fe8353eb3797c9388f0fbdbaa48edf48ba931eb7e303fa4d762d5"
+    },
+    {
+      "path": "server/itinerary-write.ts",
+      "sha256": "8af3c70dddf3b465b1c00eb503501cbe0ddf37c202e29ecb49181cfed3987c88"
+    },
+    {
+      "path": "server/observability/metrics.ts",
+      "sha256": "756b6bbffdaacbc305843b9f84dbd5bfd71078ef2545817002195d0ecde7bb0b"
+    },
+    {
+      "path": "server/providers.ts",
+      "sha256": "314481d3bd8b8ece95c4745185af710473d39c4eed747773e2a1d1676e56e958"
+    },
+    {
+      "path": "server/route-response.ts",
+      "sha256": "0bb0e868df34f23656d6eaa8aac71df18633021198f4750b1634924973046bc8"
+    },
+    {
+      "path": "server/routes/ai-recommendations.ts",
+      "sha256": "c8e94d332c48f8a500a89aa0d5b4dff8d50cda503e196a06d2b3dc2a4cf42fda"
+    },
+    {
+      "path": "server/routes/trips.ts",
+      "sha256": "ca34b21f9842bda6dc8c7189c2ac9f266b9594c54eb632e81ad0f051ef0b9ccc"
+    },
+    {
+      "path": "server/routing.ts",
+      "sha256": "372b523d068d46b7b76a44b1d6a001a52c07e12d0edf49fc0f4ab51d6fdb8cd7"
+    },
+    {
+      "path": "server/trip-snapshot.ts",
+      "sha256": "f29191e97f5087c59f71ff25cdfadff520a5962121faa958a10f0d660062d985"
+    },
+    {
+      "path": "server/trip-write.ts",
+      "sha256": "d50b720235175b34bf1ec6ecc8d56611ada0cea94a793e2ed11f3379005c1abe"
+    },
+    {
+      "path": "server/weather-alternatives.ts",
+      "sha256": "a55e54c5846b23fb9f482a928ad022813b42347b32edf2391aaa81d9eb4974fe"
+    },
+    {
+      "path": "shared/route-shape-policy.ts",
+      "sha256": "e76fbb1aaf3d738b8844904a4ec5a0c81fb71c4f5d156314c9ce362ac6c0ba76"
+    },
+    {
+      "path": "tests/domain.test.ts",
+      "sha256": "302d282c30df40a5d48ed74fa9cf7d781842e5bbe9dc537844b26e7c88f93ff8"
+    },
+    {
+      "path": "tests/e2e/tourism-save-recovery.spec.ts",
+      "sha256": "57d4e69415857245b3546b01c2e4dbc2206597c674073a9e045ec8f8772ba62d"
+    },
+    {
+      "path": "tests/review-write-boundaries.test.ts",
+      "sha256": "185614e9feb6abe5227c9f8c631f16a6b84a7e9cf9cb44f9d499cd148a50f0f3"
+    },
+    {
+      "path": "tests/route-map-policy.test.ts",
+      "sha256": "13ce176e75891d567772ee8cb0228f5e2a47a89e16c8b354192923d52f461aea"
+    },
+    {
+      "path": "tests/route-response-validation.test.ts",
+      "sha256": "64179b25b1930da342d8a8c5d5e1920bee2c5d7ae08ad9bdc84e0043527f0f70"
+    },
+    {
+      "path": "tests/valhalla-gate.test.ts",
+      "sha256": "4e682f936715887038d23780a3bc00495d318b150f53592bc9e3c7281e578004"
+    }
+  ],
+  "remoteVerification": "See the pushed ver2 commit Actions run and final task response; this artifact records local verification only",
+  "remaining": [
+    "Pre-admission deadline and full CI coverage for six catalog-dependent files",
+    "Graph/domain module separation and broader DTO/failure enums",
+    "Context version or idempotency/proposal storage when product contract requires them",
+    "Actual production capacity and backup/restore",
+    "Intermittent auth 401 root cause remains unknown"
+  ]
+}

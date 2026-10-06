@@ -1,3 +1,4 @@
+import { lockTrip, lockTripForWrite } from './trip-write.js';
 import { rollback, release } from './transactions.js';
 import { Router, type RequestHandler } from 'express';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -110,6 +111,15 @@ invitations.post(
     const db = await pool.connect();
     try {
       await db.query('BEGIN');
+      const parent = await db.query(
+        `SELECT trip_id FROM planner.trip_invitation WHERE ${input.token ? 'token_hash' : 'id'}=$1`,
+        [input.token ? hash(input.token) : input.id],
+      );
+      if (!parent.rowCount) {
+        await rollback(db);
+        return res.status(404).json({ error: '초대를 찾을 수 없어요.' });
+      }
+      await lockTrip(db, parent.rows[0].trip_id);
       const q = await db.query(
         `SELECT * FROM planner.trip_invitation WHERE ${input.token ? 'token_hash' : 'id'}=$1 FOR UPDATE`,
         [input.token ? hash(input.token) : input.id],
@@ -351,6 +361,7 @@ const saveExpense: RequestHandler = wrap(async (req, res) => {
   const db = await pool.connect();
   try {
     await db.query('BEGIN');
+    await lockTripForWrite(db, tripId, userId);
     let existing: any;
     if (req.params.expenseId) {
       existing = (
@@ -447,6 +458,7 @@ collaboration.patch(
       db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
       const q = await db.query(
         'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
         [req.params.id, date],

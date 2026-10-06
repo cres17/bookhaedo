@@ -1032,8 +1032,29 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "조회 취소 또는 DB 사용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "READ_QUERY_TIMEOUT 또는 REQUEST_DEADLINE_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
+        "description": " 여행 메타데이터·권한·날짜 revision·장소 목록은 단일 SQL snapshot으로 조회한다. handler 조회는 15초, SQL은 3초로 제한하며 인증·rate limit 대기는 이 기한에 포함되지 않는다.",
         "tags": [
           "여행"
         ],
@@ -3294,7 +3315,7 @@
             }
           }
         },
-        "description": "날짜 행을 잠그고 기존 순서와 비교해 동시 수정 409를 반환한다. 실내 분류·20km·중복을 재검증하며 예보는 저장 시 다시 호출하지 않는다. 기존 순번과 다른 항목의 메모를 유지하고 교체 대상 메모만 비운다. 오류 시 rollback. 추가 테이블 없이 날짜의 revision을 사용한다. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.",
+        "description": "날짜 행을 잠그고 기존 순서와 비교해 동시 수정 409를 반환한다. 실내 분류·20km·중복을 재검증하며 예보는 저장 시 다시 호출하지 않는다. 기존 순번과 다른 항목의 메모를 유지하고 교체 대상 메모만 비운다. 오류 시 rollback. 추가 테이블 없이 날짜의 revision을 사용한다. 교체 target을 제외한 기존 장소와 동일 지역/분류/정규화 일본어명/10m 이내 시설 중복을 검사하며 400/PLACE_INELIGIBLE로 거절한다. 여행→날짜→catalog ID(C collation) 순서로 잠그며 잠금 대기 3초 초과는 409/TRIP_WRITE_BUSY. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.",
         "tags": [
           "추천"
         ],
@@ -3577,7 +3598,7 @@
             }
           }
         },
-        "description": "날짜 행을 잠그고 기존 일정 순서와 expectedPlaceIds를 비교한다. 추천 코스의 장소 존재·중복·기존 중심과의 거리를 검증하고 트랜잭션으로 전체 순서를 교체한다. 새 코스에 남는 장소의 메모만 유지하며 오류나 충돌 시 기존 일정을 보존한다. 명시적으로 closed인 장소·비공개·폐기·숙박 분류와 동일 지역/분류/정규화 일본어명/10m 이내 중복 시설을 재검증한다. unknown 영업시간은 금지하지 않는다. expectedTransportMode를 전달하면 이동 수단 변경도 409로 거절한다. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.",
+        "description": "날짜 행을 잠그고 기존 일정 순서와 expectedPlaceIds를 비교한다. 추천 코스의 장소 존재·중복·기존 중심과의 거리를 검증하고 트랜잭션으로 전체 순서를 교체한다. 새 코스에 남는 장소의 메모만 유지하며 오류나 충돌 시 기존 일정을 보존한다. 명시적으로 closed인 장소·비공개·폐기·숙박 분류와 동일 지역/분류/정규화 일본어명/10m 이내 중복 시설을 재검증한다. unknown 영업시간은 금지하지 않는다. expectedTransportMode를 전달하면 이동 수단 변경도 409로 거절한다. 여행→날짜→catalog ID(C collation) 순서로 잠그고 권한과 문맥을 다시 검사한다. mode 변경이 먼저 완료되면 409, 확정이 먼저 잠그면 설정 변경은 그 뒤에 완료된다. 유지 장소의 item ID·메모·예산·시간을 보존한다. 잠금 대기 3초 초과는 409/TRIP_WRITE_BUSY. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.",
         "tags": [
           "추천"
         ],
@@ -6834,10 +6855,23 @@
             "type": "array",
             "items": {
               "type": "array",
-              "items": {
-                "type": "number"
-              }
-            }
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                }
+              ],
+              "items": false
+            },
+            "maxItems": 20000
           },
           "estimatedCost": {
             "type": "null"
@@ -6871,7 +6905,9 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 262144,
+            "description": "Google 1e5 인코딩 좌표 검증 후 반환. 부재 시 null이며 유효한 경로 수치와 구분한다. 타입·인코딩·범위가 잘못된 geometry는 정상 경로로 캐시하지 않는다."
           },
           "source": {
             "type": "string",
@@ -7613,10 +7649,23 @@
                           "type": "array",
                           "items": {
                             "type": "array",
-                            "items": {
-                              "type": "number"
-                            }
-                          }
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "prefixItems": [
+                              {
+                                "type": "number",
+                                "minimum": -180,
+                                "maximum": 180
+                              },
+                              {
+                                "type": "number",
+                                "minimum": -90,
+                                "maximum": 90
+                              }
+                            ],
+                            "items": false
+                          },
+                          "maxItems": 20000
                         },
                         "estimatedCost": {
                           "type": "null"
@@ -7650,7 +7699,9 @@
                           "type": [
                             "string",
                             "null"
-                          ]
+                          ],
+                          "maxLength": 262144,
+                          "description": "Google 1e5 인코딩 좌표 검증 후 반환. 부재 시 null이며 유효한 경로 수치와 구분한다. 타입·인코딩·범위가 잘못된 geometry는 정상 경로로 캐시하지 않는다."
                         },
                         "source": {
                           "type": "string",

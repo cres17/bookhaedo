@@ -1,3 +1,4 @@
+import { decodeRouteShape, readRouteJson, parseValhallaRoute } from './route-response.js';
 import { getSelfHostedValhallaGate } from './valhalla-gate.js';
 import { isPublicValhalla, PUBLIC_VALHALLA_BASE_URL } from './valhalla-policy.js';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -17,31 +18,7 @@ async function throttle(signal?: AbortSignal) {
   queue = next.catch(() => {});
   await next;
 }
-export function decodeShape(shape: string) {
-  let index = 0,
-    lat = 0,
-    lon = 0;
-  const points: number[][] = [];
-  function read() {
-    let result = 0,
-      shift = 0,
-      byte;
-    do {
-      if (index >= shape.length || shift > 30) throw Error('BAD_SHAPE');
-      byte = shape.charCodeAt(index++) - 63;
-      if (byte < 0 || byte > 63) throw Error('BAD_SHAPE');
-      result |= (byte & 31) << shift;
-      shift += 5;
-    } while (byte >= 32);
-    return result & 1 ? ~(result >> 1) : result >> 1;
-  }
-  while (index < shape.length) {
-    lat += read();
-    lon += read();
-    points.push([lon / 1e6, lat / 1e6]);
-  }
-  return points;
-}
+export const decodeShape = decodeRouteShape;
 export async function routeSegment(
   a: Point,
   b: Point,
@@ -109,31 +86,17 @@ async function fetchRouteSegment(
         { signal: deadline, headers: { 'X-Client-Id': 'bookhaedo-local-educational-poc' } },
       );
       if (!response.ok) throw Error('UNAVAILABLE');
-      return response.json();
+      return readRouteJson(response, deadline);
     };
     // Hold the permit until the entire body is read, not just until headers arrive.
     const body = isPublicValhalla(base)
       ? await readRoute()
       : await getSelfHostedValhallaGate().run(readRoute, deadline);
-    const t = body.trip;
-    if (
-      t?.status !== 0 ||
-      !Number.isFinite(t.summary?.length) ||
-      !Number.isFinite(t.summary?.time) ||
-      !t.legs?.length
-    )
-      throw Error('NO_ROUTE');
-    const distanceMeters = Math.round(t.summary.length * 1000);
-    const durationSeconds = Math.round(t.summary.time);
-    if (
-      t.summary.length < 0 ||
-      t.summary.time < 0 ||
-      !Number.isSafeInteger(distanceMeters) ||
-      !Number.isSafeInteger(durationSeconds)
-    )
+    const { summary, coordinates } = parseValhallaRoute(body);
+    const distanceMeters = Math.round(summary.length * 1000),
+      durationSeconds = Math.round(summary.time);
+    if (!Number.isSafeInteger(distanceMeters) || !Number.isSafeInteger(durationSeconds))
       throw Error('INVALID_ROUTE_MEASUREMENT');
-    const coordinates = t.legs.flatMap((l: any) => decodeShape(l.shape));
-    if (coordinates.length < 2) throw Error('NO_SHAPE');
     return {
       from: a.id,
       to: b.id,

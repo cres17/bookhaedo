@@ -36,7 +36,7 @@ describe('화이트박스: Google 응답과 실패 분기', () => {
       new Response(
         JSON.stringify({
           routes: [
-            { distanceMeters: 1530, duration: '360s', polyline: { encodedPolyline: 'abc' } },
+            { distanceMeters: 1530, duration: '360s', polyline: { encodedPolyline: '??_ibE_ibE' } },
           ],
         }),
       ),
@@ -46,7 +46,7 @@ describe('화이트박스: Google 응답과 실패 분기', () => {
       source: 'google',
       distanceMeters: 1530,
       durationSeconds: 360,
-      polyline: 'abc',
+      polyline: '??_ibE_ibE',
     });
     expect(JSON.parse(request.mock.calls[0]![1].body).travelMode).toBe('DRIVE');
     vi.unstubAllEnvs();

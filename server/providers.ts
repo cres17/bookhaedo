@@ -1,3 +1,4 @@
+import { readRouteJson, parseGoogleRoute } from './route-response.js';
 import { parseWeatherResponse } from './weather-response.js';
 import { straightDistance, dateOnly } from './domain.js';
 import { providerCaches, providerKey, providerSignal } from './provider-cache.js';
@@ -60,9 +61,10 @@ async function fetchSegment(
     signal?.throwIfAborted();
     const key = getGoogleKey();
     if (!key) throw new Error('KEY_MISSING');
+    const deadline = providerSignal(9000, signal);
     const response = await request('https://routes.googleapis.com/directions/v2:computeRoutes', {
       method: 'POST',
-      signal: providerSignal(9000, signal),
+      signal: deadline,
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': key,
@@ -82,26 +84,14 @@ async function fetchSegment(
       }),
     });
     if (!response.ok) throw new Error('GOOGLE_UNAVAILABLE');
-    const result = await response.json();
-    const route = result.routes?.[0];
-    if (
-      !route ||
-      !Number.isSafeInteger(route.distanceMeters) ||
-      route.distanceMeters < 0 ||
-      route.distanceMeters > 2147483647
-    )
-      throw new Error('NO_ROUTE');
-    // Google uses protobuf Duration: a complete seconds string with at most nine fractional digits.
-    if (typeof route.duration !== 'string' || !/^\d+(?:\.\d{1,9})?s$/.test(route.duration))
-      throw new Error('BAD_DURATION');
-    const seconds = Number(route.duration.slice(0, -1));
-    if (!Number.isFinite(seconds) || seconds < 0 || seconds > 315576000000)
-      throw new Error('BAD_DURATION');
+    const { route, durationSeconds, polyline } = parseGoogleRoute(
+      await readRouteJson(response, deadline),
+    );
     return {
       ...base,
       distanceMeters: route.distanceMeters,
-      durationSeconds: seconds,
-      polyline: route.polyline?.encodedPolyline || null,
+      durationSeconds,
+      polyline,
       source: 'google',
       transitFare:
         route.localizedValues?.transitFare?.text || route.travelAdvisory?.transitFare || null,

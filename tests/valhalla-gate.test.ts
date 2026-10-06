@@ -80,21 +80,26 @@ it('routing keeps its permit until JSON body completion and cancels queued reque
   const releases: (() => void)[] = [];
   const fetcher = vi.fn(
     async () =>
-      ({
-        ok: true,
-        json: () =>
-          new Promise((resolve) =>
-            releases.push(() =>
-              resolve({
-                trip: {
-                  status: 0,
-                  summary: { length: 1, time: 90 },
-                  legs: [{ shape: '??_ibE_ibE' }],
-                },
-              }),
-            ),
-          ),
-      }) as Response,
+      new Response(
+        new ReadableStream<Uint8Array>({
+          start(controller) {
+            releases.push(() => {
+              controller.enqueue(
+                new TextEncoder().encode(
+                  JSON.stringify({
+                    trip: {
+                      status: 0,
+                      summary: { length: 1, time: 90 },
+                      legs: [{ shape: '??_ibE_ibE' }],
+                    },
+                  }),
+                ),
+              );
+              controller.close();
+            });
+          },
+        }),
+      ),
   );
   const a = { id: 'gate-a', latitude: 43, longitude: 141 },
     b = { ...a, id: 'gate-b' };

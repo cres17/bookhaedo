@@ -1,3 +1,8 @@
+import { recommendationRequestBudget } from '../operation-budget.js';
+import { replaceDayItems } from '../itinerary-write.js';
+import { lockTripForWrite } from '../trip-write.js';
+import { tripSnapshot } from '../trip-snapshot.js';
+import { operation } from '../observability/metrics.js';
 import { rollback, release } from '../transactions.js';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -53,24 +58,14 @@ app.post(
 app.use('/api/trips/:id', collaboration);
 app.get(
   '/api/trips/:id',
+  operation('tripRead'),
   wrap(async (req, res) => {
-    const days = await pool.query(
-      'SELECT id,visit_date::text AS date,revision FROM planner.trip_day WHERE trip_id=$1 ORDER BY visit_date',
-      [req.params.id],
+    const budget = recommendationRequestBudget(req, res);
+    const data = await budget.run(() =>
+      tripSnapshot(pool, String(req.params.id), res.locals.user.id, budget.signal),
     );
-    const items = await pool.query(
-      `SELECT i.id AS "itemId",i.day_id AS "dayId",i.position,i.note,i.estimated_cost AS "estimatedCost",i.start_minute AS "startMinute",i.end_minute AS "endMinute",p.id,p.region_id AS "regionId",p.category,p.name_ja AS "nameJa",p.name_ko AS "nameKo",COALESCE(p.name_ko,p.name_ja) AS name,p.latitude,p.longitude,p.address,p.website,p.opening_hours AS "openingHours",p.osm_tags AS tags FROM planner.itinerary_item i JOIN planner.trip_day d ON d.id=i.day_id JOIN geo_data.place p ON p.id=i.place_id WHERE d.trip_id=$1 ORDER BY i.position`,
-      [req.params.id],
-    );
-    res.json({
-      data: {
-        ...res.locals.trip,
-        days: days.rows.map((day) => ({
-          ...day,
-          items: items.rows.filter((i) => i.dayId === day.id),
-        })),
-      },
-    });
+    if (!data) return res.status(404).json({ error: '여행을 찾을 수 없습니다.' });
+    res.json({ data });
   }),
 );
 app.post(
@@ -80,7 +75,7 @@ app.post(
       db = await pool.connect();
     try {
       await db.query('BEGIN');
-      await db.query('SELECT id FROM planner.trip WHERE id=$1 FOR UPDATE', [req.params.id]);
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
       const count = await db.query(
         'SELECT count(*)::int AS count,max(visit_date)::text AS last FROM planner.trip_day WHERE trip_id=$1',
         [req.params.id],
@@ -114,6 +109,7 @@ app.put(
       db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
       const day = await db.query(
         'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
         [req.params.id, date],
@@ -133,25 +129,7 @@ app.put(
         await rollback(db);
         return res.status(400).json({ error: '존재하지 않는 장소가 포함되어 있습니다.' });
       }
-      const notes = await db.query(
-        'SELECT place_id,note,estimated_cost,start_minute,end_minute FROM planner.itinerary_item WHERE day_id=$1',
-        [day.rows[0].id],
-      );
-      await db.query('DELETE FROM planner.itinerary_item WHERE day_id=$1', [day.rows[0].id]);
-      for (const [position, placeId] of input.placeIds.entries())
-        await db.query(
-          'INSERT INTO planner.itinerary_item(id,day_id,place_id,position,note,estimated_cost,start_minute,end_minute) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',
-          [
-            randomUUID(),
-            day.rows[0].id,
-            placeId,
-            position,
-            notes.rows.find((n) => n.place_id === placeId)?.note || '',
-            notes.rows.find((n) => n.place_id === placeId)?.estimated_cost ?? null,
-            notes.rows.find((n) => n.place_id === placeId)?.start_minute ?? null,
-            notes.rows.find((n) => n.place_id === placeId)?.end_minute ?? null,
-          ],
-        );
+      await replaceDayItems(db, day.rows[0].id, input.placeIds);
       await db.query('UPDATE planner.trip_day SET revision=revision+1 WHERE id=$1', [
         day.rows[0].id,
       ]);
@@ -176,22 +154,44 @@ app.patch(
         costSettings: costInput.optional(),
       })
       .parse(req.body);
-    await pool.query(
-      'UPDATE planner.trip SET title=$1,transport_mode=$2,cost_settings=COALESCE($3::jsonb,cost_settings),updated_at=now() WHERE id=$4',
-      [input.title, input.transportMode, input.costSettings ?? null, req.params.id],
-    );
-    res.json({ saved: true });
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
+      await db.query(
+        'UPDATE planner.trip SET title=$1,transport_mode=$2,cost_settings=COALESCE($3::jsonb,cost_settings),updated_at=now() WHERE id=$4',
+        [input.title, input.transportMode, input.costSettings ?? null, req.params.id],
+      );
+      await db.query('COMMIT');
+      res.json({ saved: true });
+    } catch (e) {
+      await rollback(db);
+      throw e;
+    } finally {
+      release(db);
+    }
   }),
 );
 app.patch(
   '/api/trips/:id/cost-settings',
   wrap(async (req, res) => {
     const input = costInput.parse(req.body);
-    await pool.query('UPDATE planner.trip SET cost_settings=$1,updated_at=now() WHERE id=$2', [
-      input,
-      req.params.id,
-    ]);
-    res.json({ saved: true });
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
+      await db.query('UPDATE planner.trip SET cost_settings=$1,updated_at=now() WHERE id=$2', [
+        input,
+        req.params.id,
+      ]);
+      await db.query('COMMIT');
+      res.json({ saved: true });
+    } catch (e) {
+      await rollback(db);
+      throw e;
+    } finally {
+      release(db);
+    }
   }),
 );
 app.patch(
@@ -203,6 +203,7 @@ app.patch(
       db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
       const day = await db.query(
         'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
         [req.params.id, date],
@@ -256,6 +257,7 @@ app.patch(
       db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
       const day = await db.query(
         'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
         [req.params.id, date],
@@ -299,6 +301,7 @@ app.post(
       db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id);
       const day = await db.query(
         'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
         [req.params.id, date],
@@ -360,8 +363,19 @@ app.delete(
   wrap(async (req, res) => {
     if (!res.locals.trip.isOwner)
       return res.status(403).json({ error: '여행 삭제는 소유자만 할 수 있어요.' });
-    await pool.query('DELETE FROM planner.trip WHERE id=$1', [req.params.id]);
-    res.status(204).end();
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
+      await lockTripForWrite(db, String(req.params.id), res.locals.user.id, true);
+      await db.query('DELETE FROM planner.trip WHERE id=$1', [req.params.id]);
+      await db.query('COMMIT');
+      res.status(204).end();
+    } catch (e) {
+      await rollback(db);
+      throw e;
+    } finally {
+      release(db);
+    }
   }),
 );
 

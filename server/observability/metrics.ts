@@ -5,6 +5,21 @@ import { pool } from '../db.js';
 import { logger } from './logger.js';
 import { providerCaches } from '../provider-cache.js';
 
+const operations = {
+  tripRead: '/api/trips/:id',
+  dayRead: '/api/trips/:id/days/:date/day-alternatives',
+  dayWrite: '/api/trips/:id/days/:date/day-alternatives',
+  weatherRead: '/api/trips/:id/days/:date/weather-alternatives',
+  weatherWrite: '/api/trips/:id/days/:date/weather-alternatives',
+  aiRead: '/api/trips/:id/days/:date/ai-recommendations',
+} as const;
+export const operation =
+  (id: keyof typeof operations): RequestHandler =>
+  (_req, res, next) => {
+    res.locals.metricOperation = operations[id];
+    next();
+  };
+
 const durationBuckets = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
 const requests = new Map<string, number>();
 const aborted = new Map<string, number>();
@@ -34,7 +49,11 @@ export const observeRequests: RequestHandler = (req, res, next) => {
     inFlight--;
     const seconds = Number(process.hrtime.bigint() - started) / 1e9;
     const matchedRoute = typeof req.route?.path === 'string' ? req.route.path : undefined;
-    const route = matchedRoute ? routeLabel(matchedRoute) : '/api/:unmatched';
+    const route = Object.values(operations).includes(res.locals.metricOperation)
+      ? res.locals.metricOperation
+      : matchedRoute
+        ? routeLabel(matchedRoute)
+        : '/api/:unmatched';
     if (!completed) {
       const key = `${req.method}\0${route}`;
       aborted.set(key, (aborted.get(key) || 0) + 1);

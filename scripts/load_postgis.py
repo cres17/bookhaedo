@@ -106,6 +106,8 @@ def load(args: argparse.Namespace) -> None:
 
             with (args.data_dir / "places_merged.csv").open(encoding="utf-8", newline="") as handle:
                 place_rows = list(csv.DictReader(handle))
+            # Match recommendation catalog lock ordering (id COLLATE "C").
+            place_rows.sort(key=lambda row: row["id"])
             for row in place_rows:
                 cursor.execute(
                     """

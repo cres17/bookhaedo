@@ -88,6 +88,17 @@ const tagFor=path=>path.includes('alternatives')?'추천':path.startsWith('/admi
 const revision={type:'integer',minimum:0,description:'조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가'};
 schemas.Trip.properties.days.items.properties.revision=revision;
 schemas.Trip.properties.days.items.required=['id','date','revision','items'];
+paths['/trips/{id}'].get.responses[503]=response(ref('Error'),'조회 취소 또는 DB 사용 불가');
+paths['/trips/{id}'].get.responses[504]=response(ref('Error'),'READ_QUERY_TIMEOUT 또는 REQUEST_DEADLINE_EXCEEDED');
+for(const segment of [schemas.Segment,aiSegment]){
+ segment.properties.coordinates.maxItems=20000;
+ segment.properties.coordinates.items={type:'array',minItems:2,maxItems:2,prefixItems:[{type:'number',minimum:-180,maximum:180},{type:'number',minimum:-90,maximum:90}],items:false};
+ segment.properties.polyline.maxLength=262144;
+ segment.properties.polyline.description='Google 1e5 인코딩 좌표 검증 후 반환. 부재 시 null이며 유효한 경로 수치와 구분한다. 타입·인코딩·범위가 잘못된 geometry는 정상 경로로 캐시하지 않는다.';
+}
+paths['/trips/{id}'].get.description=(paths['/trips/{id}'].get.description||'')+' 여행 메타데이터·권한·날짜 revision·장소 목록은 단일 SQL snapshot으로 조회한다. handler 조회는 15초, SQL은 3초로 제한하며 인증·rate limit 대기는 이 기한에 포함되지 않는다.';
+paths['/trips/{id}/days/{date}/day-alternatives'].patch.description+=' 여행→날짜→catalog ID(C collation) 순서로 잠그고 권한과 문맥을 다시 검사한다. mode 변경이 먼저 완료되면 409, 확정이 먼저 잠그면 설정 변경은 그 뒤에 완료된다. 유지 장소의 item ID·메모·예산·시간을 보존한다. 잠금 대기 3초 초과는 409/TRIP_WRITE_BUSY.';
+paths['/trips/{id}/days/{date}/weather-alternatives'].patch.description+=' 교체 target을 제외한 기존 장소와 동일 지역/분류/정규화 일본어명/10m 이내 시설 중복을 검사하며 400/PLACE_INELIGIBLE로 거절한다. 여행→날짜→catalog ID(C collation) 순서로 잠그며 잠금 대기 3초 초과는 409/TRIP_WRITE_BUSY.';
 for(const [path,method]of [['/trips/{id}/days/{date}/items','put'],['/trips/{id}/days/{date}/items/{placeId}/note','patch'],['/trips/{id}/days/{date}/weather-alternatives','patch'],['/trips/{id}/days/{date}/day-alternatives','patch']]){
  const operation=paths[path][method],schema=operation.requestBody.content['application/json'].schema;
  schema.required=[...schema.required,'expectedRevision'];schema.properties.expectedRevision=revision;
