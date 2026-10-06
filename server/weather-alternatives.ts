@@ -1,8 +1,13 @@
+import { lockTripForWrite } from './trip-write.js';
+import { operation } from './observability/metrics.js';
 import { dayContext } from './day-alternatives.js';
 import { summarizeRecommendationRoutes } from './recommendation-preview.js';
 import { recommendationRequestBudget, abortable } from './operation-budget.js';
 import { readQuery } from './read-query.js';
-import { eligibleRecommendationPlace } from './recommendation-policy.js';
+import {
+  eligibleRecommendationPlace,
+  sameRecommendationFacility,
+} from './recommendation-policy.js';
 import { rollback, release } from './transactions.js';
 import { Router } from 'express';
 import { z } from 'zod';
@@ -28,9 +33,8 @@ export function rankAlternatives(places: any[], items: any[], target: any) {
       (p) =>
         eligibleRecommendationPlace(p) &&
         indoorEvidence(p) &&
-        !items.some(
-          (i) => i.id === p.id || (straightDistance(i, p) < 100 && i.nameJa === p.nameJa),
-        ) &&
+        p.id !== target.id &&
+        !items.some((i) => i.id !== target.id && sameRecommendationFacility(i, p)) &&
         straightDistance(target, p) <= 20000,
     )
     .map((p) => ({
@@ -68,6 +72,7 @@ async function legs(
 }
 alternatives.get(
   '/',
+  operation('weatherRead'),
   wrap(async (req: any, res: any) => {
     const budget = recommendationRequestBudget(req, res);
     res.set('Cache-Control', 'no-store');
@@ -155,12 +160,14 @@ alternatives.get(
 );
 alternatives.patch(
   '/',
+  operation('weatherWrite'),
   wrap(async (req: any, res: any) => {
     const date = dateOnly.parse(req.params.date),
       input = orderInput.extend({ targetId: uuid, replacementId: uuid }).parse(req.body),
       db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, req.params.id, res.locals.user.id);
       const day = await db.query(
         'SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
         [req.params.id, date],
@@ -188,8 +195,8 @@ alternatives.patch(
           .json({ error: '일정이 변경됐거나 이미 포함된 장소예요. 일정을 새로 확인해주세요.' });
       }
       const places = await db.query(
-        `SELECT ${placeSelect} FROM geo_data.place WHERE id=ANY($1::text[])`,
-        [[input.targetId, input.replacementId]],
+        `SELECT ${placeSelect} FROM geo_data.place WHERE id=ANY($1::text[]) ORDER BY id COLLATE "C" FOR SHARE`,
+        [[...input.placeIds, input.replacementId]],
       );
       const target = places.rows.find((p) => p.id === input.targetId),
         replacement = places.rows.find((p) => p.id === input.replacementId);
@@ -199,10 +206,19 @@ alternatives.patch(
         !isOutdoor(target) ||
         !eligibleRecommendationPlace(replacement) ||
         !indoorEvidence(replacement) ||
-        straightDistance(target, replacement) > 20000
+        straightDistance(target, replacement) > 20000 ||
+        places.rows.some(
+          (p) =>
+            p.id !== input.targetId &&
+            p.id !== input.replacementId &&
+            sameRecommendationFacility(p, replacement),
+        )
       ) {
         await rollback(db);
-        return res.status(400).json({ error: '주변 실내 대체 장소를 선택해주세요.' });
+        return res.status(400).json({
+          code: 'PLACE_INELIGIBLE',
+          error: '이미 포함된 시설과 겹치지 않는 주변 실내 장소를 선택해주세요.',
+        });
       }
       await db.query(
         "UPDATE planner.itinerary_item SET place_id=$1,note='',estimated_cost=NULL WHERE day_id=$2 AND place_id=$3",

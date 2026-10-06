@@ -2,17 +2,18 @@
 import PanelHeader from './PanelHeader.vue';
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import type { Place } from '../types';
-import { api, json } from '../api';
+import { api, json, ApiError } from '../api';
 import { adverseWeather, weatherReason } from '../../../shared/weather-policy';
 const props = defineProps<{
   tripId: string;
   date: string;
   revision: number;
+  transportMode: string;
   items: Place[];
   weather: any;
   disabled: boolean;
 }>();
-const emit = defineEmits<{ saved: []; preview: [value: any]; dismiss: [] }>();
+const emit = defineEmits<{ saved: []; refresh: []; preview: [value: any]; dismiss: [] }>();
 const opened = ref(false),
   result = ref<any>(null),
   busy = ref(false),
@@ -23,7 +24,8 @@ const opened = ref(false),
   useKnowledge = ref(false),
   interests = ref(''),
   keepPlaceIds = ref<string[]>([]),
-  conditionsChanged = ref(false);
+  conditionsChanged = ref(false),
+  outcomeUnknown = ref(false);
 const mobile = ref(false),
   media = window.matchMedia('(max-width:760px)');
 let generation = 0;
@@ -46,7 +48,9 @@ onUnmounted(() => {
   media.removeEventListener('change', resize);
 });
 const endpoint = computed(() => `/trips/${props.tripId}/days/${props.date}/day-alternatives`);
-const signature = computed(() => `${props.tripId}|${props.date}|${props.revision}`);
+const signature = computed(
+  () => `${props.tripId}|${props.date}|${props.revision}|${props.transportMode}`,
+);
 const conditions = computed(() =>
   JSON.stringify({
     count: count.value,
@@ -91,6 +95,7 @@ const weatherCopy = computed(() =>
     : '맑은 날에도 동선을 새로 짤 수 있어요.',
 );
 async function load(strategy = '') {
+  if (outcomeUnknown.value) return;
   cancelPending();
   const controller = new AbortController();
   pending = controller;
@@ -155,6 +160,7 @@ async function replaceDay() {
   const preview = result.value?.preview;
   if (
     !preview ||
+    outcomeUnknown.value ||
     busy.value ||
     saving.value ||
     props.disabled ||
@@ -166,9 +172,8 @@ async function replaceDay() {
   saving.value = true;
   error.value = '';
   try {
-    await api(
-      endpoint.value,
-      json('PATCH', {
+    await api(endpoint.value, {
+      ...json('PATCH', {
         placeIds: preview.plan.places.map((p: any) => p.id),
         expectedPlaceIds: result.value.expectedPlaceIds,
         expectedRevision: result.value.expectedRevision,
@@ -176,12 +181,40 @@ async function replaceDay() {
           ? { expectedTransportMode: result.value.transportMode }
           : {}),
       }),
-    );
+      // Transport wait only: aborting this fetch does not assert that COMMIT was cancelled.
+      signal: AbortSignal.timeout(30000),
+    });
     saving.value = false;
     close();
     emit('saved');
   } catch (e: any) {
-    error.value = e.message;
+    if (!result.value) return;
+    result.value = { ...result.value, preview: null };
+    selected.value = '';
+    emit('preview', null);
+    if (!(e instanceof ApiError) || e.status >= 500) {
+      outcomeUnknown.value = true;
+      error.value = '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.';
+    } else
+      error.value =
+        e.status === 409
+          ? '일정이나 이동 수단이 변경됐어요. 최신 일정을 확인하고 코스를 다시 선택해주세요.'
+          : e.message;
+  } finally {
+    saving.value = false;
+  }
+}
+async function checkSavedState() {
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    await api('/trips/' + props.tripId, { signal: AbortSignal.timeout(15000) });
+    outcomeUnknown.value = false;
+    saving.value = false;
+    close();
+    emit('refresh');
+  } catch (e: any) {
+    error.value = '현재 일정을 확인하지 못했어요. 잠시 후 다시 확인해주세요.';
   } finally {
     saving.value = false;
   }
@@ -226,7 +259,7 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
         방문 장소 수
         <select
           v-model.number="count"
-          :disabled="busy || saving"
+          :disabled="busy || saving || outcomeUnknown"
           @change="
             keepPlaceIds = keepPlaceIds.slice(0, count);
             load();
@@ -238,7 +271,7 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
           <option :value="6">6곳</option>
         </select>
       </label>
-      <fieldset class="knowledge-controls" :disabled="busy || saving">
+      <fieldset class="knowledge-controls" :disabled="busy || saving || outcomeUnknown">
         <legend>추천에 참고할 정보</legend>
         <label class="knowledge-option">
           <input v-model="useKnowledge" type="checkbox" @change="load()" />
@@ -277,9 +310,24 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
         추천 조건이 바뀌었어요. 조건 적용해 다시 추천한 뒤 코스를 선택해주세요.
       </p>
       <p v-if="busy" role="status">예보와 주변 장소를 확인하고 있어요…</p>
-      <p v-if="error" role="alert" class="form-error">
-        {{ error }}
-        <button @click="load(selected)">다시 조회</button>
+      <p v-if="outcomeUnknown || error" role="alert" class="form-error">
+        {{ error || '저장 응답을 확인하지 못했어요. 다시 저장하기 전에 현재 일정을 확인해주세요.' }}
+        <button
+          v-if="outcomeUnknown"
+          class="button subtle small"
+          :disabled="saving"
+          @click="checkSavedState"
+        >
+          현재 일정 확인
+        </button>
+        <button
+          v-else
+          class="button subtle small"
+          :disabled="saving || busy"
+          @click="load(selected)"
+        >
+          다시 조회
+        </button>
       </p>
       <template v-if="result && !busy">
         <p v-if="result.weather?.available" class="forecast">
@@ -325,7 +373,11 @@ const time = (s: number | null) => (s === null ? '확인 불가' : `${Math.round
               <span>{{ place.category === 'RESTAURANT' ? '먹을 곳' : '가볼 곳' }}</span>
             </li>
           </ol>
-          <button class="button subtle small" :disabled="saving" @click="load(plan.id)">
+          <button
+            class="button subtle small"
+            :disabled="saving || outcomeUnknown"
+            @click="load(plan.id)"
+          >
             이 코스 동선 미리보기
           </button>
         </article>

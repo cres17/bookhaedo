@@ -484,6 +484,7 @@ const duration = (seconds: number) => {
           :trip-id="trip.id"
           :date="active"
           :revision="current.revision"
+          :transport-mode="trip.transportMode"
           :items="current.items"
           :weather="weather"
           :disabled="saving"
@@ -492,6 +493,7 @@ const duration = (seconds: number) => {
             dayPreview = $event;
             alternativePreview = null;
           "
+          @refresh="load()"
           @saved="
             load();
             notify('새로운 하루 코스를 저장했어요.');

@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import type { Place, Segment } from '../types';
 import Island from './Island.vue';
+import { routeMapPath } from '../route-map-policy';
 const props = withDefaults(
   defineProps<{
     places?: Place[];
@@ -18,7 +19,8 @@ const emit = defineEmits<{
   viewport: [value: { center: { latitude: number; longitude: number }; zoom: number }];
 }>();
 const container = ref<HTMLElement>(),
-  status = ref<'loading' | 'ready' | 'unavailable'>('loading');
+  status = ref<'loading' | 'ready' | 'unavailable'>('loading'),
+  endpointLines = ref(false);
 let map: any,
   markers: any[] = [],
   lines: any[] = [],
@@ -36,6 +38,7 @@ function draw() {
   lines.forEach((l) => l.setMap(null));
   markers = [];
   lines = [];
+  endpointLines.value = false;
   props.places.forEach((p, i) => {
     const marker = new google.maps.Marker({
       map,
@@ -68,20 +71,27 @@ function draw() {
     const a = props.places.find((p) => p.id === s.from),
       b = props.places.find((p) => p.id === s.to);
     if (!a || !b) continue;
-    const path = s.coordinates
-      ? s.coordinates.map(([lng, lat]) => ({ lat, lng }))
-      : s.polyline
-        ? google.maps.geometry.encoding.decodePath(s.polyline)
-        : [
-            { lat: a.latitude, lng: a.longitude },
-            { lat: b.latitude, lng: b.longitude },
-          ];
+    const { path, routed } = routeMapPath(s, a, b, (encoded) =>
+      google.maps.geometry.encoding
+        .decodePath(encoded)
+        .map((point: any) => [point.lng(), point.lat()]),
+    );
+    endpointLines.value ||= !routed;
     lines.push(
       new google.maps.Polyline({
         map,
         path,
-        strokeColor: s.source !== 'straight-line' ? '#d6404b' : '#7c8598',
-        strokeOpacity: 0.8,
+        strokeColor: routed ? '#d6404b' : '#7c8598',
+        strokeOpacity: routed ? 0.8 : 0,
+        icons: routed
+          ? undefined
+          : [
+              {
+                icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.8, scale: 3 },
+                offset: '0',
+                repeat: '12px',
+              },
+            ],
         strokeWeight: 3,
       }),
     );
@@ -214,6 +224,15 @@ onBeforeUnmount(() => {
     </div>
     <span v-if="status === 'ready'" class="map-data-caption">
       장소 데이터 © OpenStreetMap contributors
+      <span v-if="endpointLines" role="status">· 회색 점선은 장소 사이 직선입니다.</span>
     </span>
   </div>
 </template>
+
+<style scoped>
+.map-data-caption {
+  max-width: calc(100% - 28px);
+  white-space: normal;
+  box-sizing: border-box;
+}
+</style>

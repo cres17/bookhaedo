@@ -1,3 +1,4 @@
+import { operation } from '../observability/metrics.js';
 import { recommendationRequestBudget } from '../operation-budget.js';
 import { pool } from '../db.js';
 import { Router } from 'express';
@@ -24,6 +25,7 @@ export const recommendationInput = z
 // createApp applies requireAuth and requireTrip before this router.
 aiRecommendations.post(
   '/api/trips/:id/days/:date/ai-recommendations',
+  operation('aiRead'),
   rateLimits.aiRecommendation(),
   wrap(async (req, res) => {
     const budget = recommendationRequestBudget(req, res);
