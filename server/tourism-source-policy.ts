@@ -33,17 +33,27 @@ export type SourcePolicyInput = {
   parserVersion?: string;
 };
 function cleanUrl(value: string) {
-  if (/[\\%\s?#]/.test(value)) return null;
+  // Keep the wire URL unchanged: accept valid UTF-8 filenames, never decode path structure.
+  if (typeof value !== 'string' || value.length > 8192 || /[^\x21-\x7e]|[\\?#]/.test(value))
+    return null;
   try {
     const u = new URL(value);
-    return value === u.href &&
-      u.protocol === 'https:' &&
-      !u.username &&
-      !u.password &&
-      !u.search &&
-      !u.hash
-      ? u
-      : null;
+    if (
+      value !== u.href ||
+      u.protocol !== 'https:' ||
+      u.username ||
+      u.password ||
+      u.search ||
+      u.hash ||
+      u.host.includes('%')
+    )
+      return null;
+    if (/%(?:2e|2f|5c|25|3f|23)/i.test(u.pathname) || /%(?![a-f0-9]{2})/i.test(u.pathname))
+      return null;
+    const decoded = decodeURIComponent(u.pathname);
+    if (/[\x00-\x1f\x7f]/.test(decoded) || decoded.split('/').some((p) => p === '.' || p === '..'))
+      return null;
+    return u;
   } catch {
     return null;
   }

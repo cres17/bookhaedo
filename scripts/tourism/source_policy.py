@@ -1,7 +1,8 @@
 """Read the reviewed allowlist independently of source registry metadata."""
 import json
+import re
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, unquote
 
 POLICY = json.loads(
     (Path(__file__).resolve().parents[2] / 'ops/tourism/source-policy.json').read_text()
@@ -11,27 +12,25 @@ if POLICY['version'] != 1:
 
 
 def clean_url(value):
-    if (
-        not isinstance(value, str)
-        or not value.startswith('https://')
-        or any(ord(c) < 33 or ord(c) > 126 for c in value)
-        or any(c in value for c in ('\\', '%', '?', '#'))
-    ):
+    # Match TypeScript without normalizing away traversal or rewriting source attribution.
+    if (not isinstance(value, str) or len(value) > 8192 or not value.startswith('https://')
+            or any(ord(c) < 33 or ord(c) > 126 for c in value)
+            or any(c in value for c in ('\\', '?', '#'))):
         return None
     try:
         url = urlsplit(value)
-        if (
-            url.scheme == 'https'
-            and not url.username
-            and not url.password
-            and not url.query
-            and not url.fragment
-            and not any(part in ('.', '..') for part in url.path.split('/'))
-        ):
-            return url
-    except ValueError:
-        pass
-    return None
+        if (url.scheme != 'https' or url.username or url.password or url.query or url.fragment
+                or '%' in url.netloc or url.netloc != url.hostname or url.geturl() != value):
+            return None
+        if re.search(r'%(?:2e|2f|5c|25|3f|23)|%(?![a-f0-9]{2})', url.path, re.I):
+            return None
+        decoded = unquote(url.path, encoding='utf-8', errors='strict')
+        if (any(ord(c) < 32 or ord(c) == 127 for c in decoded)
+                or any(part in ('.', '..') for part in decoded.split('/'))):
+            return None
+        return url
+    except (ValueError, UnicodeDecodeError):
+        return None
 
 
 def harp_url(value):

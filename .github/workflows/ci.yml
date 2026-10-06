@@ -4,6 +4,7 @@ permissions:
   contents: read
 jobs:
   verify:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -66,6 +67,8 @@ jobs:
       - run: npm run db:init
       - name: Tourism recommendations on desktop and mobile
         run: npm run test:e2e:tourism
+      - name: Shared dialog focus and schedule persistence
+        run: npx playwright test tests/e2e/calendar.spec.ts
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v5

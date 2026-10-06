@@ -20,13 +20,15 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev:api',
+      // Keep real limits, with a fresh namespace for each test server process.
+      env: { NODE_ENV: 'test' },
       url: 'http://127.0.0.1:3001/api/health',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
     },
     {
       command: 'npm run dev:web',
       url: 'http://127.0.0.1:5173',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
     },
   ],
 });
