@@ -1,0 +1,38 @@
+{
+ "C6a policy drops api-contract + route edit (no docs) -- policy read from the PR itself": {
+  "exit": 1,
+  "line": [
+   "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=5"
+  ],
+  "result": "fail",
+  "rules": {
+   "quality-contract": "fail"
+  },
+  "intensity": [],
+  "unsatisfied": [
+   "Quality contract"
+  ],
+  "group_evidence": []
+ },
+ "C6b same + docs/quality-gates.md touched (satisfies quality-contract)": {
+  "exit": 0,
+  "line": [
+   "Drift Gate: pass | scope=evaluated | passed matched rules=1 | configured rules=5"
+  ],
+  "result": "pass",
+  "rules": {
+   "quality-contract": "pass"
+  },
+  "intensity": [],
+  "unsatisfied": [],
+  "group_evidence": []
+ },
+ "C6c same change evaluated with the trusted BASE policy (--policy <base copy>)": {
+  "exit": 1,
+  "result": "fail",
+  "rules": {
+   "api-contract": "fail",
+   "quality-contract": "pass"
+  }
+ }
+}

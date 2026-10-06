@@ -1,0 +1,49 @@
+{
+ "commit": "91aaa28",
+ "source_like_files": 172,
+ "can_trigger_a_rule": 29,
+ "by_root_total": {
+  "server/": 66,
+  "shared/": 3,
+  "scripts/": 40,
+  "ops/": 5,
+  "db/": 10,
+  "frontend/src/": 48
+ },
+ "by_root_covered": {
+  "server/": 15,
+  "shared/": 1,
+  "scripts/": 2,
+  "ops/": 0,
+  "db/": 8,
+  "frontend/src/": 3
+ },
+ "tourism_valhalla_audit_never_trigger": [
+  "ops/tourism/approved-aliases.json",
+  "ops/tourism/source-policy.json",
+  "ops/tourism/sources.json",
+  "scripts/audit-dependencies.mjs",
+  "scripts/tourism/audit.ts",
+  "scripts/tourism/benchmark-recommendations.ts",
+  "scripts/tourism/benchmark-routing.ts",
+  "scripts/tourism/collector.py",
+  "scripts/tourism/compare.ts",
+  "scripts/tourism/normalize.py",
+  "scripts/tourism/prune.ts",
+  "scripts/tourism/publish.ts",
+  "scripts/tourism/source_policy.py",
+  "scripts/tourism/sync-sources.ts",
+  "scripts/tourism/withdraw.ts",
+  "server/ai/tourism-graph.ts",
+  "server/tourism-comparison.ts",
+  "server/tourism-knowledge.ts",
+  "server/tourism-maintenance.ts",
+  "server/tourism-matching.ts",
+  "server/tourism-quality.ts",
+  "server/tourism-search.ts",
+  "server/tourism-source-policy.ts",
+  "server/tourism-withdrawal.ts",
+  "server/valhalla-gate.ts",
+  "server/valhalla-policy.ts"
+ ]
+}

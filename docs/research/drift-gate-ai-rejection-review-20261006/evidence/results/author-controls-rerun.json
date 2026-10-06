@@ -1,0 +1,47 @@
+{
+  "base": "454a8707078d46d50db978df3ce539b9b0fa775c",
+  "toolCommit": "01e28e1620941a539d3e9c14972201b30adafd3b",
+  "results": [
+    {
+      "label": "isolated-current",
+      "exitCode": 0,
+      "expected": 0
+    },
+    {
+      "label": "missing-api-contract",
+      "exitCode": 1,
+      "expected": 1
+    },
+    {
+      "label": "missing-recovery-e2e",
+      "exitCode": 1,
+      "expected": 1
+    },
+    {
+      "label": "missing-policy",
+      "exitCode": 2,
+      "expected": 2
+    },
+    {
+      "label": "empty-policy",
+      "exitCode": 2,
+      "expected": 2
+    },
+    {
+      "label": "dirty-tool",
+      "exitCode": 2,
+      "expected": 2
+    },
+    {
+      "label": "untracked-tool-source",
+      "exitCode": 2,
+      "expected": 2
+    },
+    {
+      "label": "invalid-base",
+      "exitCode": 2,
+      "expected": 2
+    }
+  ],
+  "staleReportRemoved": true
+}

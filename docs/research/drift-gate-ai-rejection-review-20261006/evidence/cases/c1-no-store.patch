@@ -1,0 +1,13 @@
+diff --git a/server/routes/ai-recommendations.ts b/server/routes/ai-recommendations.ts
+index ac4879e..372d9ef 100644
+--- a/server/routes/ai-recommendations.ts
++++ b/server/routes/ai-recommendations.ts
+@@ -50,7 +50,7 @@ aiRecommendations.post(
+       ...input,
+     };
+     if (!context.items.length)
+-      return res.json({
++      return res.set('Cache-Control', 'no-store').json({
+         ...formatTourismResult(graphInput, {
+           plans: [],
+           preview: null,
