@@ -1,0 +1,12 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a4a5c18..a8f2e63 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -26,6 +26,7 @@ jobs:
+           node-version: 22
+           cache: npm
+       - run: npm ci
++      - run: npm install -g npm@11
+       - name: Audit production dependencies (retry registry errors only)
+         run: node scripts/audit-dependencies.mjs
+       - run: npm run lint

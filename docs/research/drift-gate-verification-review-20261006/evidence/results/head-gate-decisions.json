@@ -1,0 +1,84 @@
+{
+ "result": "pass",
+ "summary": {
+  "blocker": 0,
+  "major": 0,
+  "minor": 0,
+  "nit": 0,
+  "gate_decision": "pass"
+ },
+ "change_types": [
+  "cli-public-interface",
+  "other"
+ ],
+ "gate": {
+  "fail_on_blocker": true,
+  "fail_on_major_count": 1
+ },
+ "violations": [],
+ "skipped_rules": [],
+ "rejected_ignores": [],
+ "temporal_warnings": [],
+ "scan_metrics": {
+  "scanned_files": 104,
+  "skipped_ignored_files": 0,
+  "skipped_binary_files": 0,
+  "skipped_large_files": 0,
+  "evaluated_rules": 6,
+  "runtime_seconds": 0.036037680000021055
+ },
+ "rule_decisions": [
+  {
+   "rule_id": "api-contract",
+   "severity": "BLOCKER",
+   "status": "pass",
+   "reason": "trigger matched and all required groups were satisfied",
+   "trigger_files": [
+    "scripts/write-api-spec.mjs"
+   ]
+  },
+  {
+   "rule_id": "course-recovery",
+   "severity": "BLOCKER",
+   "status": "pass",
+   "reason": "trigger matched and all required groups were satisfied",
+   "trigger_files": [
+    "frontend/src/components/DayAlternatives.vue",
+    "frontend/src/recommendation-recovery.ts",
+    "frontend/src/views/Planner.vue"
+   ]
+  },
+  {
+   "rule_id": "trip-write-contract",
+   "severity": "BLOCKER",
+   "status": "unmatched",
+   "reason": "no changed files matched this rule after ignore paths and intensity filters",
+   "trigger_files": []
+  },
+  {
+   "rule_id": "provider-boundary",
+   "severity": "BLOCKER",
+   "status": "unmatched",
+   "reason": "no changed files matched this rule after ignore paths and intensity filters",
+   "trigger_files": []
+  },
+  {
+   "rule_id": "schema-contract",
+   "severity": "BLOCKER",
+   "status": "unmatched",
+   "reason": "no changed files matched this rule after ignore paths and intensity filters",
+   "trigger_files": []
+  },
+  {
+   "rule_id": "quality-contract",
+   "severity": "BLOCKER",
+   "status": "pass",
+   "reason": "trigger matched and all required groups were satisfied",
+   "trigger_files": [
+    ".drift-gate.yml",
+    "package.json",
+    "scripts/check-drift-gate.py"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,268 @@
+{
+  "E1a impl-only header tweak, intensity>=route-contract-change": {
+    "exit": 0,
+    "line": [
+      "Drift Gate: pass | scope=no-matching-rule | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "pass",
+    "rules": {},
+    "intensity": [],
+    "unsatisfied": [],
+    "group_evidence": []
+  },
+  "E1b NEW route added, intensity>=route-contract-change": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "fail",
+    "rules": {
+      "api-contract": "fail"
+    },
+    "intensity": [],
+    "unsatisfied": [
+      "Generated OpenAPI copies",
+      "Actual API regressions"
+    ],
+    "group_evidence": []
+  },
+  "E2-paths-1 rename in code only (docs untouched)": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "fail",
+    "rules": {
+      "api-contract": "fail"
+    },
+    "intensity": [],
+    "unsatisfied": [
+      "Generated OpenAPI copies",
+      "Actual API regressions"
+    ],
+    "group_evidence": []
+  },
+  "E2-paths-2 rename in code + regenerated docs + test touch": {
+    "exit": 0,
+    "line": [
+      "Drift Gate: pass | scope=evaluated | passed matched rules=1 | configured rules=6"
+    ],
+    "result": "pass",
+    "rules": {
+      "api-contract": "pass"
+    },
+    "intensity": [],
+    "unsatisfied": [],
+    "group_evidence": []
+  },
+  "E2-paths-3 rename in code + COSMETIC doc edit only": {
+    "exit": 0,
+    "line": [
+      "Drift Gate: pass | scope=evaluated | passed matched rules=1 | configured rules=6"
+    ],
+    "result": "pass",
+    "rules": {
+      "api-contract": "pass"
+    },
+    "intensity": [],
+    "unsatisfied": [],
+    "group_evidence": []
+  },
+  "E2-apiroutes-1 rename in code only (docs untouched)": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "fail",
+    "rules": {
+      "api-contract": "fail"
+    },
+    "intensity": [],
+    "unsatisfied": [
+      "Generated OpenAPI copies",
+      "Actual API regressions"
+    ],
+    "group_evidence": [
+      "No supported literal HTTP route delta; manual contract verification required"
+    ]
+  },
+  "E2-apiroutes-2 rename in code + regenerated docs + test touch": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "fail",
+    "rules": {
+      "api-contract": "fail"
+    },
+    "intensity": [],
+    "unsatisfied": [
+      "Generated OpenAPI copies"
+    ],
+    "group_evidence": [
+      "No supported literal HTTP route delta; manual contract verification required"
+    ]
+  },
+  "E2-apiroutes-3 rename in code + COSMETIC doc edit only": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "fail",
+    "rules": {
+      "api-contract": "fail"
+    },
+    "intensity": [],
+    "unsatisfied": [
+      "Generated OpenAPI copies"
+    ],
+    "group_evidence": [
+      "No supported literal HTTP route delta; manual contract verification required"
+    ]
+  },
+  "E3a NEW env key read in server code, .env.example untouched": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=7"
+    ],
+    "result": "fail",
+    "rules": {
+      "env-example-sync": "fail"
+    },
+    "intensity": [],
+    "unsatisfied": [
+      "Sample environment keys"
+    ],
+    "group_evidence": [
+      "Required environment keys: CASE_NEW_KEY"
+    ]
+  },
+  "E3b same + key added to .env.example": {
+    "exit": 0,
+    "line": [
+      "Drift Gate: pass | scope=evaluated | passed matched rules=1 | configured rules=7"
+    ],
+    "result": "pass",
+    "rules": {
+      "env-example-sync": "pass"
+    },
+    "intensity": [],
+    "unsatisfied": [],
+    "group_evidence": []
+  },
+  "E3c whitespace-only edit next to PRE-EXISTING undocumented API_RATE_LIMIT": {
+    "exit": 0,
+    "line": [
+      "Drift Gate: pass | scope=no-matching-rule | passed matched rules=0 | configured rules=7"
+    ],
+    "result": "pass",
+    "rules": {},
+    "intensity": [],
+    "unsatisfied": [],
+    "group_evidence": []
+  },
+  "E4 tool version comparison": {
+    "head vs 454a870 (the reported change)": {
+      "pinned_01e28e1": {
+        "exit": 0,
+        "result": "pass",
+        "rules": {
+          "api-contract": "pass",
+          "course-recovery": "pass",
+          "quality-contract": "pass"
+        },
+        "change_types": [
+          "cli-public-interface",
+          "other"
+        ],
+        "violations": 0
+      },
+      "new_f43cada": {
+        "exit": 0,
+        "result": "pass",
+        "rules": {
+          "api-contract": "pass",
+          "course-recovery": "pass",
+          "quality-contract": "pass"
+        },
+        "change_types": [
+          "cli-public-interface",
+          "other"
+        ],
+        "violations": 0
+      },
+      "same_decision": true
+    },
+    "C1 no-store tweak": {
+      "pinned_01e28e1": {
+        "exit": 1,
+        "result": "fail",
+        "rules": {
+          "api-contract": "fail"
+        },
+        "change_types": [
+          "other"
+        ],
+        "violations": 1
+      },
+      "new_f43cada": {
+        "exit": 1,
+        "result": "fail",
+        "rules": {
+          "api-contract": "fail"
+        },
+        "change_types": [
+          "other"
+        ],
+        "violations": 1
+      },
+      "same_decision": true
+    },
+    "C2 npm upgrade": {
+      "pinned_01e28e1": {
+        "exit": 1,
+        "result": "fail",
+        "rules": {
+          "quality-contract": "fail"
+        },
+        "change_types": [
+          "workflow-ci"
+        ],
+        "violations": 1
+      },
+      "new_f43cada": {
+        "exit": 1,
+        "result": "fail",
+        "rules": {
+          "quality-contract": "fail"
+        },
+        "change_types": [
+          "workflow-ci"
+        ],
+        "violations": 1
+      },
+      "same_decision": true
+    },
+    "C3a relax alias (no rule)": {
+      "pinned_01e28e1": {
+        "exit": 0,
+        "result": "pass",
+        "rules": {},
+        "change_types": [
+          "other"
+        ],
+        "violations": 0
+      },
+      "new_f43cada": {
+        "exit": 0,
+        "result": "pass",
+        "rules": {},
+        "change_types": [
+          "other"
+        ],
+        "violations": 0
+      },
+      "same_decision": true
+    }
+  }
+}

@@ -1,0 +1,234 @@
+{
+  "C0 head (no change)": {
+    "gate": {
+      "exit": 0,
+      "line": [
+        "Drift Gate: pass | scope=no-changes | passed matched rules=0 | configured rules=6"
+      ],
+      "result": "pass",
+      "changed_files_scanned": 0,
+      "rules": {},
+      "violations": [],
+      "triggered_files": []
+    }
+  },
+  "C1 add redundant no-store": {
+    "patch_lines": 13,
+    "gate": {
+      "exit": 1,
+      "line": [
+        "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+      ],
+      "result": "fail",
+      "changed_files_scanned": 1,
+      "rules": {
+        "api-contract": "fail",
+        "course-recovery": "unmatched",
+        "trip-write-contract": "unmatched",
+        "provider-boundary": "unmatched",
+        "schema-contract": "unmatched",
+        "quality-contract": "unmatched"
+      },
+      "violations": [
+        {
+          "rule_id": "api-contract",
+          "severity": "BLOCKER",
+          "message": ""
+        }
+      ],
+      "triggered_files": [
+        "server/routes/ai-recommendations.ts"
+      ]
+    },
+    "behavior_before_change": {
+      "exit": 0,
+      "summary": "7 passed (7)",
+      "failed_examples": []
+    },
+    "behavior_after_change": {
+      "exit": 0,
+      "summary": "7 passed (7)",
+      "failed_examples": []
+    }
+  },
+  "C2 npm upgrade in CI": {
+    "patch_lines": 12,
+    "gate": {
+      "exit": 1,
+      "line": [
+        "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+      ],
+      "result": "fail",
+      "changed_files_scanned": 1,
+      "rules": {
+        "api-contract": "unmatched",
+        "course-recovery": "unmatched",
+        "trip-write-contract": "unmatched",
+        "provider-boundary": "unmatched",
+        "schema-contract": "unmatched",
+        "quality-contract": "fail"
+      },
+      "violations": [
+        {
+          "rule_id": "quality-contract",
+          "severity": "BLOCKER",
+          "message": ""
+        }
+      ],
+      "triggered_files": [
+        ".github/workflows/ci.yml"
+      ]
+    }
+  },
+  "C3a relax alias fingerprint (current policy)": {
+    "patch_lines": 13,
+    "gate": {
+      "exit": 0,
+      "line": [
+        "Drift Gate: pass | scope=no-matching-rule | passed matched rules=0 | configured rules=6"
+      ],
+      "result": "pass",
+      "changed_files_scanned": 1,
+      "rules": {
+        "api-contract": "unmatched",
+        "course-recovery": "unmatched",
+        "trip-write-contract": "unmatched",
+        "provider-boundary": "unmatched",
+        "schema-contract": "unmatched",
+        "quality-contract": "unmatched"
+      },
+      "violations": [],
+      "triggered_files": []
+    },
+    "behavior": {
+      "exit": 1,
+      "summary": "3 failed | 30 passed (33)",
+      "failed_examples": [
+        "fails closed after source identity/content changes: {\"contentSha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+        "keeps an alias unlinked after a new CSV hash, even if title and catalog identity stay the same",
+        "explains a rejected alias without weakening the matching rule: ALIAS_SOURCE_CHANGED"
+      ]
+    }
+  },
+  "C3b relax alias fingerprint (rule present, code only)": {
+    "gate": {
+      "exit": 1,
+      "line": [
+        "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=7"
+      ],
+      "result": "fail",
+      "changed_files_scanned": 1,
+      "rules": {
+        "api-contract": "unmatched",
+        "course-recovery": "unmatched",
+        "trip-write-contract": "unmatched",
+        "provider-boundary": "unmatched",
+        "schema-contract": "unmatched",
+        "quality-contract": "unmatched",
+        "tourism-link-protection": "fail"
+      },
+      "violations": [
+        {
+          "rule_id": "tourism-link-protection",
+          "severity": "BLOCKER",
+          "message": ""
+        }
+      ],
+      "triggered_files": [
+        "server/tourism-matching.ts"
+      ]
+    }
+  },
+  "C3c same weakened code + cosmetic co-change": {
+    "gate": {
+      "exit": 0,
+      "line": [
+        "Drift Gate: pass | scope=evaluated | passed matched rules=1 | configured rules=7"
+      ],
+      "result": "pass",
+      "changed_files_scanned": 3,
+      "rules": {
+        "api-contract": "unmatched",
+        "course-recovery": "unmatched",
+        "trip-write-contract": "unmatched",
+        "provider-boundary": "unmatched",
+        "schema-contract": "unmatched",
+        "quality-contract": "unmatched",
+        "tourism-link-protection": "pass"
+      },
+      "violations": [],
+      "triggered_files": [
+        "server/tourism-matching.ts"
+      ]
+    },
+    "behavior": {
+      "exit": 1,
+      "summary": "3 failed | 30 passed (33)",
+      "failed_examples": [
+        "fails closed after source identity/content changes: {\"contentSha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+        "keeps an alias unlinked after a new CSV hash, even if title and catalog identity stay the same",
+        "explains a rejected alias without weakening the matching rule: ALIAS_SOURCE_CHANGED"
+      ]
+    }
+  },
+  "C4 historical c217502 (policy applied retroactively)": {
+    "exit": 1,
+    "line": [
+      "Drift Gate: fail | scope=evaluated | passed matched rules=0 | configured rules=6"
+    ],
+    "result": "fail",
+    "changed_files_scanned": 22,
+    "rules": {
+      "api-contract": "unmatched",
+      "course-recovery": "unmatched",
+      "trip-write-contract": "unmatched",
+      "provider-boundary": "unmatched",
+      "schema-contract": "unmatched",
+      "quality-contract": "fail"
+    },
+    "violations": [
+      {
+        "rule_id": "quality-contract",
+        "severity": "BLOCKER",
+        "message": ""
+      }
+    ],
+    "triggered_files": [
+      ".drift-gate.yml",
+      ".github/workflows/ci.yml",
+      "package.json",
+      "scripts/check-drift-gate.py"
+    ],
+    "commit_changed_files": [
+      ".github/workflows/ci.yml",
+      "docs/tourism-langgraph.md",
+      "ops/tourism/source-policy.json",
+      "package.json",
+      "scripts/audit-dependencies.mjs",
+      "scripts/tourism/audit.ts",
+      "scripts/tourism/collector.py",
+      "scripts/tourism/normalize.py",
+      "scripts/tourism/source_policy.py",
+      "server/tourism-knowledge.ts",
+      "server/tourism-matching.ts",
+      "server/tourism-quality.ts",
+      "server/tourism-source-policy.ts",
+      "tests/concurrency.test.ts",
+      "tests/dependency-audit.test.ts",
+      "tests/tourism-alias-cache.test.ts",
+      "tests/tourism-alias.test.ts",
+      "tests/tourism-knowledge.test.ts",
+      "tests/tourism-source-policy.test.ts"
+    ],
+    "source_policy_files_touched_but_unmatched": [
+      "ops/tourism/source-policy.json",
+      "scripts/audit-dependencies.mjs",
+      "scripts/tourism/source_policy.py",
+      "server/tourism-knowledge.ts",
+      "server/tourism-matching.ts",
+      "server/tourism-source-policy.ts",
+      "tests/tourism-knowledge.test.ts",
+      "tests/tourism-source-policy.test.ts"
+    ]
+  }
+}

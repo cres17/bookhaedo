@@ -1,0 +1,13 @@
+diff --git a/server/tourism-matching.ts b/server/tourism-matching.ts
+index 25600b3..4e4ce9b 100644
+--- a/server/tourism-matching.ts
++++ b/server/tourism-matching.ts
+@@ -143,7 +143,7 @@ export async function matchTourismFacility(
+   if (reviewed && exact.length !== 1) {
+     if (exact.length > 1) aliasReview = review('ALIAS_AMBIGUOUS');
+     else {
+-      const sourceChanged = (['title', 'contentSha256', 'regionId'] as const).filter(
++      const sourceChanged = (['title', 'regionId'] as const).filter(
+         (k) => input[k] !== reviewed[k],
+       );
+       if (sourceChanged.length) aliasReview = review('ALIAS_SOURCE_CHANGED', sourceChanged);

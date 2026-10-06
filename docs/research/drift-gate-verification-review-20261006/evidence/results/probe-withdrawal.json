@@ -1,0 +1,7 @@
+{
+ "1 published → visible in search": true,
+ "2 after withdraw tool → visible": false,
+ "3 AI claim: delete ONLY withdrawal row → visible (claim predicts true)": false,
+ "4 additionally clear record.withdrawn_at → visible": true,
+ "5 control: clear ONLY record.withdrawn_at (withdrawal row kept) → visible": false
+}

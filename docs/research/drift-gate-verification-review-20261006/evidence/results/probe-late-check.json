@@ -1,0 +1,20 @@
+{
+ "0 day1 items before save": [],
+ "1 marker after lost response (should exist)": true,
+ "2 server truth for day1 (committed)": [
+  "복구 시설 2",
+  "복구 시설 3",
+  "복구 시설 4"
+ ],
+ "3 UI day1 still shows (stale until refreshed)": [
+  "복구 시설 0",
+  "복구 시설 1"
+ ],
+ "4 marker cleared after late check success": true,
+ "5 UI day1 after returning": [
+  "복구 시설 0",
+  "복구 시설 1"
+ ],
+ "6 UI matches server truth": false,
+ "7 recovery warning visible after returning": 0
+}

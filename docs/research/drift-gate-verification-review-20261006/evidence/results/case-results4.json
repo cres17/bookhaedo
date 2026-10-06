@@ -1,0 +1,13 @@
+{
+ "E1c response-shape change under intensity policy": {
+  "exit": 0,
+  "line": [
+   "Drift Gate: pass | scope=no-matching-rule | passed matched rules=0 | configured rules=6"
+  ],
+  "result": "pass",
+  "rules": {},
+  "intensity": [],
+  "unsatisfied": [],
+  "group_evidence": []
+ }
+}
