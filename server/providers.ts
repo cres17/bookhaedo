@@ -83,12 +83,23 @@ async function fetchSegment(
     if (!response.ok) throw new Error('GOOGLE_UNAVAILABLE');
     const result = await response.json();
     const route = result.routes?.[0];
-    if (!route || !Number.isFinite(route.distanceMeters)) throw new Error('NO_ROUTE');
-    const seconds = Number.parseFloat(route.duration);
+    if (
+      !route ||
+      !Number.isSafeInteger(route.distanceMeters) ||
+      route.distanceMeters < 0 ||
+      route.distanceMeters > 2147483647
+    )
+      throw new Error('NO_ROUTE');
+    // Google uses protobuf Duration: a complete seconds string with at most nine fractional digits.
+    if (typeof route.duration !== 'string' || !/^\d+(?:\.\d{1,9})?s$/.test(route.duration))
+      throw new Error('BAD_DURATION');
+    const seconds = Number(route.duration.slice(0, -1));
+    if (!Number.isFinite(seconds) || seconds < 0 || seconds > 315576000000)
+      throw new Error('BAD_DURATION');
     return {
       ...base,
       distanceMeters: route.distanceMeters,
-      durationSeconds: Number.isFinite(seconds) ? seconds : null,
+      durationSeconds: seconds,
       polyline: route.polyline?.encodedPolyline || null,
       source: 'google',
       transitFare:

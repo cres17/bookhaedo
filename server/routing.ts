@@ -123,14 +123,23 @@ async function fetchRouteSegment(
       !t.legs?.length
     )
       throw Error('NO_ROUTE');
+    const distanceMeters = Math.round(t.summary.length * 1000);
+    const durationSeconds = Math.round(t.summary.time);
+    if (
+      t.summary.length < 0 ||
+      t.summary.time < 0 ||
+      !Number.isSafeInteger(distanceMeters) ||
+      !Number.isSafeInteger(durationSeconds)
+    )
+      throw Error('INVALID_ROUTE_MEASUREMENT');
     const coordinates = t.legs.flatMap((l: any) => decodeShape(l.shape));
     if (coordinates.length < 2) throw Error('NO_SHAPE');
     return {
       from: a.id,
       to: b.id,
       mode,
-      distanceMeters: Math.round(t.summary.length * 1000),
-      durationSeconds: Math.round(t.summary.time),
+      distanceMeters,
+      durationSeconds,
       coordinates,
       polyline: null,
       source: 'valhalla',
