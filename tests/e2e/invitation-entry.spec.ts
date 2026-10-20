@@ -4,9 +4,10 @@ import { randomUUID } from 'node:crypto';
 test('로그아웃 초대 링크 → 비밀번호 재확인 → 수락 → 같은 링크 재방문', async ({
   page,
   browser,
+  baseURL,
 }) => {
   const password = 'invitation-entry-password';
-  const owner = await browser.newContext({ baseURL: 'http://127.0.0.1:5173' });
+  const owner = await browser.newContext({ baseURL });
   const email = `invite-entry-${randomUUID()}@example.test`;
   try {
     await owner.request.post('/api/auth/register', {

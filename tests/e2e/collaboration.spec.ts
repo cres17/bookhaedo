@@ -4,10 +4,11 @@ import { randomUUID } from 'node:crypto';
 test('공동 여행: 추천 토글·예산·체크리스트·초대 수락·채팅·정산·알림·탈퇴', async ({
   page,
   browser,
+  baseURL,
 }, testInfo) => {
   test.setTimeout(120000);
   const password = 'collaboration-e2e-2026';
-  const other = await browser.newContext({ baseURL: 'http://127.0.0.1:5173' }),
+  const other = await browser.newContext({ baseURL }),
     peer = await other.newPage();
   page.setDefaultTimeout(15000);
   peer.setDefaultTimeout(15000);
@@ -101,7 +102,7 @@ test('공동 여행: 추천 토글·예산·체크리스트·초대 수락·채�
     await peer.getByLabel('현재 비밀번호').fill(password);
     await peer.getByLabel('삭제 범위를 확인했으며 탈퇴에 동의합니다.').check();
     await peer.getByRole('button', { name: '탈퇴 확정' }).click();
-    await expect(peer).toHaveURL('http://127.0.0.1:5173/');
+    await expect(peer).toHaveURL(new URL('/', baseURL).href);
     expect((await page.request.get('/api/trips/' + id)).status()).toBe(200);
   } finally {
     await peer.request
