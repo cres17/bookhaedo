@@ -1,3 +1,5 @@
+import { TripWriteAccessError } from '../trip-write.js';
+import { OperationError } from '../operation-budget.js';
 import type { RequestHandler, ErrorRequestHandler } from 'express';
 import { randomUUID } from 'node:crypto';
 import { ZodError } from 'zod';
@@ -12,6 +14,7 @@ const codes: Record<number, string> = {
   429: 'RATE_LIMITED',
   500: 'INTERNAL_ERROR',
   503: 'SERVICE_UNAVAILABLE',
+  504: 'REQUEST_DEADLINE_EXCEEDED',
 };
 export const requestContext: RequestHandler = (_req, res, next) => {
   res.locals.requestId = randomUUID();
@@ -31,6 +34,19 @@ export const requestContext: RequestHandler = (_req, res, next) => {
   next();
 };
 export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
+  if (res.destroyed) return;
+  if (error instanceof TripWriteAccessError)
+    return res.status(error.status).json({ error: error.message });
+  if (error.code === '55P03')
+    return res.status(409).json({
+      code: 'TRIP_WRITE_BUSY',
+      error: '다른 변경을 처리 중이에요. 최신 일정을 확인하고 다시 시도해주세요.',
+    });
+  if (error instanceof OperationError || error.code === '57014')
+    return res.status(error.code === 'REQUEST_CANCELLED' ? 503 : 504).json({
+      code: error.code === '57014' ? 'READ_QUERY_TIMEOUT' : error.code,
+      error: '조회 시간이 초과됐어요. 조건을 확인하고 다시 시도해주세요.',
+    });
   if (res.headersSent) return next(error);
   if (error instanceof ZodError)
     return res.status(400).json({
@@ -45,9 +61,16 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
     return res
       .status(409)
       .json({ error: '현재 데이터와 충돌합니다. 새로고침 후 다시 시도해주세요.' });
-  const unavailable = ['ECONNREFUSED', 'ETIMEDOUT', '57P01', '57P03', '53300', '08006'].includes(
-    error.code,
-  );
+  const unavailable = [
+    'ECONNREFUSED',
+    'ECONNRESET',
+    'EPIPE',
+    'ETIMEDOUT',
+    '57P01',
+    '57P03',
+    '53300',
+    '08006',
+  ].includes(error.code);
   logger.error('API_ERROR', {
     requestId: res.locals.requestId,
     code: unavailable ? 'DATABASE_UNAVAILABLE' : 'INTERNAL_ERROR',

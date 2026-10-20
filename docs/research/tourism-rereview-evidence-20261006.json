@@ -1,0 +1,322 @@
+{
+  "baseline": "3fa83a1cb386ca721ac2528b6401cf70592c8684",
+  "reviewDate": "2026-10-06",
+  "scope": {
+    "operationalCodeModified": false,
+    "existingTestsModified": false,
+    "remoteModified": false,
+    "runtimeDeployed": false,
+    "originalCheckoutModified": false,
+    "newDocumentsAndDiagnosticProbesOnly": true
+  },
+  "remoteVerification": {
+    "branch": "ver2",
+    "headMatchesBaseline": true,
+    "ciUrl": "https://github.com/cres17/bookhaedo/actions/runs/37406065883",
+    "jobs": {
+      "verify": "success",
+      "tourism-e2e": "success"
+    },
+    "note": "Existing baseline remote run inspected this turn; no new commit or CI dispatch"
+  },
+  "freshLocalVerification": {
+    "fullVitest": {
+      "files": 52,
+      "passed": 429
+    },
+    "ciVitest": {
+      "files": 46,
+      "passed": 361,
+      "disposableDatabaseRemoved": true
+    },
+    "pythonUnittest": {
+      "passed": 34
+    },
+    "playwright": {
+      "passed": 33,
+      "tourismPublishedFlag": true,
+      "publishedTourismCases": 6,
+      "scope": "Existing locally published tourism data plus provider fixtures; includes other app E2E; not new HARP collection or production capacity"
+    },
+    "checks": [
+      {
+        "label": "test-ci",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-test-ci.log",
+        "sha256": "eee8ff1478965a29c2faebb6ea2c084753d0e251062867f79af2ee74bbefed7d"
+      },
+      {
+        "label": "python",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-python.log",
+        "sha256": "6d7ebd8c3a2ec8e0ff9884b6098bed2a66214d451247011641d3a58be2ba25d9"
+      },
+      {
+        "label": "typecheck",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-typecheck.log",
+        "sha256": "45dc492e0447376af3412da8d3c163d5b9c126b94ce7af16b73307d9c5f9dfe4"
+      },
+      {
+        "label": "lint",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-lint.log",
+        "sha256": "e0e9f2431cbaef52a4725ea7dcdc7da7def742ed8ca2307460056cf98968d3d9"
+      },
+      {
+        "label": "format-check",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-format-check.log",
+        "sha256": "2b0a9675e569241f3061846866f06affbd36e7785f21882559cfafd1f6cdf2ed"
+      },
+      {
+        "label": "spec-check",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-spec-check.log",
+        "sha256": "2305286e2625cb3982d5c7148cee8e3ac050ea37a16351ac86a563492dabde1b"
+      },
+      {
+        "label": "build",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-build.log",
+        "sha256": "92a8de314ac9ed930ee0a148c5420197d37553a919344ba9b93083e9b0dd3042"
+      },
+      {
+        "label": "full-vitest",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-full-vitest.log",
+        "sha256": "f5ee1993d148040b6798351b96f8f997388b21299987a50c1c07f662f93aaee3"
+      },
+      {
+        "label": "full-e2e",
+        "code": 0,
+        "log": "/private/tmp/bookhaedo-rereview-full-e2e.log",
+        "sha256": "e5b8e04e33785cfc847ff6f843f2266c25c4f4ab4d8b3427e8e0fb50e9681c85"
+      }
+    ]
+  },
+  "diagnosticEvidence": {
+    "observations": [
+      {
+        "id": "O1",
+        "nestedRecommendationMetricRoute": "/",
+        "responseStatus": 200,
+        "scope": "Actual HTTP finish metrics; static template collision, not unbounded label cardinality"
+      }
+    ],
+    "baseline": "3fa83a1cb386ca721ac2528b6401cf70592c8684",
+    "findings": [
+      {
+        "id": "F1",
+        "beforeMode": "WALK",
+        "concurrentlyCommittedMode": "BICYCLE",
+        "confirmationStatus": 200,
+        "savedRevision": 2,
+        "controlMismatchedModeStatus": 409
+      },
+      {
+        "id": "F2",
+        "responseRevision": 2,
+        "actualRevision": 3,
+        "responseContainsNextRevisionItems": true
+      },
+      {
+        "id": "F3",
+        "rankedDuplicateCount": 1,
+        "exactNameDuplicateControlCount": 0,
+        "confirmationStatus": 200,
+        "savedDuplicateFacility": true
+      },
+      {
+        "id": "F4",
+        "valhallaSource": "valhalla",
+        "invalidLatitude": 95,
+        "cached": true,
+        "upstreamCalls": 1,
+        "complete": true,
+        "googlePolylineType": "object",
+        "scope": "Injected transport; no live provider or browser crash claim"
+      }
+    ],
+    "scope": "Controlled real PostgreSQL/HTTP plus injected provider geometry; no production measurement or auth-flake root cause claim"
+  },
+  "findingClassification": {
+    "F1": {
+      "priority": "P2",
+      "contractDependent": true,
+      "proven": "Concurrent mode update can commit after context SELECT while confirmation still succeeds",
+      "interpretation": "Violation only if confirmation requires serialized context through COMMIT; SELECT-time contract alone permits it"
+    },
+    "F2": {
+      "priority": "P2",
+      "contractDependent": false,
+      "riskLimit": "Mixed response snapshot; revision guard generally prevents silent stale overwrite"
+    },
+    "F3": {
+      "priority": "P2",
+      "contractDependent": false,
+      "riskLimit": "Synthetic facility policy discrepancy, not legal identity or measured OSM duplicate prevalence"
+    },
+    "F4": {
+      "priority": "P2",
+      "contractDependent": false,
+      "riskLimit": "Injected provider geometry response; no live provider incident or observed browser crash"
+    },
+    "O1": {
+      "classification": "observability improvement",
+      "riskLimit": "Static nested route template collision, not unbounded label cardinality"
+    }
+  },
+  "probeFiles": [
+    {
+      "path": "docs/research/probes/tourism-rereview-20261006.mts",
+      "sha256": "1d41080c512ea0eb7dde1db1c48e6eda7be0fcaf2da82e5e18f2031b6b7698be"
+    },
+    {
+      "path": "docs/research/probes/tourism-rereview-runner-20261006.mts",
+      "sha256": "d7d18c1bf6fc6f04912aebbe66485917459d74b41a95a28cdb85720a938d7753"
+    }
+  ],
+  "probeLog": {
+    "path": "/private/tmp/bookhaedo-rereview-probes.log",
+    "sha256": "e9008e2dbd5f9102ca86c0f93598117020d486e03749a09a74fb0274cf42693e"
+  },
+  "originalDatabasePreservation": {
+    "exactBeforeAfterMatch": true,
+    "before": {
+      "counts": {
+        "places": 20810,
+        "snapshots": 7,
+        "records": 184,
+        "withdrawals": 0
+      },
+      "active": [
+        {
+          "id": "eniwa-events",
+          "active_snapshot_id": "a66f664e-ffe4-4089-b45c-ffc3ee5c89ea",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "恵庭市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-events",
+          "active_snapshot_id": "d7cf84b5-2b0e-4bc0-8f23-a0b513ce852a",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2208.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-places",
+          "active_snapshot_id": "f659c81a-beca-4415-96af-327e95d6e821",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2207.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "hokuto-places",
+          "active_snapshot_id": "4bd7b7d8-9f38-4743-a6b2-5bc0e17f0a9b",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "北斗市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1657.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "sapporo-places",
+          "active_snapshot_id": "88d799d5-4405-41b4-8b7e-030f946ecd65",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "札幌市",
+          "source_url": "https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ]
+    },
+    "after": {
+      "counts": {
+        "places": 20810,
+        "snapshots": 7,
+        "records": 184,
+        "withdrawals": 0
+      },
+      "active": [
+        {
+          "id": "eniwa-events",
+          "active_snapshot_id": "a66f664e-ffe4-4089-b45c-ffc3ee5c89ea",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "恵庭市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-events",
+          "active_snapshot_id": "d7cf84b5-2b0e-4bc0-8f23-a0b513ce852a",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2208.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "furano-places",
+          "active_snapshot_id": "f659c81a-beca-4415-96af-327e95d6e821",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "富良野市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/2207.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "hokuto-places",
+          "active_snapshot_id": "4bd7b7d8-9f38-4743-a6b2-5bc0e17f0a9b",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "北斗市",
+          "source_url": "https://www.harp.lg.jp/opendata/dataset/1657.html",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "id": "sapporo-places",
+          "active_snapshot_id": "88d799d5-4405-41b4-8b7e-030f946ecd65",
+          "enabled": true,
+          "rights_status": "approved",
+          "publisher": "札幌市",
+          "source_url": "https://ckan.pf-sapporo.jp/dataset/sapporo_kankou_spot",
+          "license_id": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ]
+    }
+  },
+  "remainingWork": [
+    "F2-F4 operational patches and desired-behavior regression tests",
+    "F1 context contract selection and coordinated writer lock-order change",
+    "O1 operation identifiers",
+    "Pre-admission deadline and CI whitelist coverage",
+    "Write outcome recovery and optional idempotency",
+    "Actual deployment capacity and restore testing"
+  ],
+  "unresolvedLimits": [
+    "Previous intermittent authentication 401 root cause remains unknown; fresh full suite passing is not a root-cause fix",
+    "No production load/capacity/restore/penetration test performed",
+    "No new source license approval or live tourism collection this turn",
+    "Diagnostic assertions deliberately reproduce current behavior and are not desired-behavior CI tests",
+    "Temporary local log paths are not committed artifacts; hashes and results are preserved here"
+  ]
+}

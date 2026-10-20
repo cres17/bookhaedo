@@ -1,3 +1,4 @@
+import type { WeatherResponse } from './weather-response.js';
 import type { Segment } from './providers.js';
 import type { ValhallaSegment } from './routing.js';
 
@@ -66,6 +67,12 @@ export class ProviderCache<T> {
   }
 }
 
+// Keep provider limits while also honoring the caller's request budget.
+export function providerSignal(timeoutMs: number, signal?: AbortSignal) {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
 // Isolate injected transports in tests and alternate clients without recording keys in metrics.
 const clients = new WeakMap<typeof fetch, number>();
 let nextClient = 0;
@@ -75,7 +82,7 @@ export function providerKey(request: typeof fetch, parts: unknown[]) {
 }
 
 export const providerCaches = {
-  weather: new ProviderCache<any>(10 * 60_000),
+  weather: new ProviderCache<WeatherResponse>(10 * 60_000),
   valhalla: new ProviderCache<ValhallaSegment>(5 * 60_000),
   google_routes: new ProviderCache<Segment>(0),
   google_place_id: new ProviderCache<string | null>(24 * 60 * 60_000),

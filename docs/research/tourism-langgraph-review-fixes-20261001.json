@@ -1,0 +1,87 @@
+{
+  "checked_at": "2026-10-01T05:10:33.100346+00:00",
+  "scope": "Four approved quality review findings; local fixes and regressions",
+  "previous_verification": "docs/research/tourism-langgraph-verification-20261001.json",
+  "code_sha256": {
+    "frontend/src/components/DayAlternatives.vue": "3c0fa8a049531384cea9ce9082373f8c356f6bbcb4f96cc9880c9e551eca3cde",
+    "server/ai/tourism-graph.ts": "a46303142cdfd3591130c04fda6b9818194a508cf37ad97269e9b8b222a09950",
+    "server/tourism-search.ts": "c21e2ca9178f3ee7c3bcb7816dde9374fad59b4854989cbce3291022bcc14fc0",
+    "tests/tourism-graph.test.ts": "36aecf239b4cb5112755398bcaa6da2a25bac47a13fb3d432600ed6603466d55",
+    "tests/tourism-knowledge.test.ts": "66f12df8ead17a3b48d556fdd400675b50c01d4c3b517a7204dbd81f7bee1d68",
+    "tests/e2e/tourism-recommendations.spec.ts": "95a8c678ce7946b8a75a4dc769bf72180f8e24309a432b07ff804879ad6dd9f6",
+    "docs/tourism-langgraph.md": "0b3430950683242621262f804006b3a92dc89f5895c9a5e9c70d9cc87717e263"
+  },
+  "fixes": [
+    {
+      "finding": "P1 stale preview after recommendation conditions change",
+      "change": "Synchronously clear result and map preview on effective condition changes; reject outdated responses and guard confirmation with the applied condition signature",
+      "regression": "1440px and 390px: change interests and keep IDs separately, verify old confirmation disappears and no save occurs, regenerate with latest conditions, then persist the kept place through the real API"
+    },
+    {
+      "finding": "P2 explicitly closed places included in plans",
+      "change": "Exclude openingHours=closed and tags.opening_hours=closed in spatial SQL and graph usability validation",
+      "regression": "Both flags covered for catalog queries, rules, model drafts and kept places"
+    },
+    {
+      "finding": "P2 NULL canonical links precede linked records",
+      "change": "DESC NULLS LAST before LIMIT 120",
+      "regression": "Real DB publication of 120 unlinked and 1 linked facility; linked record is first and survives the result cap"
+    },
+    {
+      "finding": "P2 retry exits before the requested strategy exists",
+      "change": "Validate presence of the requested strategy before ending bounded retrieval",
+      "regression": "An outdoor-only 10km result expands to indoor museums at 15km; unavailable indoor strategy stops after all three radii; pinned snapshots and one weather lookup preserved"
+    }
+  ],
+  "results": {
+    "added_server_regressions_before_fix": {
+      "failed": 8,
+      "passed": 0
+    },
+    "tourism_tests_after_fix": {
+      "files": 3,
+      "passed": 25
+    },
+    "vitest": {
+      "files": 28,
+      "passed": 175
+    },
+    "playwright": {
+      "passed": 23,
+      "tourism_viewports": [
+        1440,
+        390
+      ]
+    },
+    "build": "passed",
+    "lint": "passed",
+    "spec_check": "passed: 45 paths and 28 DBML tables",
+    "changed_file_format_check": "passed",
+    "git_diff_check": "passed",
+    "full_format_check": {
+      "status": "failed on pre-existing files",
+      "files": [
+        "frontend/src/components/ExpensePanel.vue",
+        "frontend/src/components/TripCalendar.vue",
+        "frontend/src/components/TripTools.vue",
+        "frontend/src/composables/useTripTools.ts",
+        "frontend/src/views/Invite.vue",
+        "frontend/src/views/Planner.vue",
+        "frontend/src/views/RegionGuide.vue",
+        "tests/e2e/expenses.spec.ts"
+      ]
+    },
+    "database_after_cleanup": {
+      "catalog_places": 20810,
+      "tourism_records": 0,
+      "remaining_test_places": 0,
+      "remaining_test_users": 0
+    }
+  },
+  "limits": [
+    "Tourism UI recommendation, source evidence and provider responses are fixtures; confirmation uses the real local API and PostgreSQL",
+    "No live HARP collection or current facility opening verification performed for this review",
+    "No production deployment or real-user recommendation-quality measurement",
+    "Existing uncommitted changes preserved; no commit or push"
+  ]
+}

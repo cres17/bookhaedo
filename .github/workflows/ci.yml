@@ -4,6 +4,7 @@ permissions:
   contents: read
 jobs:
   verify:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -25,13 +26,56 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm audit --omit=dev --audit-level=high
+      - name: Audit production dependencies (retry registry errors only)
+        run: node scripts/audit-dependencies.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run format:check
       - run: npm run db:init
       - run: npx tsx scripts/verify-fresh-migrations.ts
       - run: npm run test:ci
+      - run: python3 -m unittest discover -s scripts/tourism -p 'test_*.py' -v
       - run: npm run test:load:ci
       - run: npm run spec:check
       - run: npm run build
+  tourism-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: bookhaedo_test
+          POSTGRES_PASSWORD: ci_test_only
+          POSTGRES_DB: bookhaedo_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U bookhaedo_test -d bookhaedo_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://bookhaedo_test:ci_test_only@127.0.0.1:5432/bookhaedo_test
+      TOURISM_PUBLISHED_E2E: '0'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+      - run: npm run db:init
+      - name: Tourism recommendations on desktop and mobile
+        run: npm run test:e2e:tourism
+      - name: Shared dialog focus, schedule persistence and invitation re-entry
+        run: npx playwright test tests/e2e/calendar.spec.ts tests/e2e/invitation-entry.spec.ts
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: tourism-e2e-failure
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

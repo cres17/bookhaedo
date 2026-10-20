@@ -1,0 +1,12 @@
+[
+  {
+    "label": "full-vitest",
+    "code": 0,
+    "log": "/private/tmp/bookhaedo-recovery-fix-verified-full-vitest.log"
+  },
+  {
+    "label": "full-e2e",
+    "code": 0,
+    "log": "/private/tmp/bookhaedo-recovery-fix-verified-full-e2e.log"
+  }
+]

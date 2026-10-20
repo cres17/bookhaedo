@@ -1,0 +1,403 @@
+{
+  "summary": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "gate_decision": "pass"
+  },
+  "scan_metrics": {
+    "scanned_files": 38,
+    "skipped_ignored_files": 0,
+    "skipped_binary_files": 0,
+    "skipped_large_files": 0,
+    "evaluated_rules": 7,
+    "runtime_seconds": 0.016182332998141646,
+    "analysis_notes": [
+      {
+        "path": "docs/Bookhaedo-API.yml",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/openapi-rest.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/probes/README.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/probes/tourism-rereview-20261006.mts",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/probes/tourism-rereview-runner-20261006.mts",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-architecture-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-evidence-20261006.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-implementation-20261006.md",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "docs/research/tourism-rereview-implementation-evidence-20261006.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/public/openapi.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/components/DayAlternatives.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/components/TravelMap.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "frontend/src/route-map-policy.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "frontend/src/views/Planner.vue",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "package.json",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "scripts/load_postgis.py",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "scripts/write-api-spec.mjs",
+        "method": "heuristic",
+        "reason": "No grammar-backed detector for this file type"
+      },
+      {
+        "path": "server/collaboration.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/day-alternatives.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/http/middleware.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/itinerary-write.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/observability/metrics.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/providers.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/route-response.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/routes/ai-recommendations.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/routes/trips.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/routing.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "server/trip-snapshot.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/trip-write.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "server/weather-alternatives.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "shared/route-shape-policy.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/domain.test.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      },
+      {
+        "path": "tests/e2e/tourism-save-recovery.spec.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/review-write-boundaries.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/route-map-policy.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/route-response-validation.test.ts",
+        "method": "grammar+heuristic",
+        "reason": ""
+      },
+      {
+        "path": "tests/valhalla-gate.test.ts",
+        "method": "heuristic",
+        "reason": "Partial or invalid diff fragment; grammar recovery and patch heuristics used"
+      }
+    ]
+  },
+  "result": "pass",
+  "change_types": [
+    "cli-public-interface",
+    "other"
+  ],
+  "violations": [],
+  "rule_decisions": [
+    {
+      "rule_id": "api-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "server/day-alternatives.ts",
+        "server/routes/**",
+        "server/weather-alternatives.ts"
+      ],
+      "trigger_files": [
+        "server/day-alternatives.ts",
+        "server/routes/ai-recommendations.ts",
+        "server/routes/trips.ts",
+        "server/weather-alternatives.ts"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "OpenAPI copies",
+          "required": [
+            "docs/openapi-rest.json",
+            "docs/Bookhaedo-API.yml",
+            "frontend/public/openapi.json"
+          ],
+          "type": "all_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "trip-write-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "server/collaboration.ts",
+        "server/itinerary-write.ts",
+        "server/trip-snapshot.ts",
+        "server/trip-write.ts"
+      ],
+      "trigger_files": [
+        "server/collaboration.ts",
+        "server/itinerary-write.ts",
+        "server/trip-snapshot.ts",
+        "server/trip-write.ts"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Write and snapshot contract",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        },
+        {
+          "name": "Database regression",
+          "required": [
+            "tests/review-write-boundaries.test.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "provider-boundary",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "server/providers.ts",
+        "server/route-response.ts",
+        "server/routing.ts",
+        "shared/route-shape-policy.ts"
+      ],
+      "trigger_files": [
+        "server/providers.ts",
+        "server/route-response.ts",
+        "server/routing.ts",
+        "shared/route-shape-policy.ts"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Provider limits",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        },
+        {
+          "name": "Provider regressions",
+          "required": [
+            "tests/route-response-validation.test.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "recommendation-recovery",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "frontend/src/components/DayAlternatives.vue"
+      ],
+      "trigger_files": [
+        "frontend/src/components/DayAlternatives.vue"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Recovery contract",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        },
+        {
+          "name": "Browser regressions",
+          "required": [
+            "tests/e2e/tourism-save-recovery.spec.ts"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "schema-contract",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "ci-contract",
+      "severity": "BLOCKER",
+      "status": "pass",
+      "reason": "trigger matched and all required groups were satisfied",
+      "matched_patterns": [
+        "package.json"
+      ],
+      "trigger_files": [
+        "package.json"
+      ],
+      "satisfied_groups": [
+        {
+          "name": "Verification scope",
+          "required": [
+            "docs/research/tourism-rereview-implementation-20261006.md"
+          ],
+          "type": "any_changed",
+          "evidence": ""
+        }
+      ],
+      "unsatisfied_groups": []
+    },
+    {
+      "rule_id": "source-policy",
+      "severity": "BLOCKER",
+      "status": "unmatched",
+      "reason": "no changed files matched this rule after ignore paths and intensity filters",
+      "matched_patterns": [],
+      "trigger_files": [],
+      "satisfied_groups": [],
+      "unsatisfied_groups": []
+    }
+  ],
+  "skipped_rules": [],
+  "rejected_ignores": [],
+  "ignore_audit": [],
+  "temporal_warnings": [],
+  "gate": {
+    "fail_on_blocker": true,
+    "fail_on_major_count": 1
+  }
+}

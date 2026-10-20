@@ -243,3 +243,93 @@ describe('provider call reductions without stale or incorrect reuse', () => {
     );
   });
 });
+
+describe('caller cancellation with provider caches', () => {
+  const waitingTransport = () => {
+    const active = new Set<AbortSignal>();
+    const request = vi.fn(
+      (_url: any, init: any) =>
+        new Promise<Response>((_resolve, reject) => {
+          const signal = init.signal as AbortSignal;
+          active.add(signal);
+          const abort = () => {
+            active.delete(signal);
+            reject(signal.reason);
+          };
+          if (signal.aborted) abort();
+          else signal.addEventListener('abort', abort, { once: true });
+        }),
+    );
+    return { request, active };
+  };
+  it.each(['valhalla', 'google'])('cancels the actual %s transport signal', async (provider) => {
+    vi.stubEnv('GOOGLE_MAPS_SERVER_API_KEY', 'test');
+    const { request, active } = waitingTransport();
+    const controller = new AbortController();
+    const result =
+      provider === 'valhalla'
+        ? routeSegment(points[0]!, points[1]!, 'WALK', request, undefined, controller.signal)
+        : computeSegment(points[0]!, points[1]!, 'TRANSIT', request, undefined, controller.signal);
+    await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+    controller.abort();
+    expect((await result).durationSeconds).toBeNull();
+    expect(active.size).toBe(0);
+  });
+  it('isolates weather cancellation across callers and still reuses completed responses', async () => {
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const days = Array.from({ length: 10 }, (_, i) =>
+      new Date(Date.parse(today) + i * 86400000).toISOString().slice(0, 10),
+    );
+    const releases: ((r: Response) => void)[] = [];
+    const signals: AbortSignal[] = [];
+    const request = vi.fn(
+      (_url: any, init: any) =>
+        new Promise<Response>((resolve, reject) => {
+          releases.push(resolve);
+          signals.push(init.signal);
+          init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true });
+        }),
+    );
+    const first = new AbortController(),
+      second = new AbortController();
+    const a = forecast(43.777, 141.777, today, request, first.signal);
+    const b = forecast(43.777, 141.777, today, request, second.signal);
+    await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(2));
+    first.abort();
+    expect((await a).available).toBe(false);
+    expect(signals[1].aborted).toBe(false);
+    releases[1](
+      response({
+        daily: {
+          time: days,
+          temperature_2m_max: days.map(() => 20),
+          temperature_2m_min: days.map(() => 10),
+        },
+      }),
+    );
+    expect((await b).available).toBe(true);
+    expect(
+      (await forecast(43.777, 141.777, today, request, new AbortController().signal)).available,
+    ).toBe(true);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+  it('never starts HTTP work for a caller already cancelled', async () => {
+    const { request } = waitingTransport();
+    const signal = AbortSignal.abort();
+    await routeSegment(points[0]!, points[1]!, 'WALK', request, undefined, signal);
+    await computeSegment(points[0]!, points[1]!, 'TRANSIT', request, undefined, signal);
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    await forecast(43.999, 141.999, today, request, signal);
+    expect(request).not.toHaveBeenCalled();
+  });
+});

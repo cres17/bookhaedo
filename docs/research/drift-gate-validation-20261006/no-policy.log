@@ -1,0 +1,21 @@
+<!-- drift-gate-v1 -->
+## Drift Gate Report
+
+**Result:** `PASS`
+
+No `.drift-gate.yml` policy was found, so Drift Gate did not evaluate contract drift.
+
+Add a policy file to enable PR checks:
+
+```yaml
+rules:
+  - id: api-contract-sync
+    when:
+      any_changed: ["src/routes/**", "openapi/**"]
+    require:
+      groups:
+        - name: "API docs"
+          any_changed: ["docs/spec.md", "docs/api/**"]
+    severity: blocker
+    message: "API surface changed without synced contract docs"
+```

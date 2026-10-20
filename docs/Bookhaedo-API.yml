@@ -642,6 +642,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '503':
+          description: 조회 취소 또는 DB 사용 불가
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: READ_QUERY_TIMEOUT 또는 REQUEST_DEADLINE_EXCEEDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: ' 여행 메타데이터·권한·날짜 revision·장소 목록은 단일 SQL snapshot으로 조회한다. handler 조회는 15초, SQL은 3초로 제한하며 인증·rate limit 대기는 이 기한에 포함되지 않는다.'
       tags:
         - 여행
       operationId: get__trips_id_
@@ -677,6 +690,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          description: 여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripWriteConflict'
         '429':
           description: 요청 제한. Retry-After 후 재시도
           content:
@@ -770,6 +789,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          description: 여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripWriteConflict'
         '429':
           description: 요청 제한. Retry-After 후 재시도
           content:
@@ -1462,6 +1487,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          description: 여행 잠금 대기 3초 초과(TRIP_WRITE_BUSY) 또는 데이터 충돌(CONFLICT). 자동 재전송하지 말고 현재 여행을 확인한 뒤 다시 시도한다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripWriteConflict'
         '429':
           description: 요청 제한. Retry-After 후 재시도
           content:
@@ -1954,6 +1985,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '504':
+          description: 'REQUEST_DEADLINE_EXCEEDED 또는 READ_QUERY_TIMEOUT: 조회 기한 초과'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       parameters:
         - name: targetId
           in: query
@@ -1970,7 +2007,9 @@ paths:
       description: >-
         소유권 검증 후 대상 장소 좌표의 Open-Meteo 예보를 조회한다. 비/눈/이슬비/뇌우 또는 일 강수량 5mm, 적설 1cm, 강수확률 70%, 풍속 40km/h 이상 중 하나이면 실내 대안 탐색.
         공식 기상특보 기준이 아님. 실내 분류 및 직선 20km 이내 후보를 기존 일정에서 제외하고 최대 3곳 제시. previewId는 현재 추천 후보만 허용. 앞뒤 인접 구간의 실제 경로 조회 실패 시
-        비교 시간 null. 저장하지 않음.
+        비교 시간 null. 저장하지 않음. 추천 조회 전체는 15초, 취소 가능한 SQL은 문장당 3초로 제한한다. 클라이언트 연결 종료 시 조회 작업을 취소하고 저장 요청은 별도로 유지한다. 각 경로는
+        여행일 오전 9시(JST) 출발을 독립 비교하며 TRANSIT의 합산 시간과 시간 증감은 null. complete는 구간 경로 조회 성공만 의미하고 하루 시간표의 실행 가능성은
+        NOT_EVALUATED.
       tags:
         - 추천
       operationId: get__trips_id_days_date_weather_alternatives
@@ -2068,8 +2107,9 @@ paths:
                   description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
       description: >-
         날짜 행을 잠그고 기존 순서와 비교해 동시 수정 409를 반환한다. 실내 분류·20km·중복을 재검증하며 예보는 저장 시 다시 호출하지 않는다. 기존 순번과 다른 항목의 메모를 유지하고 교체 대상
-        메모만 비운다. 오류 시 rollback. 추가 테이블 없이 날짜의 revision을 사용한다. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을
-        증가시킨다.
+        메모만 비운다. 오류 시 rollback. 추가 테이블 없이 날짜의 revision을 사용한다. 교체 target을 제외한 기존 장소와 동일 지역/분류/정규화 일본어명/10m 이내 시설 중복을 검사하며
+        400/PLACE_INELIGIBLE로 거절한다. 여행→날짜→catalog ID(C collation) 순서로 잠그며 잠금 대기 3초 초과는 409/TRIP_WRITE_BUSY.
+        expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.
       tags:
         - 추천
       operationId: patch__trips_id_days_date_weather_alternatives
@@ -2128,6 +2168,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '504':
+          description: 'REQUEST_DEADLINE_EXCEEDED 또는 READ_QUERY_TIMEOUT: 조회 기한 초과'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       parameters:
         - name: strategy
           in: query
@@ -2148,7 +2194,9 @@ paths:
             default: 4
       description: >-
         날씨가 좋거나 예보가 없어도 사용할 수 있다. 현재 일정 중심의 직선 20km 후보에서 날씨 맞춤, 실내 중심, 가까운 곳 중심 코스를 생성한다. strategy를 지정하면 선택 코스의 인접 실제
-        경로를 조회하지만 저장하지 않는다. 장소 운영 여부와 최적 동선을 보장하지 않는다.
+        경로를 조회하지만 저장하지 않는다. 장소 운영 여부와 최적 동선을 보장하지 않는다. 추천 조회 전체는 15초, 취소 가능한 SQL은 문장당 3초로 제한한다. 클라이언트 연결 종료 시 조회 작업을
+        취소하고 저장 요청은 별도로 유지한다. 각 경로는 여행일 오전 9시(JST) 출발을 독립 비교하며 TRANSIT의 합산 시간과 시간 증감은 null. complete는 구간 경로 조회 성공만 의미하고
+        하루 시간표의 실행 가능성은 NOT_EVALUATED.
       tags:
         - 추천
       operationId: get__trips_id_days_date_day_alternatives
@@ -2235,16 +2283,153 @@ paths:
                   maxItems: 30
                   uniqueItems: true
                   description: 미리보기 시점의 기존 하루 일정 순서
+                expectedTransportMode:
+                  type: string
+                  enum:
+                    - DRIVE
+                    - TAXI
+                    - TRANSIT
+                    - WALK
+                    - BICYCLE
                 expectedRevision:
                   type: integer
                   minimum: 0
                   description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
       description: >-
         날짜 행을 잠그고 기존 일정 순서와 expectedPlaceIds를 비교한다. 추천 코스의 장소 존재·중복·기존 중심과의 거리를 검증하고 트랜잭션으로 전체 순서를 교체한다. 새 코스에 남는 장소의
-        메모만 유지하며 오류나 충돌 시 기존 일정을 보존한다. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.
+        메모만 유지하며 오류나 충돌 시 기존 일정을 보존한다. 명시적으로 closed인 장소·비공개·폐기·숙박 분류와 동일 지역/분류/정규화 일본어명/10m 이내 중복 시설을 재검증한다. unknown
+        영업시간은 금지하지 않는다. expectedTransportMode를 전달하면 이동 수단 변경도 409로 거절한다. 여행→날짜→catalog ID(C collation) 순서로 잠그고 권한과 문맥을
+        다시 검사한다. mode 변경이 먼저 완료되면 409, 확정이 먼저 잠그면 설정 변경은 그 뒤에 완료된다. 유지 장소의 item ID·메모·예산·시간을 보존한다. 잠금 대기 3초 초과는
+        409/TRIP_WRITE_BUSY. expectedRevision을 잠긴 날짜의 현재 revision과 비교하며 성공하면 revision을 증가시킨다.
       tags:
         - 추천
       operationId: patch__trips_id_days_date_day_alternatives
+  /trips/{id}/days/{date}/ai-recommendations:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: date
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date
+    post:
+      summary: 공개 관광 자료와 LangGraph를 이용한 읽기 전용 추천
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIRecommendation'
+        '400':
+          description: 입력·유지 조건 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 인증 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 여행 접근 권한·날짜 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'RECOMMENDATION_CONTEXT_CHANGED: 일정 또는 이동 수단 변경'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: 'STRATEGY_UNAVAILABLE: 다른 코스가 있지만 요청 전략은 생성 불가'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: >-
+            추천 POST는 사용자당 60초에 30회. 모든 여행·날짜·로그인 세션이 한도를 공유하며 수락한 동행자는 별도 한도. 초과 시 AI_RECOMMENDATION_RATE_LIMITED. 전역
+            API 제한이 먼저 적용되면 RATE_LIMITED. Retry-After(초) 이후 재시도. 제한 응답은 추천·경로 생성 전에 반환하며 일정을 변경하지 않는다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: 다시 요청할 때까지 기다릴 초
+              schema:
+                type: integer
+                minimum: 1
+            RateLimit:
+              description: 현재 적용된 한도·남은 횟수·초 단위 초기화 시간 (draft-7)
+              schema:
+                type: string
+            RateLimit-Policy:
+              description: 추천 제한 정책은 30;w=60. 전역 API 제한이 먼저 적용되면 해당 정책을 반환
+              schema:
+                type: string
+        '504':
+          description: 'REQUEST_DEADLINE_EXCEEDED 또는 READ_QUERY_TIMEOUT: 조회 기한 초과'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                count:
+                  type: integer
+                  minimum: 3
+                  maximum: 6
+                  default: 4
+                keepPlaceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  maxItems: 5
+                  uniqueItems: true
+                interests:
+                  type: string
+                  maxLength: 200
+                  default: ''
+                strategy:
+                  type: string
+                  enum:
+                    - KNOWLEDGE
+                    - AUTO
+                    - INDOOR
+                    - NEARBY
+      description: >-
+        소유자 또는 수락한 동행자만 접근. 첫 장소 지역과 현재 일정 중심의 직선 10→15→20km 범위에서 거리순 후보를 최대 2회 재검색. 장소 근거는 반환 코스가 인용한 자료만, 행사 자료는 별도 참고
+        정보로 반환. READY는 시설 근거를 인용한 코스가 있을 때만 사용. 빈 일정은 NEEDS_ANCHOR와 searchAttempts=0, 유효 코스 없음은 NO_CANDIDATES로 200 응답.
+        다른 코스가 있지만 요청 전략이 없으면 422/STRATEGY_UNAVAILABLE. 승인된 최신 snapshot과 적용 날짜를 검사한다. 반복·날짜 미기재 행사는 referenceEvents에 최대
+        20건 반환하며 날짜가 있는 종료 행사는 포함하지 않는다. 기본 생성은 규칙 기반이며 외부 LLM을 호출하지 않는다. strategy가 있으면 실제 인접 경로를 조회. 읽기 전용이며 확정은 기존
+        PATCH day-alternatives에 placeIds,expectedPlaceIds,expectedRevision을 전달한다. 409/428 revision 계약 유지. 추천 조회 전체는 15초,
+        취소 가능한 SQL은 문장당 3초로 제한한다. 클라이언트 연결 종료 시 조회 작업을 취소하고 저장 요청은 별도로 유지한다. 각 경로는 여행일 오전 9시(JST) 출발을 독립 비교하며 TRANSIT의
+        합산 시간과 시간 증감은 null. complete는 구간 경로 조회 성공만 의미하고 하루 시간표의 실행 가능성은 NOT_EVALUATED. 경로 조회 후 응답 자료의 권리·활성 버전·철회·유효기간을
+        단일 최신 SQL 시점에서 재검증한다. 해당 시점 이후 철회는 전송 중인 응답에서 회수할 수 없다. 일정 revision·장소 순서·이동 수단이 생성 중 바뀌면 409.
+      tags:
+        - 여행
+      operationId: post__trips_id_days_date_ai_recommendations
   /places/search-assist:
     get:
       summary: 한국어 이름을 Google 검색으로 수집 장소에 연결
@@ -4177,8 +4362,17 @@ components:
           type: array
           items:
             type: array
-            items:
-              type: number
+            minItems: 2
+            maxItems: 2
+            prefixItems:
+              - type: number
+                minimum: -180
+                maximum: 180
+              - type: number
+                minimum: -90
+                maximum: 90
+            items: false
+          maxItems: 20000
         estimatedCost:
           type: 'null'
         costNotice:
@@ -4202,6 +4396,8 @@ components:
           type:
             - string
             - 'null'
+          maxLength: 262144
+          description: Google 1e5 인코딩 좌표 검증 후 반환. 부재 시 null이며 유효한 경로 수치와 구분한다. 타입·인코딩·범위가 잘못된 geometry는 정상 경로로 캐시하지 않는다.
         source:
           type: string
           enum:
@@ -4299,6 +4495,19 @@ components:
                 before:
                   type: object
                   properties:
+                    mode:
+                      type: string
+                      enum:
+                        - DRIVE
+                        - TAXI
+                        - TRANSIT
+                        - WALK
+                        - BICYCLE
+                    timelineStatus:
+                      const: NOT_EVALUATED
+                    departureNotice:
+                      type: string
+                      description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                     segments:
                       type: array
                       items:
@@ -4313,9 +4522,23 @@ components:
                       type:
                         - number
                         - 'null'
+                      description: TRANSIT은 null. 구간별 시간은 segments에서 독립 비교.
                 after:
                   type: object
                   properties:
+                    mode:
+                      type: string
+                      enum:
+                        - DRIVE
+                        - TAXI
+                        - TRANSIT
+                        - WALK
+                        - BICYCLE
+                    timelineStatus:
+                      const: NOT_EVALUATED
+                    departureNotice:
+                      type: string
+                      description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                     segments:
                       type: array
                       items:
@@ -4330,6 +4553,7 @@ components:
                       type:
                         - number
                         - 'null'
+                      description: TRANSIT은 null. 구간별 시간은 segments에서 독립 비교.
                 durationDeltaSeconds:
                   type:
                     - number
@@ -4347,6 +4571,14 @@ components:
     DayAlternativeResult:
       type: object
       properties:
+        transportMode:
+          type: string
+          enum:
+            - DRIVE
+            - TAXI
+            - TRANSIT
+            - WALK
+            - BICYCLE
         status:
           type: string
           enum:
@@ -4392,6 +4624,19 @@ components:
             - type: 'null'
             - type: object
               properties:
+                mode:
+                  type: string
+                  enum:
+                    - DRIVE
+                    - TAXI
+                    - TRANSIT
+                    - WALK
+                    - BICYCLE
+                timelineStatus:
+                  const: NOT_EVALUATED
+                departureNotice:
+                  type: string
+                  description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
                 plan:
                   type: object
                   properties:
@@ -4425,6 +4670,7 @@ components:
                   type:
                     - number
                     - 'null'
+                  description: TRANSIT은 null. 그 외 모드의 합계도 체류·시간 연결을 검증한 하루 일정이 아님.
         notice:
           type: string
         tripId:
@@ -4437,6 +4683,332 @@ components:
           type: integer
           minimum: 0
           description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
+    TourismEvidence:
+      type: object
+      properties:
+        id:
+          type: string
+        snapshotId:
+          type: string
+          format: uuid
+        sourceId:
+          type: string
+        externalId:
+          type: string
+        placeId:
+          type:
+            - string
+            - 'null'
+        kind:
+          type: string
+          enum:
+            - place
+            - event
+        title:
+          type: string
+        excerpt:
+          type: string
+        publisher:
+          type: string
+        sourceUrl:
+          type: string
+          format: uri
+        resourceUrl:
+          type: string
+          format: uri
+        licenseId:
+          type: string
+        licenseUrl:
+          type: string
+          format: uri
+        fetchedAt:
+          type: string
+          format: date-time
+        sourceUpdatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        evidencePointer:
+          type: string
+        startDate:
+          type:
+            - string
+            - 'null'
+          format: date
+        endDate:
+          type:
+            - string
+            - 'null'
+          format: date
+        dateStatus:
+          type: string
+          enum:
+            - confirmed
+            - tentative
+            - recurring
+            - unknown
+          description: confirmed는 시작·종료일이 기재된 행을 뜻하며 실제 개최 확정을 보증하지 않는다. tentative는 일정 문구의 보수적인 휴리스틱 분류다.
+        hoursStatus:
+          type: string
+          enum:
+            - historical
+            - unknown
+        locationStatus:
+          type: string
+          enum:
+            - provided
+            - missing
+        scheduleRaw:
+          type: string
+    AIRecommendation:
+      type: object
+      properties:
+        evidenceValidatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: 최종 자료 재검사 SQL 시점. 확인할 자료가 없으면 null.
+        transportMode:
+          type: string
+          enum:
+            - DRIVE
+            - TAXI
+            - TRANSIT
+            - WALK
+            - BICYCLE
+        status:
+          type: string
+          enum:
+            - READY
+            - CATALOG_FALLBACK
+            - NO_CANDIDATES
+            - NEEDS_ANCHOR
+        requestId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        expectedRevision:
+          type: integer
+          minimum: 0
+        expectedPlaceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        snapshotIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        engine:
+          const: langgraph
+        generationMode:
+          const: rules
+        searchAttempts:
+          type: integer
+          minimum: 0
+          maximum: 3
+        weather:
+          $ref: '#/components/schemas/Weather'
+        weatherMode:
+          type: string
+          enum:
+            - FAIR
+            - ADVERSE
+            - UNKNOWN
+        plans:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                enum:
+                  - AUTO
+                  - INDOOR
+                  - NEARBY
+                  - KNOWLEDGE
+              label:
+                type: string
+              reason:
+                type: string
+              places:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Place'
+              distanceMeters:
+                type: number
+              evidenceIds:
+                type: array
+                items:
+                  type: string
+        preview:
+          anyOf:
+            - type: 'null'
+            - type: object
+              properties:
+                mode:
+                  type: string
+                  enum:
+                    - DRIVE
+                    - TAXI
+                    - TRANSIT
+                    - WALK
+                    - BICYCLE
+                timelineStatus:
+                  const: NOT_EVALUATED
+                departureNotice:
+                  type: string
+                  description: 각 구간은 여행일 09:00 JST 출발의 독립 조회. 체류시간과 연속 이동 일정을 검증하지 않음.
+                plan:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      enum:
+                        - AUTO
+                        - INDOOR
+                        - NEARBY
+                        - KNOWLEDGE
+                    label:
+                      type: string
+                    reason:
+                      type: string
+                    places:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Place'
+                    distanceMeters:
+                      type: number
+                    evidenceIds:
+                      type: array
+                      items:
+                        type: string
+                segments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      from:
+                        type: string
+                        format: uuid
+                      to:
+                        type: string
+                        format: uuid
+                      distanceMeters:
+                        type:
+                          - number
+                          - 'null'
+                      durationSeconds:
+                        type:
+                          - number
+                          - 'null'
+                      coordinates:
+                        type: array
+                        items:
+                          type: array
+                          minItems: 2
+                          maxItems: 2
+                          prefixItems:
+                            - type: number
+                              minimum: -180
+                              maximum: 180
+                            - type: number
+                              minimum: -90
+                              maximum: 90
+                          items: false
+                        maxItems: 20000
+                      estimatedCost:
+                        type: 'null'
+                      costNotice:
+                        type: string
+                      mode:
+                        type: string
+                      transitFare:
+                        type:
+                          - string
+                          - object
+                          - 'null'
+                      tolls:
+                        type:
+                          - object
+                          - 'null'
+                      costs:
+                        type:
+                          - object
+                          - 'null'
+                      polyline:
+                        type:
+                          - string
+                          - 'null'
+                        maxLength: 262144
+                        description: >-
+                          Google 1e5 인코딩 좌표 검증 후 반환. 부재 시 null이며 유효한 경로 수치와 구분한다. 타입·인코딩·범위가 잘못된 geometry는 정상 경로로 캐시하지
+                          않는다.
+                      source:
+                        type: string
+                        enum:
+                          - valhalla
+                          - google
+                          - straight-line
+                          - unavailable
+                      notice:
+                        type: string
+                complete:
+                  type: boolean
+                distanceMeters:
+                  type:
+                    - number
+                    - 'null'
+                durationSeconds:
+                  type:
+                    - number
+                    - 'null'
+                  description: TRANSIT은 null. 그 외 모드의 합계도 체류·시간 연결을 검증한 하루 일정이 아님.
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/TourismEvidence'
+        referenceEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/TourismEvidence'
+          maxItems: 20
+          description: 반복·날짜 미기재 지역 행사 참고. 여행일 개최를 확인한 정보가 아니며 코스 근거·READY 판정·자동 일정 배치에서 제외.
+        warnings:
+          type: array
+          items:
+            type: string
+        notice:
+          type: string
+      required:
+        - evidenceValidatedAt
+        - transportMode
+        - status
+        - requestId
+        - tripId
+        - date
+        - expectedRevision
+        - expectedPlaceIds
+        - snapshotIds
+        - engine
+        - generationMode
+        - searchAttempts
+        - weather
+        - weatherMode
+        - plans
+        - preview
+        - evidence
+        - referenceEvents
+        - warnings
+        - notice
     Member:
       type: object
       properties:
@@ -4549,3 +5121,34 @@ components:
         expiresAt:
           type: string
           format: date-time
+    TripWriteConflict:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - TRIP_WRITE_BUSY
+            - CONFLICT
+        requestId:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: array
+                items:
+                  type: string
+              message:
+                type: string
+        currentRevision:
+          type: integer
+          minimum: 0
+          description: 조회 시 받은 날짜 버전. 일정·메모가 바뀌면 증가
+      required:
+        - error
+        - code
+        - requestId

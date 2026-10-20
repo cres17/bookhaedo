@@ -1,0 +1,121 @@
+{
+  "checked_at": "2026-10-01T02:58:48.245044+00:00",
+  "scope": "local persistent collector; live Eniwa plus loopback HTTP integration",
+  "live": {
+    "reports": [
+      {
+        "source": "eniwa-events",
+        "started_at": "2026-10-01T02:54:00.394293+00:00",
+        "page_status": 200,
+        "resources_found": 1,
+        "resources": [
+          {
+            "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+            "key": "012319_event2026.csv",
+            "year": 2026,
+            "status": 200,
+            "change": "new",
+            "sha256": "0d88e1bada43fffa3cb27879f1143def167deb2d02af99139502f15d11a0e3b4",
+            "rows": 3,
+            "encoding": "cp932"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "source": "eniwa-events",
+        "started_at": "2026-10-01T02:57:00.528681+00:00",
+        "page_status": 304,
+        "resources_found": 1,
+        "resources": [
+          {
+            "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+            "key": "012319_event2026.csv",
+            "year": 2026,
+            "status": 304,
+            "change": "unchanged",
+            "sha256": "0d88e1bada43fffa3cb27879f1143def167deb2d02af99139502f15d11a0e3b4",
+            "rows": 3,
+            "encoding": "cp932"
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "requests": [
+      {
+        "url": "https://www.harp.lg.jp/robots.txt",
+        "start": 1790823180.1542609,
+        "attempt": 1,
+        "status": 200
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+        "start": 1790823240.1561742,
+        "attempt": 1,
+        "status": 200
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+        "start": 1790823300.159937,
+        "attempt": 1,
+        "status": 200
+      },
+      {
+        "url": "https://www.harp.lg.jp/robots.txt",
+        "start": 1790823360.3660128,
+        "attempt": 1,
+        "status": 304
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823.html",
+        "start": 1790823420.3729322,
+        "attempt": 1,
+        "status": 304
+      },
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1823/resource/8944/012319_event2026.csv",
+        "start": 1790823480.380957,
+        "attempt": 1,
+        "status": 304
+      }
+    ],
+    "request_gaps_seconds": [
+      60.00191330909729,
+      60.00376272201538,
+      60.20607590675354,
+      60.006919384002686,
+      60.0080246925354
+    ],
+    "min_request_gap_seconds": 60.00191330909729,
+    "database_counts": {
+      "resources": 1,
+      "versions": 1,
+      "runs": 2
+    },
+    "stored_blob_count": 1
+  },
+  "integration": {
+    "tests": 6,
+    "passed": 6,
+    "report": "test_429_503_retry_obeys_interval_and_retry_after (test_collector.Integration.test_429_503_retry_obeys_interval_and_retry_after) ... ok\ntest_external_interval_cannot_be_lowered (test_collector.Integration.test_external_interval_cannot_be_lowered) ... ok\ntest_process_restart_preserves_gate_and_deduplication (test_collector.Integration.test_process_restart_preserves_gate_and_deduplication) ... ok\ntest_repeated_run_discovery_new_year_and_changed_file (test_collector.Integration.test_repeated_run_discovery_new_year_and_changed_file) ... ok\ntest_retry_exhaustion_and_invalid_csv_preserve_last_good_version (test_collector.Integration.test_retry_exhaustion_and_invalid_csv_preserve_last_good_version) ... ok\ntest_same_state_directory_rejects_concurrent_process (test_collector.Integration.test_same_state_directory_rejects_concurrent_process) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 39.545s\n\nOK\n",
+    "fixture_only": [
+      "2027 file publication",
+      "changed content",
+      "429 and 503 with Retry-After",
+      "retry exhaustion and malformed CSV",
+      "restart and concurrency"
+    ]
+  },
+  "limits": [
+    "Only Eniwa repeated against real public source",
+    "Future real 2027 publication not observed",
+    "No AWS deployment or persistent scheduler registered",
+    "SQLite/file lock requires same state directory on a single host",
+    "No S3 upload, semantic normalization, or LangGraph integration"
+  ],
+  "code_sha256": {
+    "scripts/tourism/collector.py": "9757132bb18f50f45cf1693d32b6fc18add1f27d1b0500ccec09a39f6a096113",
+    "scripts/tourism/test_collector.py": "1c41ee00967e44e0d7000a5922eaaba074a81b6828508df10dbd22647958b333"
+  }
+}

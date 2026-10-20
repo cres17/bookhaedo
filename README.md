@@ -42,6 +42,16 @@ Book해도는 소도시의 장소와 일본어 이름을 찾는 불편함, 여�
 
 일본어 리뷰는 새로운 후보를 발견하는 단서로 활용합니다. 작성자의 거주지·국적을 확인하거나 특정 장소를 “현지인 맛집”으로 인증하는 기능은 아닙니다.
 
+### 공개 관광 자료를 함께 보는 추천
+
+하루 코스 추천에서 **공개 관광 자료 함께 보기**를 선택하면 LangGraph.js가 승인된 자료 검색 → 예보 조회 → 코스 생성 → 조건 검증 → 동선 미리보기를 연결합니다. 유지할 장소를 고를 수 있고, 자료 출처·라이선스·수집 시점·행사 미확정 상태를 확인한 뒤 기존 확정 API로 저장합니다. 공개 자료가 없으면 기존 장소 추천으로 이어집니다.
+
+2026-10-01에는 승인된 HARP 출처 4개에서 시설 34건·행사 13건을 로컬 DB에 발행했습니다. 후라노는 검증된 별칭 1건을 적용해 9/24건(37.5%), 새 북토시 자료는 2/10건(20%)이 catalog에 연결됐습니다. 반복·날짜 미기재 행사는 개최 미확인 참고 목록으로 분리합니다. 현재 운영·개최 여부를 보장하지 않습니다. [시설 대조](docs/research/tourism-facility-decisions-20261001.md), [지역 자료 확대](docs/research/tourism-source-expansion-20261001.md), [실제 적재 이력](docs/research/tourism-data-ingestion-20261001.md)에 근거와 한계를 보존했습니다.
+
+자체 호스팅 Valhalla는 API 프로세스당 동시 8개·대기 128개로 제한하고 추천은 사용자당 분당 30회를 유지합니다. [로컬 부하 측정](docs/research/tourism-load-20261001.md)은 동일 코스의 1·5·10·25명 burst 비교와 6개 장소 50명 추가 검증이며 운영 SLA가 아닙니다.
+
+현재 기본 코스 생성은 규칙 기반입니다. 외부 LLM·번역·임베딩·AWS 스케줄러는 연결하지 않았으며, CSV 정제·공개 버전 발행은 운영자가 실행합니다. 설치·자료 적재·API·모델 확장 방법과 검증 범위는 [LangGraph 확장 안내](docs/tourism-langgraph.md)를 참고하세요.
+
 ## 주요 기능
 
 ### 동행자와 함께 준비하는 여행
@@ -133,6 +143,26 @@ flowchart LR
 ## 기술 스택
 
 [![quality](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml/badge.svg)](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml)
+
+<p align="center">
+  <img alt="Vue 3" src="https://img.shields.io/badge/Vue_3-4FC08D?style=flat-square&amp;logo=vuedotjs&amp;logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white">
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&amp;logo=vite&amp;logoColor=white">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-339933?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white">
+  <img alt="Express 5" src="https://img.shields.io/badge/Express_5-222222?style=flat-square&amp;logo=express&amp;logoColor=white">
+</p>
+<p align="center">
+  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL_17-4169E1?style=flat-square&amp;logo=postgresql&amp;logoColor=white">
+  <img alt="PostGIS" src="https://img.shields.io/badge/PostGIS-336791?style=flat-square">
+  <img alt="Google Maps" src="https://img.shields.io/badge/Google_Maps-4285F4?style=flat-square&amp;logo=googlemaps&amp;logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&amp;logo=docker&amp;logoColor=white">
+  <img alt="OpenAPI 3.1" src="https://img.shields.io/badge/OpenAPI_3.1-6BA539?style=flat-square&amp;logo=openapiinitiative&amp;logoColor=white">
+</p>
+<p align="center">
+  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&amp;logo=vitest&amp;logoColor=white">
+  <img alt="Playwright" src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square">
+  <img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&amp;logo=githubactions&amp;logoColor=white">
+</p>
 
 | 계층 | 사용 기술 | 역할 |
 |---|---|---|
@@ -276,6 +306,8 @@ npm run test:load:ci
 ```
 
 `npm test`의 기존 통합 테스트는 홋카이도 카탈로그가 적재된 로컬 DB를 사용합니다. `npm run test:ci`는 외부 키 없이 실행하는 단위 테스트와 자체 임시 데이터를 사용하는 동시성 테스트입니다. CI는 별도 PostGIS 서비스에서 이 검증을 실행합니다.
+
+`quality` CI의 `tourism-e2e` 작업은 별도 빈 PostGIS DB와 Playwright Chromium에서 `npm run test:e2e:tourism`을 실행합니다. 관광 추천 화면의 데스크톱·모바일 2개 검사는 직접 만든 가상 장소만 사용해 실제 HARP 적재·외부 API 키 없이 실행됩니다. 코스·근거·날씨·경로 표시에는 fixture를 쓰고, 인증·실제 POST 429·일정 확정은 실제 REST/DB로 검증합니다. 실패하면 화면 캡처·trace·HTML 보고서를 Actions artifact에 7일 보관합니다. 실제 발행 자료 검사는 `TOURISM_PUBLISHED_E2E=1`로 별도 실행하며 이 CI 작업에는 포함하지 않습니다.
 
 Chrome E2E에는 실제 Google·Valhalla·Open-Meteo 연결 테스트가 포함되어 외부 설정과 사용량이 필요합니다. macOS는 설치된 Chrome을 사용하며, Linux에서는 `npx playwright install --with-deps chromium`으로 브라우저를 준비합니다. 회귀 테스트는 임시 계정만 만들고 완료 후 정리합니다.
 

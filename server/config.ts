@@ -1,4 +1,7 @@
+import { valhallaLimits } from './valhalla-gate.js';
+import { isPublicValhalla } from './valhalla-policy.js';
 export function validateProduction(env: NodeJS.ProcessEnv = process.env) {
+  valhallaLimits(env);
   if (env.NODE_ENV !== 'production') return;
   if (!env.DATABASE_URL) throw Error('DATABASE_URL is required in production');
   if (!env.METRICS_TOKEN || env.METRICS_TOKEN.length < 32)
@@ -36,9 +39,6 @@ export function validateProduction(env: NodeJS.ProcessEnv = process.env) {
     throw Error(
       'Production requires a separate server Google key when server enrichment is enabled',
     );
-  if (
-    env.VALHALLA_BASE_URL &&
-    new URL(env.VALHALLA_BASE_URL).hostname === 'valhalla1.openstreetmap.de'
-  )
+  if (env.VALHALLA_BASE_URL && isPublicValhalla(env.VALHALLA_BASE_URL))
     throw Error('Production requires a self-hosted or licensed Valhalla endpoint');
 }

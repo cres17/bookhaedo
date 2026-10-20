@@ -1,3 +1,4 @@
+import * as readQueries from '../server/read-query';
 import { versioned } from './versioned-request';
 import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
@@ -155,9 +156,9 @@ describe('블랙박스: 실제 DB·REST, 외부 예보/경로 통제', () => {
     expect((await user.get(base()).query({ targetId: park.id })).body.status).toBe('FAIR_WEATHER');
   });
   it('주변 후보가 없으면 빈 결과를 안내하고 저장하지 않는다', async () => {
-    const original = pool.query.bind(pool);
+    const original = readQueries.readQuery;
     const spy = vi
-      .spyOn(pool, 'query')
+      .spyOn(readQueries, 'readQuery')
       .mockImplementation(((sql: any, ...args: any[]) =>
         typeof sql === 'string' && sql.includes('ST_DWithin(location')
           ? Promise.resolve({ rows: [], rowCount: 0 })

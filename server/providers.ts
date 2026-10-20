@@ -1,5 +1,7 @@
+import { readRouteJson, parseGoogleRoute } from './route-response.js';
+import { parseWeatherResponse } from './weather-response.js';
 import { straightDistance, dateOnly } from './domain.js';
-import { providerCaches, providerKey } from './provider-cache.js';
+import { providerCaches, providerKey, providerSignal } from './provider-cache.js';
 type Point = { id: string; latitude: number; longitude: number };
 export type Segment = {
   from: string;
@@ -25,6 +27,7 @@ export async function computeSegment(
   mode: string,
   request: typeof fetch = fetch,
   departureTime?: string,
+  signal?: AbortSignal,
 ): Promise<Segment> {
   const key = providerKey(request, [
     getGoogleKey(),
@@ -39,8 +42,10 @@ export async function computeSegment(
   ]);
   return providerCaches.google_routes.get(
     key,
-    () => fetchSegment(a, b, mode, request, departureTime),
-    (result) => result.source === 'google',
+    () => fetchSegment(a, b, mode, request, departureTime, signal),
+    (result) => !signal?.aborted && result.source === 'google',
+    // Cancellation belongs to this caller; do not join another caller's flight.
+    !signal,
   );
 }
 async function fetchSegment(
@@ -49,14 +54,17 @@ async function fetchSegment(
   mode: string,
   request: typeof fetch,
   departureTime?: string,
+  signal?: AbortSignal,
 ): Promise<Segment> {
   const base = { from: a.id, to: b.id };
   try {
+    signal?.throwIfAborted();
     const key = getGoogleKey();
     if (!key) throw new Error('KEY_MISSING');
+    const deadline = providerSignal(9000, signal);
     const response = await request('https://routes.googleapis.com/directions/v2:computeRoutes', {
       method: 'POST',
-      signal: AbortSignal.timeout(9000),
+      signal: deadline,
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': key,
@@ -76,15 +84,14 @@ async function fetchSegment(
       }),
     });
     if (!response.ok) throw new Error('GOOGLE_UNAVAILABLE');
-    const result = await response.json();
-    const route = result.routes?.[0];
-    if (!route || !Number.isFinite(route.distanceMeters)) throw new Error('NO_ROUTE');
-    const seconds = Number.parseFloat(route.duration);
+    const { route, durationSeconds, polyline } = parseGoogleRoute(
+      await readRouteJson(response, deadline),
+    );
     return {
       ...base,
       distanceMeters: route.distanceMeters,
-      durationSeconds: Number.isFinite(seconds) ? seconds : null,
-      polyline: route.polyline?.encodedPolyline || null,
+      durationSeconds,
+      polyline,
       source: 'google',
       transitFare:
         route.localizedValues?.transitFare?.text || route.travelAdvisory?.transitFare || null,
@@ -108,6 +115,7 @@ export async function forecast(
   longitude: number,
   date: string,
   request: typeof fetch = fetch,
+  signal?: AbortSignal,
 ) {
   const today = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Tokyo',
@@ -122,6 +130,7 @@ export async function forecast(
       notice: '날씨 예보는 오늘부터 10일 이내의 일정에서 확인할 수 있어요.',
     };
   try {
+    signal?.throwIfAborted();
     // Google Weather does not support daily forecasts in Japan.
     const query = new URLSearchParams({
       latitude: String(latitude),
@@ -135,33 +144,23 @@ export async function forecast(
     const body = await providerCaches.weather.get(
       providerKey(request, [today, query.toString()]),
       async () => {
+        signal?.throwIfAborted();
         const response = await request(`https://api.open-meteo.com/v1/forecast?${query}`, {
-          signal: AbortSignal.timeout(9000),
+          signal: providerSignal(9000, signal),
         });
         if (!response.ok) throw new Error('UNAVAILABLE');
         const data = await response.json();
-        return data;
+        return parseWeatherResponse(data, today);
       },
-      (data) => {
-        const daily = data.daily;
-        return (
-          Array.isArray(daily?.time) &&
-          daily.time.length === 10 &&
-          daily.time.every(
-            (day: string, i: number) =>
-              day === new Date(Date.parse(today) + i * 86400000).toISOString().slice(0, 10) &&
-              Number.isFinite(daily.temperature_2m_max?.[i]) &&
-              Number.isFinite(daily.temperature_2m_min?.[i]),
-          )
-        );
-      },
+      () => !signal?.aborted,
+      !signal,
     );
     const daily = body.daily,
       index = daily?.time?.indexOf(date) ?? -1;
     const high = daily?.temperature_2m_max?.[index],
       low = daily?.temperature_2m_min?.[index];
     if (index < 0 || !Number.isFinite(high) || !Number.isFinite(low)) throw new Error('NO_DATE');
-    const code = daily.weather_code?.[index];
+    const code = daily.weather_code?.[index] ?? -1;
     const description =
       code === 0
         ? '맑음'

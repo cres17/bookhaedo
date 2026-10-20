@@ -1,0 +1,57 @@
+
+> bookhaedo@2.0.0 test:e2e
+> playwright test
+
+[WebServer] (node:10415) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10506) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 35 tests using 1 worker
+
+(node:10515) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/admin.spec.ts:4:1 › 관리자 회원 검색·상태 변경·감사 이력 및 모바일 화면 (2.7s)
+  ✓   2 tests/e2e/bookhaedo.spec.ts:4:1 › Book해도 브랜딩·메모·이동 비교·여행 삭제를 실제 REST와 DB로 검증 (7.1s)
+  ✓   3 tests/e2e/calendar.spec.ts:2:1 › 상단 준비 현황과 시간표 수정·삭제·인쇄·모바일 화면 (2.2s)
+  ✓   4 tests/e2e/collaboration.spec.ts:4:1 › 공동 여행: 추천 토글·예산·체크리스트·초대 수락·채팅·정산·알림·탈퇴 (5.6s)
+  ✓   5 tests/e2e/day-alternatives.spec.ts:5:1 › 맑은 날에도 하루 전체 코스를 비교하고 확인 후 교체한다 (1.5s)
+  ✓   6 tests/e2e/default-route.spec.ts:4:1 › 저장된 이동수단 결과와 비교 버튼을 같은 줄에 표시한다 (1.7s)
+  ✓   7 tests/e2e/expenses.spec.ts:3:1 › 장소 예상→공동 실제·개인 지출 수정과 Excel/PDF 내보내기 (3.2s)
+[WebServer] 2:29:27 PM [vite] (client) [console.warn] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+  ✓   8 tests/e2e/explore-journey.spec.ts:4:1 › 지역 소개 → 통합검색 → 페이지·상세 복원, 지도 유지, 모바일과 눈 모션 (6.6s)
+  ✓   9 tests/e2e/explore-journey.spec.ts:104:1 › 빠른 검색 전환 시 늦은 응답 무시·API 실패 복구 (1.7s)
+[WebServer] 2:29:36 PM [vite] (client) [console.warn] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+[WebServer] 2:29:40 PM [vite] (client) [console.warn] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+  ✓  10 tests/e2e/google-live.spec.ts:5:1 › 실제 Google 지도·지역 검색·경로·날씨의 REST → Vue 연결 확인 (8.9s)
+  ✓  11 tests/e2e/improvements.spec.ts:4:1 › 계속 탐색·지역·분류 검색·중복 알림 닫기 (7.6s)
+  ✓  12 tests/e2e/improvements.spec.ts:56:1 › 메인 지도는 실제 좌표의 12개 도시 이름을 항상 보여준다 (649ms)
+  ✓  13 tests/e2e/invitation-entry.spec.ts:4:1 › 로그아웃 초대 링크 → 비밀번호 재확인 → 수락 → 같은 링크 재방문 (3.7s)
+  ✓  14 tests/e2e/journey.spec.ts:14:1 › 실제 UI: 가입 → 여행 생성 → 탐색 → 장소 담기 → 날짜 변경 → 새로고침 복원 (13.8s)
+  ✓  15 tests/e2e/journey.spec.ts:96:1 › 모바일 소개: 가로 넘침 없이 가입과 지역 탐색 가능 (1.3s)
+  ✓  16 tests/e2e/place-links.spec.ts:4:1 › 미제공 사이트 숨김·좌표 대신 원문 이름으로 Google 검색 (2.1s)
+[WebServer] 2:30:14 PM [vite] (client) [console.warn] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+  ✓  17 tests/e2e/places-live.spec.ts:5:1 › 실제 Places 한국어 상세·사진·리뷰와 출처 표시 (4.1s)
+  ✓  18 tests/e2e/region-guides.spec.ts:6:1 › 12개 지역 사계절 안내, 검색 연결, 모바일 레이아웃 (31.1s)
+  ✓  19 tests/e2e/reliability.spec.ts:62:1 › 날짜를 바꾸면 이전 하루 추천을 닫고 확정할 수 없다 (1.3s)
+  ✓  20 tests/e2e/reliability.spec.ts:104:1 › 여행 변경 조회 중 담기를 막고 단일 장소만 새 여행에 추가한다 (826ms)
+  ✓  21 tests/e2e/reliability.spec.ts:146:1 › 경로 응답이 대기 중이어도 날씨를 먼저 표시한다 (1.1s)
+  ✓  22 tests/e2e/tourism-expanded.spec.ts:6:3 › 북토시 실제 자료의 추천·출처·경로·저장 (1440px) (3.3s)
+  ✓  23 tests/e2e/tourism-expanded.spec.ts:6:3 › 북토시 실제 자료의 추천·출처·경로·저장 (390px) (1.6s)
+[WebServer] 2:30:57 PM [vite] (client) [console.warn] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide.
+  ✓  24 tests/e2e/tourism-published.spec.ts:13:3 › 실제 발행 자료 추천·미리보기·저장 (1440px) (4.3s)
+  ✓  25 tests/e2e/tourism-published.spec.ts:13:3 › 실제 발행 자료 추천·미리보기·저장 (390px) (1.7s)
+  ✓  26 tests/e2e/tourism-published.spec.ts:178:3 › 실제 삿포로 발행 자료의 추천·출처 (1440px) (1.8s)
+  ✓  27 tests/e2e/tourism-published.spec.ts:178:3 › 실제 삿포로 발행 자료의 추천·출처 (390px) (1.7s)
+  ✓  28 tests/e2e/tourism-recommendations.spec.ts:8:3 › 공개 관광 자료 출처·미확정 표시와 확정 저장 (1440px) (3.2s)
+  ✓  29 tests/e2e/tourism-recommendations.spec.ts:8:3 › 공개 관광 자료 출처·미확정 표시와 확정 저장 (390px) (3.1s)
+  ✓  30 tests/e2e/tourism-request-lifecycle.spec.ts:5:3 › 추천 조회 취소·날짜 변경·대중교통 독립 시간 비교 (1440px) (1.9s)
+  ✓  31 tests/e2e/tourism-request-lifecycle.spec.ts:5:3 › 추천 조회 취소·날짜 변경·대중교통 독립 시간 비교 (390px) (2.0s)
+  ✓  32 tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (1440px) (2.1s)
+  ✓  33 tests/e2e/tourism-save-recovery.spec.ts:5:3 › 코스 확정 충돌과 저장 응답 유실 복구 (390px) (2.0s)
+  ✓  34 tests/e2e/weather-alternatives.spec.ts:6:3 › 날씨 대안: 비교·취소·교체·재조회 (데스크톱) (2.3s)
+  ✓  35 tests/e2e/weather-alternatives.spec.ts:6:3 › 날씨 대안: 비교·취소·교체·재조회 (모바일) (2.2s)
+
+  35 passed (2.5m)

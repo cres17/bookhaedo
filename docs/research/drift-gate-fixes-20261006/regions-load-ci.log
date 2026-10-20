@@ -1,0 +1,5 @@
+
+> bookhaedo@2.0.0 test:load:ci
+> tsx scripts/load-test-ci.ts
+
+{"timestamp":"2026-10-06T05:58:34.576Z","target":"http://127.0.0.1:62860/api/regions","durationSeconds":5,"concurrency":20,"requests":13563,"requestsPerSecond":2712.6,"errors":0,"errorRate":0,"latencyMs":{"p50":6.11,"p95":13.18,"p99":22.84,"max":121.19},"thresholds":{"p95Ms":250,"errorRate":0}}

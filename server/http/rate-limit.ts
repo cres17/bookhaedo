@@ -3,6 +3,7 @@ import type { RequestHandler } from 'express';
 import { ipKeyGenerator, rateLimit, type Options, type Store } from 'express-rate-limit';
 import type { Pool } from 'pg';
 import { pool } from '../db.js';
+import { sessionUser } from '../auth/session.js';
 
 export type RateLimitPolicy = {
   namespace: string;
@@ -72,15 +73,11 @@ export function createRateLimiter(policy: RateLimitPolicy, database: Pool = pool
     windowMs: policy.windowMs,
     limit: policy.limit,
     store: new PostgresRateLimitStore(database, namespace, policy.windowMs),
-    keyGenerator: (req, res) => {
+    keyGenerator: async (req, res) => {
       if (policy.key === 'user')
         return String(res.locals.user?.id || ipKeyGenerator(req.ip || 'unknown'));
       const session = req.cookies?.kita_session;
-      if (
-        policy.key === 'session-or-ip' &&
-        typeof session === 'string' &&
-        /^[a-f0-9]{64}$/.test(session)
-      )
+      if (policy.key === 'session-or-ip' && (await sessionUser(req, res, database)))
         return `session:${session}`;
       return `ip:${ipKeyGenerator(req.ip || 'unknown')}`;
     },
@@ -126,6 +123,15 @@ export const rateLimits = {
       limit: 20,
       key: 'user',
       message: '추천 조회가 많아요. 잠시 후 다시 확인해주세요.',
+    }),
+  aiRecommendation: () =>
+    createRateLimiter({
+      namespace: 'ai-recommendation',
+      windowMs: 60_000,
+      limit: 30,
+      key: 'user',
+      code: 'AI_RECOMMENDATION_RATE_LIMITED',
+      message: '추천 요청이 많아요. 잠시 후 다시 조회해주세요.',
     }),
   provider: () =>
     createRateLimiter({

@@ -1,0 +1,107 @@
+{
+  "checkedOn": "2026-10-01",
+  "source": {
+    "id": "hokuto-places",
+    "publisher": "北斗市",
+    "datasetUrl": "https://www.harp.lg.jp/opendata/dataset/1657.html",
+    "datasetUpdatedOn": "2026-08-26",
+    "termsUrl": "https://www.harp.lg.jp/opendata/terms.html",
+    "licenseId": "CC-BY-4.0",
+    "licenseBasis": "Dataset resource displays CC BY; portal terms article 1 specifies 4.0 unless a separate resource license is given. No different resource license displayed.",
+    "regionId": "hakodate",
+    "regionMappingBasis": "Hokuto is adjacent to Hakodate; app groups these coordinates into its Hakodate area, not Hakodate municipality."
+  },
+  "robots": {
+    "text": "User-agent: *\nCrawl-delay: 60\n",
+    "sha256": "ef57ec095efbfec0b525e37fb705e73216d6a8197aee35216b4a9a665ec1a4b9",
+    "agent": "BookhaedoTourismCollector/0.1",
+    "minimumIntervalSeconds": 60
+  },
+  "collector": {
+    "source": "hokuto-places",
+    "started_at": "2026-10-01T10:57:19.165749+00:00",
+    "page_status": 200,
+    "resources_found": 1,
+    "resources": [
+      {
+        "url": "https://www.harp.lg.jp/opendata/dataset/1657/resource/9136/012360_torurism_20260826.csv",
+        "key": "012360_torurism_20260826.csv",
+        "year": null,
+        "status": 200,
+        "change": "new",
+        "sha256": "d2d3b76c3a3cc3bd358350600dc012ee045065c2d987eb534b5ae21923cd1f17",
+        "rows": 10,
+        "encoding": "cp932"
+      }
+    ],
+    "errors": []
+  },
+  "publicProbe": {
+    "columns": [
+      "ID",
+      "名称",
+      "説明",
+      "緯度",
+      "経度",
+      "利用可能日時特記事項"
+    ],
+    "rows": [
+      {
+        "ID": "1",
+        "名称": "ほっとマルシェ　おがーる",
+        "説明": "",
+        "緯度": "41.904429",
+        "経度": "140.649043",
+        "利用可能日時特記事項": "年中無休"
+      },
+      {
+        "ID": "2",
+        "名称": "ショッピング＆フードエリア　ほっくる",
+        "説明": "",
+        "緯度": "41.904429",
+        "経度": "140.649043",
+        "利用可能日時特記事項": "営業時間・定休日は店舗により異なる。"
+      }
+    ],
+    "scope": "First two rows; descriptions and contact columns intentionally omitted from this schema probe"
+  },
+  "published": {
+    "sourceId": "hokuto-places",
+    "snapshotId": "b61d1e88-eb51-4be5-a673-693efb2a45fb",
+    "contentSha256": "e9f31681dd1220157f2f57ee710e50f0b9125e8eb987aece63b2c87ccb526000",
+    "fetchedAt": "2026-10-01T10:57:19.165Z",
+    "publishedAt": "2026-10-01T10:59:10.462Z",
+    "enabled": true,
+    "rightsStatus": "approved",
+    "declaredRecords": 10,
+    "records": 10,
+    "facilities": 10,
+    "events": 0,
+    "facilitiesWithCoordinates": 10,
+    "linkedFacilities": 2,
+    "eventsWithCoordinates": 0,
+    "eligibleEventsOnDate": 0,
+    "endedEventsBeforeDate": 0,
+    "eventsWithoutExplicitPeriod": 0,
+    "tentative": 0,
+    "datesProvided": 0,
+    "recurring": 0,
+    "unknownDates": 10,
+    "historicalHours": 0,
+    "unknownSourceUpdatedAt": 10,
+    "withdrawn": 0,
+    "facilityMatchRatePct": 20,
+    "coordinateMatchRatePct": 20
+  },
+  "limits": [
+    "SourceUpdatedAt remains null: dataset update date is known, exact per-row resource modification timestamp is not.",
+    "Facility name matches 2/10 using conservative matching; this does not prove the other 8 are absent or incorrect.",
+    "Hokuto data expands one app region. Nine app regions still have no approved tourism knowledge sources.",
+    "No images, contact columns, prices, or current opening-time assertions were imported."
+  ],
+  "links": [
+    "https://www.harp.lg.jp/opendata/dataset/1657.html",
+    "https://www.harp.lg.jp/opendata/terms.html",
+    "https://www.harp.lg.jp/robots.txt"
+  ]
+}

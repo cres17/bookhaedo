@@ -1,0 +1,82 @@
+# Co-change policy: semantic correctness is verified by API/DB/browser tests.
+rules:
+  - id: api-contract
+    when:
+      any_changed: ['server/routes/**', 'server/http/middleware.ts', 'scripts/write-api-spec.mjs', 'server/day-alternatives.ts', 'server/weather-alternatives.ts']
+    require:
+      groups:
+        - name: Generated OpenAPI copies
+          all_changed: ['docs/openapi-rest.json', 'docs/Bookhaedo-API.yml', 'frontend/public/openapi.json']
+          content: paths
+        - name: Actual API regressions
+          any_changed: ['tests/api-contract.test.ts', 'tests/review-write-boundaries.test.ts', 'tests/ai-recommendations.test.ts']
+          content: paths
+    severity: blocker
+    allow_ignore: false
+  - id: course-recovery
+    when:
+      any_changed: ['frontend/src/recommendation-recovery.ts', 'frontend/src/components/DayAlternatives.vue', 'frontend/src/views/Planner.vue']
+    require:
+      groups:
+        - name: Recovery contract
+          all_changed: ['docs/architecture/recommendation-recovery.md']
+          content: paths
+        - name: State and browser regressions
+          all_changed: ['tests/recommendation-recovery.test.ts', 'tests/e2e/tourism-save-recovery.spec.ts']
+          content: paths
+    severity: blocker
+    allow_ignore: false
+  - id: trip-write-contract
+    when:
+      any_changed: ['server/trip-write.ts', 'server/trip-snapshot.ts', 'server/itinerary-write.ts']
+    require:
+      groups:
+        - name: Operations contract
+          any_changed: ['docs/operations.md', 'docs/architecture/**']
+          content: paths
+        - name: Write regressions
+          any_changed: ['tests/review-write-boundaries.test.ts']
+          content: paths
+    severity: blocker
+    allow_ignore: false
+  - id: provider-boundary
+    when:
+      any_changed: ['server/route-response.ts', 'server/routing.ts', 'server/providers.ts', 'shared/route-shape-policy.ts']
+    require:
+      groups:
+        - name: Provider contract
+          any_changed: ['docs/operations.md', 'docs/architecture/**']
+          content: paths
+        - name: Boundary regressions
+          any_changed: ['tests/route-response-validation.test.ts', 'tests/weather-response-validation.test.ts']
+          content: paths
+    severity: blocker
+    allow_ignore: false
+  - id: schema-contract
+    when:
+      any_changed: ['db/schema.sql', 'db/planner.sql', 'db/migrations/**']
+    require:
+      groups:
+        - name: ERD
+          all_changed: ['docs/erd.dbml']
+          content: paths
+        - name: Migration regression
+          any_changed: ['tests/migrations.test.ts']
+          content: paths
+    severity: blocker
+    allow_ignore: false
+  - id: quality-contract
+    when:
+      any_changed: ['package.json', '.github/workflows/**', '.drift-gate.yml', 'scripts/check-drift-gate.py']
+    require:
+      groups:
+        - name: Quality contract
+          all_changed: ['docs/quality-gates.md']
+          content: paths
+    severity: blocker
+    allow_ignore: false
+gate:
+  fail_on_blocker: true
+  fail_on_major_count: 1
+suppression:
+  allow_ignores: false

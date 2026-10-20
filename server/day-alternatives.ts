@@ -1,7 +1,9 @@
+import { replaceDayItems } from './itinerary-write.js';
+import { lockTripForWrite } from './trip-write.js';
+import { operation } from './observability/metrics.js';
 import { rollback, release } from './transactions.js';
 import { Router } from 'express';
 import { z } from 'zod';
-import { randomUUID } from 'node:crypto';
 import { pool } from './db.js';
 import { dateOnly, orderInput, placeSelect, straightDistance } from './domain.js';
 import { forecast } from './providers.js';
@@ -10,6 +12,13 @@ import { mapConcurrent } from './provider-cache.js';
 import { dedupePlaces } from './place-dedupe.js';
 import { adverseWeather, indoorEvidence, isOutdoor } from '../shared/weather-policy.js';
 import { requireRevision } from './itinerary-version.js';
+import {
+  eligibleRecommendationPlace,
+  sameRecommendationFacility,
+} from './recommendation-policy.js';
+import { summarizeRecommendationRoutes } from './recommendation-preview.js';
+import { readQuery } from './read-query.js';
+import { recommendationRequestBudget, abortable } from './operation-budget.js';
 
 export const dayAlternatives = Router({ mergeParams: true });
 const wrap = (fn: any) => (req: any, res: any, next: any) =>
@@ -27,13 +36,13 @@ function quality(p: any) {
     (p.tags?.wikipedia ? 1 : 0)
   );
 }
-function center(items: any[]): Point {
+export function center(items: any[]): Point {
   return {
     latitude: items.reduce((n, p) => n + p.latitude, 0) / items.length,
     longitude: items.reduce((n, p) => n + p.longitude, 0) / items.length,
   };
 }
-function nearestOrder(places: any[], anchor: Point) {
+export function nearestOrder(places: any[], anchor: Point) {
   const left = [...places],
     ordered: any[] = [];
   let cursor = anchor;
@@ -73,14 +82,8 @@ function label(strategy: Strategy, bad: boolean) {
 export function buildDayPlans(candidates: any[], items: any[], weather: any, count = 4) {
   const anchor = center(items),
     current = new Set(items.map((p) => p.id));
-  const usable = dedupePlaces(candidates).filter(
-    (p) =>
-      !current.has(p.id) &&
-      p.category !== 'LODGING' &&
-      p.tags?.access !== 'private' &&
-      p.tags?.access !== 'no' &&
-      p.tags?.disused !== 'yes' &&
-      p.tags?.abandoned !== 'yes',
+  const usable = dedupePlaces(candidates.filter(eligibleRecommendationPlace)).filter(
+    (p) => !current.has(p.id) && !items.some((i) => sameRecommendationFacility(i, p)),
   );
   const byQuality = [...usable].sort(
     (a, b) =>
@@ -136,27 +139,43 @@ export function buildDayPlans(candidates: any[], items: any[], weather: any, cou
     .filter(Boolean);
 }
 
-async function dayContext(tripId: string, date: string, lock = false, db: any = pool) {
-  const suffix = lock ? ' FOR UPDATE' : '';
-  const day = await db.query(
-    `SELECT id,revision FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2${suffix}`,
-    [tripId, date],
-  );
-  if (!day.rowCount) return null;
-  const items = await db.query(
-    `SELECT ${placeSelect},(SELECT note FROM planner.itinerary_item WHERE day_id=$1 AND place_id=geo_data.place.id) AS note FROM geo_data.place WHERE id IN (SELECT place_id FROM planner.itinerary_item WHERE day_id=$1) ORDER BY (SELECT position FROM planner.itinerary_item WHERE day_id=$1 AND place_id=geo_data.place.id)`,
-    [day.rows[0].id],
-  );
-  return { dayId: day.rows[0].id, revision: day.rows[0].revision, items: items.rows };
+export async function dayContext(
+  tripId: string,
+  date: string,
+  lock = false,
+  db: any = pool,
+  signal?: AbortSignal,
+) {
+  if (lock)
+    await db.query(
+      'SELECT id FROM planner.trip_day WHERE trip_id=$1 AND visit_date=$2 FOR UPDATE',
+      [tripId, date],
+    );
+  // One statement snapshot binds revision, mode and items. Write callers lock trip before day.
+  const sql = `SELECT d.id,d.revision,t.transport_mode AS "transportMode",
+    (SELECT COALESCE(jsonb_agg(item ORDER BY item.position),'[]'::jsonb) FROM (
+      SELECT p.*,i.note,i.position FROM (SELECT ${placeSelect} FROM geo_data.place) p
+      JOIN planner.itinerary_item i ON i.place_id=p.id WHERE i.day_id=d.id
+    ) item) AS items
+    FROM planner.trip_day d JOIN planner.trip t ON t.id=d.trip_id WHERE d.trip_id=$1 AND d.visit_date=$2${lock ? ' FOR UPDATE OF d' : ''}`;
+  const result = signal
+    ? await readQuery(sql, [tripId, date], signal, db)
+    : await db.query(sql, [tripId, date]);
+  const row = result.rows[0];
+  return row
+    ? { dayId: row.id, revision: row.revision, items: row.items, transportMode: row.transportMode }
+    : null;
 }
-async function candidatesAround(anchor: Point, db: any = pool) {
-  const q = await db.query(
-    `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND COALESCE(osm_tags->>'access','') NOT IN ('private','no') AND COALESCE(osm_tags->>'disused','')<>'yes' AND COALESCE(osm_tags->>'abandoned','')<>'yes' ORDER BY (name_ko IS NOT NULL) DESC,(osm_tags ? 'wikidata') DESC,(website IS NOT NULL) DESC LIMIT 600`,
+export async function candidatesAround(anchor: Point, db: any = pool, signal?: AbortSignal) {
+  const query = (sql: string, values: unknown[]) =>
+    signal ? readQuery(sql, values, signal, db) : db.query(sql, values);
+  const q = await query(
+    `SELECT ${placeSelect} FROM geo_data.place WHERE ST_DWithin(location,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000) AND COALESCE(osm_tags->>'access','') NOT IN ('private','no') AND COALESCE(osm_tags->>'disused','')<>'yes' AND COALESCE(osm_tags->>'abandoned','')<>'yes' AND COALESCE(opening_hours,'')<>'closed' AND COALESCE(osm_tags->>'opening_hours','')<>'closed' ORDER BY location <-> ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,(name_ko IS NOT NULL) DESC,(osm_tags ? 'wikidata') DESC,(website IS NOT NULL) DESC,id LIMIT 600`,
     [anchor.longitude, anchor.latitude],
   );
   return q.rows;
 }
-async function previewPlan(plan: any, mode: string, date: string) {
+async function previewPlan(plan: any, mode: string, date: string, signal?: AbortSignal) {
   const segments = await mapConcurrent<
     Point & { id: string },
     Awaited<ReturnType<typeof routeSegment>>
@@ -167,23 +186,17 @@ async function previewPlan(plan: any, mode: string, date: string) {
       mode,
       fetch,
       new Date(date + 'T09:00:00+09:00').toISOString(),
+      signal,
     ),
   );
-  const complete = segments.every(
-    (s) => s.source !== 'straight-line' && s.durationSeconds !== null,
-  );
-  return {
-    plan,
-    segments,
-    complete,
-    distanceMeters: complete ? segments.reduce((n, s) => n + (s.distanceMeters || 0), 0) : null,
-    durationSeconds: complete ? segments.reduce((n, s) => n + (s.durationSeconds || 0), 0) : null,
-  };
+  return { plan, segments, ...summarizeRecommendationRoutes(segments, mode, date) };
 }
 
 dayAlternatives.get(
   '/',
+  operation('dayRead'),
   wrap(async (req: any, res: any) => {
+    const budget = recommendationRequestBudget(req, res);
     res.set('Cache-Control', 'no-store');
     const date = dateOnly.parse(req.params.date),
       query = z
@@ -192,7 +205,9 @@ dayAlternatives.get(
           count: z.coerce.number().int().min(3).max(6).default(4),
         })
         .parse(req.query);
-    const context = await dayContext(req.params.id, date);
+    const context = await budget.run(() =>
+      dayContext(req.params.id, date, false, pool, budget.signal),
+    );
     if (!context) return res.status(404).json({ error: '여행 날짜를 찾을 수 없어요.' });
     if (!context.items.length)
       return res.json({
@@ -207,8 +222,11 @@ dayAlternatives.get(
         notice: '추천 지역을 정할 첫 장소가 필요해요.',
       });
     const anchor = center(context.items),
-      weather = await forecast(anchor.latitude, anchor.longitude, date),
-      candidates = await candidatesAround(anchor);
+      weather = await abortable(
+        () => forecast(anchor.latitude, anchor.longitude, date, fetch, budget.signal),
+        budget.signal,
+      ),
+      candidates = await budget.run(() => candidatesAround(anchor, pool, budget.signal));
     const plans = buildDayPlans(candidates, context.items, weather, query.count);
     let preview = null;
     if (query.strategy) {
@@ -217,12 +235,16 @@ dayAlternatives.get(
         return res
           .status(409)
           .json({ error: '선택한 코스를 다시 만들 수 없어요. 다른 코스를 확인해주세요.' });
-      preview = await previewPlan(plan, res.locals.trip.transportMode, date);
+      preview = await abortable(
+        () => previewPlan(plan, context.transportMode, date, budget.signal),
+        budget.signal,
+      );
     }
     res.json({
       tripId: req.params.id,
       date,
       expectedRevision: context.revision,
+      transportMode: context.transportMode,
       status: plans.length ? 'READY' : 'NO_CANDIDATES',
       weather,
       weatherMode: adverseWeather(weather) ? 'ADVERSE' : weather.available ? 'FAIR' : 'UNKNOWN',
@@ -237,16 +259,21 @@ dayAlternatives.get(
 
 dayAlternatives.patch(
   '/',
+  operation('dayWrite'),
   wrap(async (req: any, res: any) => {
     const date = dateOnly.parse(req.params.date),
       input = orderInput
-        .extend({ expectedPlaceIds: z.array(z.string().uuid()).max(30) })
-        .parse(req.body),
-      db = await pool.connect();
+        .extend({
+          expectedPlaceIds: z.array(z.string().uuid()).max(30),
+          expectedTransportMode: z.enum(['DRIVE', 'TAXI', 'TRANSIT', 'WALK', 'BICYCLE']).optional(),
+        })
+        .parse(req.body);
     if (input.placeIds.length < 2 || input.placeIds.length > 6)
       return res.status(400).json({ error: '하루 코스는 2곳부터 6곳까지 저장할 수 있어요.' });
+    const db = await pool.connect();
     try {
       await db.query('BEGIN');
+      await lockTripForWrite(db, req.params.id, res.locals.user.id);
       const context = await dayContext(req.params.id, date, true, db);
       if (!context) {
         await rollback(db);
@@ -256,6 +283,13 @@ dayAlternatives.patch(
         await rollback(db);
         return;
       }
+      if (input.expectedTransportMode && input.expectedTransportMode !== context.transportMode) {
+        await rollback(db);
+        return res.status(409).json({
+          code: 'RECOMMENDATION_CONTEXT_CHANGED',
+          error: '이동 수단이 변경됐어요. 코스를 다시 확인해주세요.',
+        });
+      }
       const actual = context.items.map((p: any) => p.id);
       if (JSON.stringify(actual) !== JSON.stringify(input.expectedPlaceIds)) {
         await rollback(db);
@@ -264,12 +298,24 @@ dayAlternatives.patch(
           .json({ error: '일정이 변경됐어요. 새로운 코스를 다시 확인해주세요.' });
       }
       const places = await db.query(
-        `SELECT ${placeSelect} FROM geo_data.place WHERE id=ANY($1::text[])`,
+        `SELECT ${placeSelect} FROM geo_data.place WHERE id=ANY($1::text[]) ORDER BY id COLLATE "C" FOR SHARE`,
         [input.placeIds],
       );
       if (places.rowCount !== input.placeIds.length) {
         await rollback(db);
         return res.status(400).json({ error: '존재하지 않는 장소가 포함되어 있어요.' });
+      }
+      if (
+        places.rows.some((p) => !eligibleRecommendationPlace(p)) ||
+        places.rows.some((p, i) =>
+          places.rows.slice(i + 1).some((other) => sameRecommendationFacility(p, other)),
+        )
+      ) {
+        await rollback(db);
+        return res.status(400).json({
+          code: 'PLACE_INELIGIBLE',
+          error: '이용할 수 없거나 같은 시설이 중복된 코스예요. 추천을 다시 확인해주세요.',
+        });
       }
       const oldCenter = context.items.length ? center(context.items) : center(places.rows);
       if (places.rows.some((p: any) => straightDistance(oldCenter, p) > 25000)) {
@@ -278,30 +324,7 @@ dayAlternatives.patch(
           .status(400)
           .json({ error: '기존 일정과 너무 멀리 떨어진 장소가 포함되어 있어요.' });
       }
-      const notes = new Map(context.items.map((p: any) => [p.id, p.note || '']));
-      const budgets = new Map(
-        (
-          await db.query(
-            'SELECT place_id,estimated_cost,start_minute,end_minute FROM planner.itinerary_item WHERE day_id=$1',
-            [context.dayId],
-          )
-        ).rows.map((p) => [p.place_id, p]),
-      );
-      await db.query('DELETE FROM planner.itinerary_item WHERE day_id=$1', [context.dayId]);
-      for (const [position, placeId] of input.placeIds.entries())
-        await db.query(
-          'INSERT INTO planner.itinerary_item(id,day_id,place_id,position,note,estimated_cost,start_minute,end_minute) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',
-          [
-            randomUUID(),
-            context.dayId,
-            placeId,
-            position,
-            notes.get(placeId) || '',
-            budgets.get(placeId)?.estimated_cost ?? null,
-            budgets.get(placeId)?.start_minute ?? null,
-            budgets.get(placeId)?.end_minute ?? null,
-          ],
-        );
+      await replaceDayItems(db, context.dayId, input.placeIds);
       await db.query('UPDATE planner.trip_day SET revision=revision+1 WHERE id=$1', [
         context.dayId,
       ]);
