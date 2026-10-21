@@ -4,20 +4,179 @@
 <p align="center">홋카이도 12개 관광권 · 지도 탐색 · 날짜별 일정 · 근거를 보여주는 추천</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Vue_3-4FC08D?style=flat-square&amp;logo=vuedotjs&amp;logoColor=white" alt="Vue 3">
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&amp;logo=vite&amp;logoColor=white" alt="Vite">
-  <img src="https://img.shields.io/badge/Node.js-5FA04E?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/Express-000000?style=flat-square&amp;logo=express&amp;logoColor=white" alt="Express">
+  
+  
+  
+  
+  
   <br>
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&amp;logo=postgresql&amp;logoColor=white" alt="PostgreSQL">
-  <img src="https://img.shields.io/badge/PostGIS-2E314E?style=flat-square" alt="PostGIS">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&amp;logo=docker&amp;logoColor=white" alt="Docker">
-  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&amp;logo=vitest&amp;logoColor=white" alt="Vitest">
-  <img src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square" alt="Playwright">
+  
+  
+  
+  
+  
 </p>
 
 [서비스 소개](#서비스-소개) · [v2 변경점](#v2에서-달라진-점) · [아키텍처와 워크플로](#시스템-아키텍처) · [로컬 실행](#로컬-실행) · [CI와 검증](#검증)
+
+## 아키텍처
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/architecture-dark.svg">
+  <img src="docs/assets/readme/architecture.svg" alt="Book해도. 주요 구성과 데이터 흐름" width="1200">
+</picture>
+
+Vue 화면이 Express API를 호출하고, 서버가 PostgreSQL/PostGIS에서 장소와 일정을 관리합니다. 추천은 LangGraph가 검색·규칙 기반 생성·검증 순서를 제어합니다. 외부 LLM이나 Vector DB를 사용하는 구조는 아닙니다.
+
+| 구성 | 역할 |
+|---|---|
+| 화면 | 탐색과 추천 조건 입력, 미리보기, 확정 저장·응답 유실 복구 |
+| 서버 | 인증과 여행 접근 검사 후 일정·추천·협업 요청 처리 |
+| 데이터 | 기본 장소, 발행 관광 자료, 사용자 데이터를 schema별로 구분 |
+| 외부 연동 | 지도·날씨·장소·경로 제공자와 캐시 |
+
+<details>
+<summary>아키텍처 상세와 구현 경계</summary>
+
+### 시스템 아키텍처
+
+화면은 탐색·조건 선택·미리보기를 담당하고, 서버는 권한·추천·일정 저장을 담당합니다. PostgreSQL/PostGIS 안에서 기본 장소, 관광 자료, 사용자 일정을 서로 다른 schema로 관리합니다. LangGraph는 추천의 실행 순서와 재검색을 제어하며, 현재 생성기는 규칙 기반입니다. 외부 LLM·임베딩·Vector DB는 연결하지 않았습니다.
+
+```mermaid
+flowchart TB
+  UI["Vue 3 · Router<br/>화면·동기화·저장 복구"] -->|"동일 출처 REST<br/>HttpOnly 쿠키"| API["Express REST API<br/>요청 제한·인증·권한"]
+  UI --> Map["Google Maps 지도"]
+  API --> Services["장소·일정·협업·정산"]
+  API --> Graph["LangGraph 추천<br/>검색·생성·검증"]
+  Services --> DB[("PostgreSQL · PostGIS<br/>geo_data · planner<br/>tourism_knowledge")]
+  Graph --> DB
+  Services --> Providers["외부 제공자<br/>캐시·경로 대기열"]
+  Graph --> Providers
+  Providers --> External["Google Places·Routes<br/>Open-Meteo · Valhalla"]
+```
+
+| 경계 | 책임 | 주요 코드 |
+| --- | --- | --- |
+| 화면과 상태 | 라우트 가드, 일정 편집, 폴링, 이전 요청 무시, 저장 복구 | [frontend/src](frontend/src), [recommendation-recovery.ts](frontend/src/recommendation-recovery.ts) |
+| HTTP와 권한 | 보안 헤더·Origin, 요청 ID, 중앙 요청 제한, 세션·여행 접근 검사 | [app.ts](server/app.ts), [auth](server/auth), [http](server/http) |
+| 추천 | 검색 범위·근거·유지 조건·재검색·미리보기 | [tourism-graph.ts](server/ai/tourism-graph.ts), [tourism-search.ts](server/tourism-search.ts) |
+| 저장과 DB | revision·잠금·트랜잭션, 연결 반환, 버전 마이그레이션 | [trips.ts](server/routes/trips.ts), [transactions.ts](server/transactions.ts), [migrations.ts](server/migrations.ts) |
+| 데이터 구분 | `geo_data`는 기본 장소, `tourism_knowledge`는 출처·발행 자료·철회, `planner`는 사용자·세션·일정·협업·요청 제한 | [db](db), [관광 자료 schema](db/migrations/005_tourism_knowledge.sql) |
+| 외부 정보 | 예보·장소 보강·경로 조회, 캐시, 동시 요청 제한 | [providers.ts](server/providers.ts), [provider-cache.ts](server/provider-cache.ts), [routing.ts](server/routing.ts) |
+| 관측과 운영 | 구조화 로그·지표, 백업·복원·부하 검증 | [observability](server/observability), [operations.md](docs/operations.md) |
+
+여행 하위 API는 공통 인증·접근 검사 뒤에 실행합니다. 소유자와 초대를 수락한 동행자가 여행에 접근할 수 있고, 여행 전체 삭제·초대 관리는 소유자만 할 수 있습니다. 세부 모듈 규칙은 [아키텍처 경계](docs/architecture.md)를 참고하세요.
+
+#### 공개 관광 자료의 수집·발행 흐름
+
+추천 요청 중에는 외부 관광 사이트를 수집하지 않습니다. 운영자가 승인된 출처를 수집·정제·발행하면 추천 API가 발행된 자료를 검색합니다.
+
+```mermaid
+flowchart TD
+  Registry["승인 출처·권리 정책"] --> Collect["수집<br/>robots·간격·URL 검사"]
+  Collect --> Raw["원본 CSV·SHA-256<br/>SQLite 수집 이력"]
+  Raw --> Normalize["정제<br/>인코딩·열·좌표·날짜 검증"]
+  Normalize --> Publish["발행<br/>전체 검증·트랜잭션"]
+  Publish --> Snapshot[("tourism_knowledge<br/>활성 snapshot")]
+  Catalog[("geo_data<br/>기존 장소")]
+  Snapshot --> Search["권리·기간·철회 검사<br/>기존 장소와 연결"]
+  Catalog --> Search
+  Search --> Recommend["추천에 쓸 후보·근거"]
+```
+
+- 기존 OSM·공공 지리 데이터 카탈로그는 [별도 적재 도구](scripts/load_postgis.py)로 관리합니다. 관광 자료 발행으로 카탈로그 전체를 교체하지 않습니다.
+- 발행에 실패하면 이전 활성 snapshot을 유지합니다. 개별 철회 기록은 새 snapshot을 발행한 뒤에도 적용합니다.
+- HOKKAIDO LOVE는 권리 확인 대기·비활성 상태입니다. 승인된 출처도 수집 시점·출처·라이선스·날짜 불확실성을 함께 표시합니다.
+- 수집·정제·발행은 운영자가 실행합니다. AWS/S3·분산 수집기·관광 자료 정기 수집 스케줄러는 연결하지 않았습니다.
+
+출처별 실행 명령과 자료 검증 규칙은 [관광 자료 파이프라인 안내](docs/tourism-langgraph.md#실행과-데이터-적재)에 정리했습니다.
+
+#### 추천 조회와 경로 미리보기
+
+`POST /api/trips/:id/days/:date/ai-recommendations`는 읽기 전용입니다. 현재 일정에서 지역·중심 좌표·revision을 읽은 뒤 그래프를 실행합니다. 첫 장소가 없으면 장소를 먼저 담도록 안내합니다.
+
+```mermaid
+flowchart TD
+  Input["현재 일정·추천 조건 정리"] --> Retrieve["후보·근거 검색<br/>10 → 15 → 20km"]
+  Retrieve -->|"첫 검색"| Weather["예보 1회 조회"]
+  Retrieve -->|"재검색"| Generate["규칙 기반 코스 생성"]
+  Weather --> Generate
+  Generate --> Validate{"조건 검증 후<br/>재검색이 필요한가?"}
+  Validate -->|"코스 부족·검색 3회 미만"| Retrieve
+  Validate -->|"검색 종료"| Preview["선택 코스의 경로 조회"]
+  Preview --> Revalidate["권리·snapshot·기간<br/>철회 재검사"]
+  Revalidate --> Context["API: 일정 변경 재검사"]
+  Context --> Result["코스·출처·주의 사항<br/>미리보기 반환"]
+```
+
+검색은 직선 반경 **10 → 15 → 20km**, 최초 조회를 포함해 최대 3회입니다. 첫 검색의 snapshot ID를 재사용하되 활성 버전과 권리 상태는 다시 확인합니다. 자료가 없으면 기존 장소 기반 추천으로 이어지고, 예보가 없으면 미제공 상태를 표시합니다. `strategy`를 선택하지 않은 조회는 코스 목록만 반환하며 경로 미리보기는 생성하지 않습니다.
+
+| 처리 한도 | 현재 기준 |
+| --- | --- |
+| 사용자 입력 | 방문 3~6곳, 유지할 장소 최대 5곳, 관심 주제 최대 200자 |
+| 조회 범위 | 검색당 장소 후보 최대 600개, 근거 최대 120개 |
+| 추천 처리 | 인증·여행 접근·요청 제한을 지난 추천 핸들러에 15초 예산 적용. 일정 읽기·그래프·최종 일정 확인을 포함 |
+| 요청 제한 | 추천 POST는 사용자당 분당 30회. 확정 저장은 별도 경로로 처리 |
+| 자체 Valhalla | 기본값은 API 프로세스당 동시 8개·대기 128개. 환경변수로 조정 가능 |
+
+한도는 요청과 자원을 제한하는 구현 기준입니다. [관광 추천 부하 측정](docs/research/tourism-load-20261001.md)의 로컬 결과를 운영 SLA로 사용하지 않습니다. 반환 코스가 인용하는 시설 근거와 별도 참고 행사를 구분하며, 추천 결과는 현재 운영·개최 여부를 보증하지 않습니다.
+
+#### 확정 저장과 응답 유실 복구
+
+추천 목록과 지도 미리보기는 일정을 수정하지 않습니다. 사용자가 확정하면 기존 `PATCH .../day-alternatives`에 조회 당시 revision·장소 순서를 전달합니다.
+
+```mermaid
+sequenceDiagram
+  participant UI as Vue 일정 화면
+  participant API as Express API
+  participant DB as PostgreSQL
+  UI->>API: PATCH day-alternatives + expectedRevision + expectedPlaceIds
+  API->>DB: 트랜잭션·날짜 잠금·현재 일정 검사
+  alt 조건 일치
+    API->>DB: 일정 교체·revision 증가·COMMIT
+    API-->>UI: 저장 성공
+  else 버전 충돌 또는 누락
+    API->>DB: ROLLBACK
+    API-->>UI: 409 또는 428
+  end
+  opt 통신 실패 또는 5xx로 저장 결과를 모름
+    Note over UI,API: 결과 불명확 상태 유지, PATCH 자동 재전송 안 함
+    UI->>API: 사용자가 현재 일정 확인 GET
+    API->>DB: 현재 일정 snapshot 조회
+    DB-->>API: 현재 일정과 revision
+    API-->>UI: 화면에 현재 일정 반영
+  end
+```
+
+복구 상태는 사용자·여행·날짜별로 격리합니다. 패널을 닫거나 날짜를 바꿔도 남아 있고, 같은 탭의 새로고침에는 sessionStorage의 여행·날짜·명령 ID로 복원합니다. 토큰·장소 배열·메모·비용은 이 복구 저장소에 넣지 않습니다. 저장소 사용이 거절되면 메모리 상태만 유지합니다.
+
+현재 일정 조회는 **조회 시점의 상태 확인**입니다. 이전 명령의 정확한 처리 이력을 증명하는 서버 idempotency 기능은 아닙니다. 자세한 상태 전이와 회귀 검사는 [저장·복구 계약](docs/architecture/recommendation-recovery.md)을 참고하세요.
+
+</details>
+
+## 기술 스택
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/tech-stack-dark.svg">
+  <img src="docs/assets/readme/tech-stack.svg" alt="Book해도. 기술 스택" width="1200">
+</picture>
+
+[![quality](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml/badge.svg)](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml)
+
+| 계층 | 사용 기술 | 역할 |
+|---|---|---|
+| Frontend | Vue 3, Vue Router, TypeScript, Vite | 화면·폼·지도 상태와 사용자 흐름 |
+| Backend | Node.js 22.13+의 22.x / 24.x / 26.x 이상, Express 5, Zod, pg | REST, 입력 검증, 접근 권한, 트랜잭션 |
+| Recommendation | LangGraph.js 1.4.18, 규칙 기반 생성기 | 상태 그래프, 조건부 재검색, 코스 검증·미리보기 |
+| Data pipeline | Python, SQLite, CSV, SHA-256 | 수집 이력, 원본 검증·정제, TypeScript 발행기로 전달 |
+| Database | PostgreSQL 17, PostGIS | 공간 검색, 관광 자료 snapshot, 일정·협업, 세션·요청 제한 |
+| Authentication | HttpOnly·SameSite 쿠키, scrypt, 세션 토큰 해시 | 비밀번호·세션 보호 |
+| External | Google Maps/Places/Routes, Open-Meteo, Valhalla | 지도·장소 보강·날씨·경로 |
+| Quality | Vitest, Supertest, Playwright, ESLint, Prettier | 회귀·정적 검사·브라우저 검증 |
+| Contract | OpenAPI 3.1, Swagger UI, DBML | API·데이터 모델 설명 |
+| Automation | GitHub Actions, Docker Compose | CI, 로컬 PostGIS |
+
+Google Maps는 지도 표시, Valhalla는 자동차·택시·도보·자전거 경로에 사용합니다. 대중교통 길찾기는 Google Maps 링크로 열며, 선택적 자동차 교통비 조회는 Google Routes에 연결합니다. 경로 조회가 실패하면 직선거리와 `durationSeconds: null`을 반환합니다.
 
 ## 서비스 소개
 
@@ -128,139 +287,6 @@ flowchart LR
 ### 확인되지 않은 정보는 구분해서
 
 공식 웹사이트가 없으면 링크를 만들지 않고, 날씨나 경로를 가져오지 못하면 미제공 상태를 안내합니다. 실제 영업시간·휴무·이동 안전은 방문 전에 다시 확인해야 합니다.
-
-## 시스템 아키텍처
-
-화면은 탐색·조건 선택·미리보기를 담당하고, 서버는 권한·추천·일정 저장을 담당합니다. PostgreSQL/PostGIS 안에서 기본 장소, 관광 자료, 사용자 일정을 서로 다른 schema로 관리합니다. LangGraph는 추천의 실행 순서와 재검색을 제어하며, 현재 생성기는 규칙 기반입니다. 외부 LLM·임베딩·Vector DB는 연결하지 않았습니다.
-
-```mermaid
-flowchart TB
-  UI["Vue 3 · Router<br/>화면·동기화·저장 복구"] -->|"동일 출처 REST<br/>HttpOnly 쿠키"| API["Express REST API<br/>요청 제한·인증·권한"]
-  UI --> Map["Google Maps 지도"]
-  API --> Services["장소·일정·협업·정산"]
-  API --> Graph["LangGraph 추천<br/>검색·생성·검증"]
-  Services --> DB[("PostgreSQL · PostGIS<br/>geo_data · planner<br/>tourism_knowledge")]
-  Graph --> DB
-  Services --> Providers["외부 제공자<br/>캐시·경로 대기열"]
-  Graph --> Providers
-  Providers --> External["Google Places·Routes<br/>Open-Meteo · Valhalla"]
-```
-
-| 경계 | 책임 | 주요 코드 |
-| --- | --- | --- |
-| 화면과 상태 | 라우트 가드, 일정 편집, 폴링, 이전 요청 무시, 저장 복구 | [frontend/src](frontend/src), [recommendation-recovery.ts](frontend/src/recommendation-recovery.ts) |
-| HTTP와 권한 | 보안 헤더·Origin, 요청 ID, 중앙 요청 제한, 세션·여행 접근 검사 | [app.ts](server/app.ts), [auth](server/auth), [http](server/http) |
-| 추천 | 검색 범위·근거·유지 조건·재검색·미리보기 | [tourism-graph.ts](server/ai/tourism-graph.ts), [tourism-search.ts](server/tourism-search.ts) |
-| 저장과 DB | revision·잠금·트랜잭션, 연결 반환, 버전 마이그레이션 | [trips.ts](server/routes/trips.ts), [transactions.ts](server/transactions.ts), [migrations.ts](server/migrations.ts) |
-| 데이터 구분 | `geo_data`는 기본 장소, `tourism_knowledge`는 출처·발행 자료·철회, `planner`는 사용자·세션·일정·협업·요청 제한 | [db](db), [관광 자료 schema](db/migrations/005_tourism_knowledge.sql) |
-| 외부 정보 | 예보·장소 보강·경로 조회, 캐시, 동시 요청 제한 | [providers.ts](server/providers.ts), [provider-cache.ts](server/provider-cache.ts), [routing.ts](server/routing.ts) |
-| 관측과 운영 | 구조화 로그·지표, 백업·복원·부하 검증 | [observability](server/observability), [operations.md](docs/operations.md) |
-
-여행 하위 API는 공통 인증·접근 검사 뒤에 실행합니다. 소유자와 초대를 수락한 동행자가 여행에 접근할 수 있고, 여행 전체 삭제·초대 관리는 소유자만 할 수 있습니다. 세부 모듈 규칙은 [아키텍처 경계](docs/architecture.md)를 참고하세요.
-
-### 공개 관광 자료의 수집·발행 흐름
-
-추천 요청 중에는 외부 관광 사이트를 수집하지 않습니다. 운영자가 승인된 출처를 수집·정제·발행하면 추천 API가 발행된 자료를 검색합니다.
-
-```mermaid
-flowchart TD
-  Registry["승인 출처·권리 정책"] --> Collect["수집<br/>robots·간격·URL 검사"]
-  Collect --> Raw["원본 CSV·SHA-256<br/>SQLite 수집 이력"]
-  Raw --> Normalize["정제<br/>인코딩·열·좌표·날짜 검증"]
-  Normalize --> Publish["발행<br/>전체 검증·트랜잭션"]
-  Publish --> Snapshot[("tourism_knowledge<br/>활성 snapshot")]
-  Catalog[("geo_data<br/>기존 장소")]
-  Snapshot --> Search["권리·기간·철회 검사<br/>기존 장소와 연결"]
-  Catalog --> Search
-  Search --> Recommend["추천에 쓸 후보·근거"]
-```
-
-- 기존 OSM·공공 지리 데이터 카탈로그는 [별도 적재 도구](scripts/load_postgis.py)로 관리합니다. 관광 자료 발행으로 카탈로그 전체를 교체하지 않습니다.
-- 발행에 실패하면 이전 활성 snapshot을 유지합니다. 개별 철회 기록은 새 snapshot을 발행한 뒤에도 적용합니다.
-- HOKKAIDO LOVE는 권리 확인 대기·비활성 상태입니다. 승인된 출처도 수집 시점·출처·라이선스·날짜 불확실성을 함께 표시합니다.
-- 수집·정제·발행은 운영자가 실행합니다. AWS/S3·분산 수집기·관광 자료 정기 수집 스케줄러는 연결하지 않았습니다.
-
-출처별 실행 명령과 자료 검증 규칙은 [관광 자료 파이프라인 안내](docs/tourism-langgraph.md#실행과-데이터-적재)에 정리했습니다.
-
-### 추천 조회와 경로 미리보기
-
-`POST /api/trips/:id/days/:date/ai-recommendations`는 읽기 전용입니다. 현재 일정에서 지역·중심 좌표·revision을 읽은 뒤 그래프를 실행합니다. 첫 장소가 없으면 장소를 먼저 담도록 안내합니다.
-
-```mermaid
-flowchart TD
-  Input["현재 일정·추천 조건 정리"] --> Retrieve["후보·근거 검색<br/>10 → 15 → 20km"]
-  Retrieve -->|"첫 검색"| Weather["예보 1회 조회"]
-  Retrieve -->|"재검색"| Generate["규칙 기반 코스 생성"]
-  Weather --> Generate
-  Generate --> Validate{"조건 검증 후<br/>재검색이 필요한가?"}
-  Validate -->|"코스 부족·검색 3회 미만"| Retrieve
-  Validate -->|"검색 종료"| Preview["선택 코스의 경로 조회"]
-  Preview --> Revalidate["권리·snapshot·기간<br/>철회 재검사"]
-  Revalidate --> Context["API: 일정 변경 재검사"]
-  Context --> Result["코스·출처·주의 사항<br/>미리보기 반환"]
-```
-
-검색은 직선 반경 **10 → 15 → 20km**, 최초 조회를 포함해 최대 3회입니다. 첫 검색의 snapshot ID를 재사용하되 활성 버전과 권리 상태는 다시 확인합니다. 자료가 없으면 기존 장소 기반 추천으로 이어지고, 예보가 없으면 미제공 상태를 표시합니다. `strategy`를 선택하지 않은 조회는 코스 목록만 반환하며 경로 미리보기는 생성하지 않습니다.
-
-| 처리 한도 | 현재 기준 |
-| --- | --- |
-| 사용자 입력 | 방문 3~6곳, 유지할 장소 최대 5곳, 관심 주제 최대 200자 |
-| 조회 범위 | 검색당 장소 후보 최대 600개, 근거 최대 120개 |
-| 추천 처리 | 인증·여행 접근·요청 제한을 지난 추천 핸들러에 15초 예산 적용. 일정 읽기·그래프·최종 일정 확인을 포함 |
-| 요청 제한 | 추천 POST는 사용자당 분당 30회. 확정 저장은 별도 경로로 처리 |
-| 자체 Valhalla | 기본값은 API 프로세스당 동시 8개·대기 128개. 환경변수로 조정 가능 |
-
-한도는 요청과 자원을 제한하는 구현 기준입니다. [관광 추천 부하 측정](docs/research/tourism-load-20261001.md)의 로컬 결과를 운영 SLA로 사용하지 않습니다. 반환 코스가 인용하는 시설 근거와 별도 참고 행사를 구분하며, 추천 결과는 현재 운영·개최 여부를 보증하지 않습니다.
-
-### 확정 저장과 응답 유실 복구
-
-추천 목록과 지도 미리보기는 일정을 수정하지 않습니다. 사용자가 확정하면 기존 `PATCH .../day-alternatives`에 조회 당시 revision·장소 순서를 전달합니다.
-
-```mermaid
-sequenceDiagram
-  participant UI as Vue 일정 화면
-  participant API as Express API
-  participant DB as PostgreSQL
-  UI->>API: PATCH day-alternatives + expectedRevision + expectedPlaceIds
-  API->>DB: 트랜잭션·날짜 잠금·현재 일정 검사
-  alt 조건 일치
-    API->>DB: 일정 교체·revision 증가·COMMIT
-    API-->>UI: 저장 성공
-  else 버전 충돌 또는 누락
-    API->>DB: ROLLBACK
-    API-->>UI: 409 또는 428
-  end
-  opt 통신 실패 또는 5xx로 저장 결과를 모름
-    Note over UI,API: 결과 불명확 상태 유지, PATCH 자동 재전송 안 함
-    UI->>API: 사용자가 현재 일정 확인 GET
-    API->>DB: 현재 일정 snapshot 조회
-    DB-->>API: 현재 일정과 revision
-    API-->>UI: 화면에 현재 일정 반영
-  end
-```
-
-복구 상태는 사용자·여행·날짜별로 격리합니다. 패널을 닫거나 날짜를 바꿔도 남아 있고, 같은 탭의 새로고침에는 sessionStorage의 여행·날짜·명령 ID로 복원합니다. 토큰·장소 배열·메모·비용은 이 복구 저장소에 넣지 않습니다. 저장소 사용이 거절되면 메모리 상태만 유지합니다.
-
-현재 일정 조회는 **조회 시점의 상태 확인**입니다. 이전 명령의 정확한 처리 이력을 증명하는 서버 idempotency 기능은 아닙니다. 자세한 상태 전이와 회귀 검사는 [저장·복구 계약](docs/architecture/recommendation-recovery.md)을 참고하세요.
-
-## 기술 스택
-
-[![quality](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml/badge.svg)](https://github.com/cres17/bookhaedo/actions/workflows/ci.yml)
-
-| 계층 | 사용 기술 | 역할 |
-|---|---|---|
-| Frontend | Vue 3, Vue Router, TypeScript, Vite | 화면·폼·지도 상태와 사용자 흐름 |
-| Backend | Node.js 22.13+의 22.x / 24.x / 26.x 이상, Express 5, Zod, pg | REST, 입력 검증, 접근 권한, 트랜잭션 |
-| Recommendation | LangGraph.js 1.4.18, 규칙 기반 생성기 | 상태 그래프, 조건부 재검색, 코스 검증·미리보기 |
-| Data pipeline | Python, SQLite, CSV, SHA-256 | 수집 이력, 원본 검증·정제, TypeScript 발행기로 전달 |
-| Database | PostgreSQL 17, PostGIS | 공간 검색, 관광 자료 snapshot, 일정·협업, 세션·요청 제한 |
-| Authentication | HttpOnly·SameSite 쿠키, scrypt, 세션 토큰 해시 | 비밀번호·세션 보호 |
-| External | Google Maps/Places/Routes, Open-Meteo, Valhalla | 지도·장소 보강·날씨·경로 |
-| Quality | Vitest, Supertest, Playwright, ESLint, Prettier | 회귀·정적 검사·브라우저 검증 |
-| Contract | OpenAPI 3.1, Swagger UI, DBML | API·데이터 모델 설명 |
-| Automation | GitHub Actions, Docker Compose | CI, 로컬 PostGIS |
-
-Google Maps는 지도 표시, Valhalla는 자동차·택시·도보·자전거 경로에 사용합니다. 대중교통 길찾기는 Google Maps 링크로 열며, 선택적 자동차 교통비 조회는 Google Routes에 연결합니다. 경로 조회가 실패하면 직선거리와 `durationSeconds: null`을 반환합니다.
 
 ## API와 데이터 모델
 
