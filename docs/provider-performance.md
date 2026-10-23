@@ -85,4 +85,4 @@ Google Places 저장 범위 참고: [공식 Places 정책](https://developers.go
 전체 검증은 `npm run build`, `npm test`, `npm run test:e2e`를 실행한다.
 
 
-2026-10-01 자체 호스팅 주소의 전역 대기 제거 및 동일 HTTP fixture 비교, 신호가 있는 호출의 독립 실행 정책은 [후속 검증](research/tourism-langgraph-review-5-20261001.md)에 기록했다. 이 문서의 과거 실측은 당시 공용 서버 간격을 적용한 결과로 보존한다.
+2026-10-01 자체 호스팅 주소의 전역 대기 제거 및 동일 HTTP fixture 비교, 신호가 있는 호출의 독립 실행 정책은 후속 검증에 기록했다. 이 문서의 과거 실측은 당시 공용 서버 간격을 적용한 결과로 보존한다.
