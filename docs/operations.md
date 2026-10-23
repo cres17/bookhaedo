@@ -72,18 +72,6 @@ ALLOW_REMOTE_LOAD_TEST=true npm run test:load -- --url https://staging.example/a
 
 로컬 단기 기준은 회귀 gate다. 배포 승인은 staging에서 예상 데이터량·인스턴스 수로 soak test를 수행하고 CPU, 메모리, DB pool, 외부 제공자 할당량을 함께 확인한다.
 
-## 운영 규모 확대 시 남은 작업
-
-현재 CI·회귀 검증은 기능 정확성 검증이며 부하·침투·재해복구 검증을 대신하지 않습니다. 실제 운영 전에는 다음을 수행해야 합니다.
-
-- 실제 RDS/PostGIS의 다중 AZ·리전 외 백업 복원과 DB 최소 권한·TLS·비밀 회전 검증
-- 중앙 로그·Prometheus·Alertmanager 수신자 연결과 staging 장시간 soak test
-- 관리자 MFA/SSO, 세션 정책과 개인정보 보존·삭제 정책의 운영 조직 승인
-- 자체 라우팅 운영, 외부 API 예산·할당량·이용조건 확인
-
-리뷰 점수는 Google 전체 평점의 리뷰 수 보정값입니다. 일본어 원문은 최대 5개 제공 표본의 언어이며 현지인·국적·숨은 명소의 증거가 아닙니다. 장소 영업시간·휴무·이동 안전을 보장하는 자동 판단으로 사용하지 않습니다.
-
-
 ## 버전 마이그레이션 운영 계약
 
 - 개발 시작은 자동 적용, production 시작은 이력과 체크섬만 검증합니다. 운영 DB 계정은 이력 SELECT를 포함한 앱 DML 권한, 배포 계정은 DDL 권한을 별도로 설정해야 합니다. 실제 역할 분리 검증은 배포 환경의 책임입니다.
@@ -106,11 +94,11 @@ CI는 `npx playwright install --with-deps chromium`으로 Chromium과 시스템 
 
 ## 관광 추천의 경로 요청 상한
 
-자체 호스팅 Valhalla는 API 프로세스당 `VALHALLA_MAX_CONCURRENT=8`, `VALHALLA_MAX_QUEUE=128`을 기본으로 사용한다. 큐 대기를 포함해 10초 안에 응답하지 못하거나 큐가 차면 실제 시간 대신 직선거리만 반환한다. 여러 프로세스에서는 상한이 합산된다. 30회/사용자/분 추천 한도는 유지한다. [로컬 측정과 한계](research/tourism-load-20261001.md)를 참고하고 운영 지연·오류율로 재조정한다.
+자체 호스팅 Valhalla는 API 프로세스당 `VALHALLA_MAX_CONCURRENT=8`, `VALHALLA_MAX_QUEUE=128`을 기본으로 사용한다. 큐 대기를 포함해 10초 안에 응답하지 못하거나 큐가 차면 실제 시간 대신 직선거리만 반환한다. 여러 프로세스에서는 상한이 합산된다. 30회/사용자/분 추천 한도는 유지한다. 로컬 측정과 한계를 참고하고 운영 지연·오류율로 재조정한다.
 
 
 ## 관광 추천 조회 예산과 취소
 
 추천 GET/POST의 핸들러와 그래프는 전체 15초, 읽기 SQL은 3초, 풀 연결 획득 뒤 트랜잭션의 응답 확인 전체는 3.5초 상한을 사용합니다. 조회 기한 초과는 504 `REQUEST_DEADLINE_EXCEEDED` 또는 `READ_QUERY_TIMEOUT`과 요청 ID로 응답합니다. 화면 닫기·날짜/조건 변경은 이전 조회를 취소하며 저장 PATCH는 독립적으로 처리합니다. SQL 취소는 별도 transport 최대 2개/대기 32개, 대기부터 소켓 종료까지 전체 1초, 연결·문장·클라이언트 대기 각 500ms입니다. 실패 시 `READ_QUERY_CANCEL_FAILED` 이벤트를 기록하고 SQL·응답 확인 상한과 물리적인 연결 종료로 정리하며 취소 연결은 풀에 재사용하지 않습니다. 배포 DB 역할과 방화벽에서도 별도 취소 연결이 가능해야 합니다.
 
-`bookhaedo_http_requests_in_flight`는 열린 HTTP 응답의 수입니다. 응답 전에 끊긴 요청은 `bookhaedo_http_aborted_requests_total`로 집계하고 성공 상태의 완료 수에 넣지 않습니다. 닫힌 응답 뒤의 내부 DB 정리가 잠시 계속될 수 있어 이 지표를 전체 내부 작업 수로 해석하지 않습니다. 최종 자료 권리 검사는 응답의 `evidenceValidatedAt` 시점이며 이후 철회에 대한 이미 전송된 내용의 즉시 회수는 보장하지 않습니다. 자세한 구현·검증 범위는 [운영 수정 기록](research/tourism-operational-implementation-20261006.md)에 있습니다.
+`bookhaedo_http_requests_in_flight`는 열린 HTTP 응답의 수입니다. 응답 전에 끊긴 요청은 `bookhaedo_http_aborted_requests_total`로 집계하고 성공 상태의 완료 수에 넣지 않습니다. 닫힌 응답 뒤의 내부 DB 정리가 잠시 계속될 수 있어 이 지표를 전체 내부 작업 수로 해석하지 않습니다. 최종 자료 권리 검사는 응답의 `evidenceValidatedAt` 시점이며 이후 철회에 대한 이미 전송된 내용의 즉시 회수는 보장하지 않습니다. 자세한 구현·검증 범위는 운영 수정 기록에 있습니다.
