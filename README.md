@@ -39,27 +39,18 @@ DB는 하나의 PostgreSQL 안에서 schema를 셋으로 나눕니다.
 | `tourism_knowledge` | 공개 관광 자료의 출처 · 발행 snapshot · 철회 기록 |
 | `planner` | 사용자 · 세션 · 여행 · 일정 · 협업 · 요청 제한 카운터 |
 
-## 각 기술 설명
+## 핵심 설계 결정
 
-### Vue 3 · Vite · TypeScript
+| 결정 | 방식 | 위치 |
+|------|------|------|
+| 일정 저장은 revision으로 충돌을 감지 | 동행자가 같은 날을 동시에 고칠 수 있어, 쓰기 요청이 `expectedRevision`을 보냅니다. 현재 값과 다르면 409 `STALE_ITINERARY`, 값이 없으면 428 `REVISION_REQUIRED`를 돌려주고, 장소 순서를 바꿀 때는 해당 날짜의 항목 행을 `FOR UPDATE`로 잠급니다. | `server/itinerary-version.ts`, `itinerary-write.ts`, `routes/trips.ts` |
+| 추천은 미리보기, 확정은 별도 요청 | 추천을 계산하는 사이 일정이나 이동 수단이 바뀌면 409 `RECOMMENDATION_CONTEXT_CHANGED`로 거절합니다. 확정 응답을 잃으면 `recommendation-recovery.ts`가 결과 불명 상태를 sessionStorage에 남기고, 사용자가 현재 일정을 다시 조회해 확인합니다. | `server/routes/ai-recommendations.ts`, `frontend/src/recommendation-recovery.ts` |
+| 근거는 응답 직전에 다시 확인 | `revalidate_sources` 노드가 출처의 권리 · snapshot · 적용 기간 · 철회 여부를 다시 검사합니다. 공개 자료는 한 트랜잭션으로 새 snapshot을 발행하고, 철회는 별도 스크립트로 처리합니다. | `server/ai/tourism-graph.ts`, `scripts/tourism/publish.ts`, `withdraw.ts` |
+| 외부 호출에 시간 · 동시성 상한 적용 | 추천 요청에는 15초 처리 예산을 걸어 클라이언트가 연결을 끊으면 진행 중인 외부 호출도 중단합니다. 자체 호스팅 Valhalla는 동시 실행 수와 대기열 길이(`VALHALLA_MAX_CONCURRENT`, `VALHALLA_MAX_QUEUE`)를 제한하고, Places · Routes · 예보 응답은 TTL 캐시에 둡니다. 요청 제한 카운터는 PostgreSQL에 저장해 여러 프로세스가 공유합니다. | `operation-budget.ts`, `valhalla-gate.ts`, `provider-cache.ts` |
 
-`frontend/src`의 SPA입니다. `views/`에 랜딩 · 지역 안내 · 탐색 · 장소 상세 · 여행 목록 · 일정 편집 · 관리자 화면이 있고, Vue Router의 라우트 가드로 로그인이 필요한 화면을 막습니다. 일정 화면은 `useTripSynchronization`으로 동행자의 변경을 폴링해 반영합니다. 추천을 확정하다 응답을 잃으면 `recommendation-recovery.ts`가 결과 불명확 상태를 sessionStorage에 남기고, 사용자가 현재 일정을 다시 조회해 확인하도록 합니다.
+## 하루 코스 추천 그래프
 
-### Google Maps JavaScript API
-
-`TravelMap.vue`가 Maps JS를 비동기로 불러와 장소 마커와 이동 경로 polyline을 그립니다. Google Routes가 돌려준 encoded polyline은 `geometry` 라이브러리로 디코딩해 실제 경로선으로 그립니다.
-
-### Express 5 · Zod
-
-`server/app.ts`가 미들웨어와 라우터(`routes/auth`, `trips`, `catalog`, `providers`, `ai-recommendations`, `health`)를 묶습니다. 요청 본문과 외부 API 응답은 Zod 스키마로 검증하고, helmet으로 보안 헤더를, `express-rate-limit`과 PostgreSQL 저장소(`PostgresRateLimitStore`)로 여러 프로세스가 공유하는 요청 제한을 적용합니다. 추천 핸들러에는 15초 처리 예산(`operation-budget.ts`)을 걸어 클라이언트가 연결을 끊으면 진행 중인 외부 호출도 함께 중단합니다.
-
-### 인증 · 세션
-
-비밀번호는 Node `crypto`의 scrypt로 해시합니다. 로그인하면 임의 토큰을 `kita_session` 쿠키(HttpOnly, SameSite=Lax)로 내려주고, DB에는 토큰의 해시만 저장합니다. 여행별 권한은 `auth/trip-access.ts`가 소유자 · 동행자 역할로 확인합니다.
-
-### LangGraph.js
-
-`server/ai/tourism-graph.ts`의 `StateGraph`가 하루 코스 추천의 실행 순서를 정합니다.
+`server/ai/tourism-graph.ts`의 LangGraph.js `StateGraph`가 실행 순서를 정합니다.
 
 | 노드 | 하는 일 |
 |------|--------|
@@ -73,34 +64,61 @@ DB는 하나의 PostgreSQL 안에서 schema를 셋으로 나눕니다.
 
 현재 저장소에는 LLM이나 임베딩 모델이 연결되어 있지 않으며, 코스는 규칙 기반 생성기가 만듭니다. 추천 결과는 일정을 바꾸지 않는 미리보기이고, 사용자가 확정하면 `PATCH .../day-alternatives`가 조회 당시 revision과 장소 순서를 비교한 뒤 저장합니다.
 
-### PostgreSQL · PostGIS
+## 데이터 적재
 
-`docker-compose.yml`의 `postgis/postgis:17-3.5` 컨테이너를 씁니다. 장소 검색과 거리 계산은 PostGIS 공간 쿼리로 처리하고, 스키마 변경은 `db/migrations/`의 번호 순 SQL을 `scripts/migrate-db.ts`가 적용합니다. 일정 저장은 날짜 단위 잠금과 revision 증가를 한 트랜잭션에서 처리해 동시 편집 충돌을 409로 돌려줍니다. 백업 · 복원 훈련 스크립트(`backup-db.ts`, `restore-drill.ts`)가 있습니다.
+- **장소 카탈로그**: `scripts/prepare_hokkaido_data.py`가 osmium으로 OSM 추출본에서 관광지 · 음식점 등의 POI를 뽑고 shapely로 geometry를 정리하면, `load_postgis.py`가 psycopg로 `geo_data`에 적재합니다.
+- **공개 관광 자료**: `scripts/tourism/collector.py`가 승인된 출처(`ops/tourism/source-policy.json`)만 수집해 원본 SHA-256과 수집 이력을 SQLite에 기록하고, `normalize.py`가 인코딩 · 열 · 좌표 · 날짜를 검증한 뒤 `publish.ts`가 한 트랜잭션으로 새 snapshot을 발행합니다.
 
-### Google Places · Routes API
+## 실행
 
-`server/place-details.ts`가 Places API (New)로 장소 사진 · 평점 · 리뷰를 가져오고, 리뷰의 원문 언어 코드로 일본어 리뷰 비율을 계산해 추천 근거로 씁니다. `server/providers.ts`는 대중교통(`TRANSIT`) 구간만 Google Routes API로 조회합니다. 응답은 `provider-cache.ts`의 TTL 캐시에 저장해 같은 요청의 반복 호출을 줄입니다.
+Node.js(`package.json`의 `engines`: `^22.13 || ^24 || >=26`)와 Docker가 필요합니다.
 
-### Valhalla
+```bash
+cp .env.example .env     # VITE_GOOGLE_MAPS_API_KEY 입력
+npm install
+npm run db:up            # PostGIS 컨테이너 (localhost:5433)
+npm run db:init          # 스키마 준비
+npm run dev              # API(3001) + Vite(5173)
+```
 
-`docker-compose.valhalla.yml`이 Geofabrik의 홋카이도 OSM 추출본으로 Valhalla 타일을 만들어 로컬 8002 포트에서 실행합니다. 도보 · 차량 · 택시 · 자전거 구간을 `pedestrian`, `auto`, `bicycle` costing으로 계산하며, 동시 실행 수와 대기열 길이를 `valhalla-gate.ts`로 제한합니다.
+장소 카탈로그는 별도로 적재합니다. 저장소 루트에 OSM 추출본(`hokkaido-*.osm.pbf`, 기본값 `hokkaido-260907.osm.pbf`)과 `Hokkaido_OD_GeoDataBase.csv`를 두고 실행합니다.
 
-### Open-Meteo
+```bash
+npm run data:setup && npm run data:prepare && npm run data:load
+```
 
-`providers.ts`의 `forecast`가 좌표별 일 단위 예보를 가져옵니다. 10일치 예보를 한 번에 받아 같은 좌표의 다른 날짜 조회에 캐시를 재사용하고, `shared/weather-policy.ts`의 기준으로 악천후 여부를 판단해 실내 대안 추천에 씁니다.
+자체 Valhalla는 `docker compose -f docker-compose.valhalla.yml up -d`로 띄우고 `VALHALLA_BASE_URL=http://127.0.0.1:8002`를 지정합니다. 기본값은 공개 데모 서버이며 운영에서는 자체 또는 라이선스를 가진 엔드포인트가 필요합니다.
 
-### Python 데이터 적재
+| 환경변수 | 용도 |
+|----------|------|
+| `DATABASE_URL` | PostgreSQL 접속 (기본 예시는 `localhost:5433`) |
+| `VITE_GOOGLE_MAPS_API_KEY` | 브라우저용 Google Maps 키 |
+| `GOOGLE_MAPS_SERVER_API_KEY` | 서버용 키. 개발에서는 비우면 위 키를 쓰고, 운영에서는 별도 키가 필요 |
+| `APP_ORIGINS` | 허용 출처 목록. 운영에서는 HTTPS |
+| `VALHALLA_BASE_URL` | 도보 · 차량 · 자전거 경로 서버 |
+| `METRICS_TOKEN` | 운영에서 `/internal/metrics` 접근용 Bearer 토큰 (32자 이상) |
 
-`scripts/prepare_hokkaido_data.py`가 osmium으로 OSM 추출본에서 관광지 · 음식점 등의 POI를 뽑고 shapely로 geometry를 정리하면, `load_postgis.py`가 psycopg로 `geo_data`에 적재합니다. 공개 관광 자료는 `scripts/tourism/collector.py`가 승인된 출처(`ops/tourism/source-policy.json`)만 수집해 원본 SHA-256과 수집 이력을 SQLite에 기록하고, `normalize.py`가 인코딩 · 열 · 좌표 · 날짜를 검증한 뒤 `publish.ts`가 한 트랜잭션으로 새 snapshot을 발행합니다.
+## 검증
 
-### Prometheus 지표 · 로그
-
-`server/observability/metrics.ts`가 경로별 요청 수 · 지연 시간 · 중단 수를 Prometheus 텍스트 형식으로 `/metrics`에 노출합니다. 운영 환경에서는 `METRICS_TOKEN` Bearer 인증이 필요합니다. 경보 규칙은 `ops/prometheus/alerts.yml`에 있습니다.
-
-### 테스트 · CI
+```bash
+npm run lint && npm run typecheck && npm run spec:check
+npm run test:ci          # Vitest (PostgreSQL 필요)
+npm run test:e2e         # Playwright
+```
 
 Vitest와 Supertest로 도메인 규칙 · API 계약 · 권한 · 동시성 · 추천 그래프를 검사하고, Playwright로 데스크톱 · 모바일의 추천 · 저장 복구 · 초대 흐름을 브라우저에서 확인합니다. GitHub Actions(`ci.yml`)는 PostGIS 서비스 컨테이너를 띄워 의존성 감사 → lint · typecheck · format → 마이그레이션 → 테스트 → Python 수집기 테스트 → 부하 기준 → OpenAPI · DBML 검사 → 빌드를 실행하고, 별도 job에서 Playwright E2E를 돌립니다. `operations-drill.yml`은 백업 · 복원 · 부하 훈련을 따로 실행합니다.
 
-### OpenAPI · DBML
+## 기술 구성
 
-`scripts/write-api-spec.mjs`가 `docs/openapi-rest.json`과 Swagger UI용 `frontend/public/openapi.json`을 만들고, CI의 `spec:check`가 코드와 문서가 어긋나면 실패시킵니다. 데이터 모델은 `docs/erd.dbml`로 관리합니다.
+| 기술 | 용도 | 위치 |
+|------|------|------|
+| Vue 3 · Vite · TypeScript | SPA. 라우트 가드로 로그인 화면을 막고, 일정 화면은 `useTripSynchronization`으로 동행자 변경을 폴링 | `frontend/src` |
+| Google Maps JavaScript API | 장소 마커와 이동 경로 polyline. Routes의 encoded polyline을 `geometry` 라이브러리로 디코딩 | `TravelMap.vue` |
+| Express 5 · Zod | 라우터 묶음, 요청 본문과 외부 API 응답의 Zod 검증, helmet 보안 헤더 | `server/app.ts` |
+| 인증 · 세션 | scrypt 해시, `kita_session` 쿠키(HttpOnly, SameSite=Lax), DB에는 토큰 해시만 저장. 여행별 소유자 · 동행자 권한 | `server/auth/` |
+| PostgreSQL · PostGIS | `postgis/postgis:17-3.5`. 공간 쿼리로 검색 · 거리 계산, `db/migrations/`의 번호 순 SQL을 적용. 백업 · 복원 훈련 스크립트 포함 | `scripts/migrate-db.ts`, `backup-db.ts`, `restore-drill.ts` |
+| Google Places · Routes | Places(New)로 사진 · 평점 · 리뷰를 가져와 일본어 리뷰 비율을 계산하고, 대중교통(`TRANSIT`) 구간만 Routes로 조회 | `place-details.ts`, `providers.ts` |
+| Valhalla | Geofabrik 홋카이도 추출본으로 타일을 만들어 로컬 8002 포트에서 실행. `pedestrian` · `auto` · `bicycle` costing | `docker-compose.valhalla.yml` |
+| Open-Meteo | 10일치 예보를 한 번에 받아 같은 좌표의 다른 날짜 조회에 캐시를 재사용하고, `shared/weather-policy.ts` 기준으로 악천후를 판단 | `providers.ts` |
+| Prometheus | 경로별 요청 수 · 지연 시간 · 중단 수를 `/internal/metrics`에 노출. 경보 규칙은 `ops/prometheus/alerts.yml` | `server/observability/metrics.ts` |
+| OpenAPI · DBML | `write-api-spec.mjs`가 `docs/openapi-rest.json`과 Swagger UI용 JSON을 생성하고, CI의 `spec:check`가 코드와 어긋나면 실패. 모델은 `docs/erd.dbml` | `scripts/write-api-spec.mjs` |
