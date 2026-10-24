@@ -26,7 +26,9 @@ it('Swagger contains no inline script block that would require unsafe-inline', a
 
 it('Swagger loads pinned external assets with subresource integrity', async () => {
   const html = await readFile(new URL('../frontend/public/swagger.html', import.meta.url), 'utf8');
-  const external = [...html.matchAll(/<(?:script|link)[^>]+(?:src|href)="https:\/\/[^"]+"[^>]*>/g)].map((m) => m[0]);
+  const external = [
+    ...html.matchAll(/<(?:script|link)[^>]+(?:src|href)="https:\/\/[^"]+"[^>]*>/g),
+  ].map((m) => m[0]);
   expect(external.length).toBe(3);
   for (const tag of external) {
     expect(tag).toContain('swagger-ui-dist@5.33.0/');
