@@ -9,17 +9,18 @@ export function securityHeaders(env: NodeJS.ProcessEnv = process.env) {
         ? {
             directives: {
               defaultSrc: ["'self'"],
+              // Swagger UI(/swagger.html)만 쓰는 외부 스크립트는 버전 경로까지 고정하고, 페이지에서 SRI로 무결성을 확인한다
               scriptSrc: [
                 "'self'",
                 'https://maps.googleapis.com',
                 'https://maps.gstatic.com',
-                'https://unpkg.com',
+                'https://unpkg.com/swagger-ui-dist@5.33.0/',
               ],
               styleSrc: [
                 "'self'",
                 "'unsafe-inline'",
                 'https://fonts.googleapis.com',
-                'https://unpkg.com',
+                'https://unpkg.com/swagger-ui-dist@5.33.0/',
               ],
               fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
               imgSrc: [
