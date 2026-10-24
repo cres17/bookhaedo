@@ -47,6 +47,54 @@ DB는 하나의 PostgreSQL 안에서 schema를 셋으로 나눕니다.
 | `tourism_knowledge` | 공개 관광 자료의 출처 · 발행 snapshot · 철회 기록 |
 | `planner` | 사용자 · 세션 · 여행 · 일정 · 협업 · 요청 제한 카운터 |
 
+## 기능 흐름
+
+### 1. 날씨에 따른 실내 대안
+
+일정에 넣은 야외 장소의 날짜 예보가 아래 기준에 걸리면 20km 안의 실내 장소를 대안으로 제시합니다. 기준은 추천용 값이며 공식 기상 특보와는 다릅니다(`shared/weather-policy.ts`).
+
+```mermaid
+flowchart TD
+  A([날짜별 일정의 야외 장소]) --> F{예보 있음?}
+  F -- 아니오 --> N1[/NO_FORECAST/]
+  F -- 예 --> B{"비 · 눈 · 이슬비 · 뇌우<br/>또는 강수 ≥ 5mm · 적설 ≥ 1cm<br/>강수확률 ≥ 70% · 풍속 ≥ 40km/h"}
+  B -- 아니오 --> N2[/FAIR_WEATHER<br/>기존 일정 유지/]
+  B -- 예 --> O{대상이 야외 장소?<br/>OSM 태그로 판정}
+  O -- 아니오 --> N3[/NOT_OUTDOOR/]
+  O -- 예 --> Q[20km 안 실내 장소 검색<br/>indoor=yes · 박물관 · 미술관 · 수족관]
+  Q --> RK[후보 순위] --> PV[대안 선택 시<br/>앞뒤 이동 경로 미리보기]
+  PV --> C[[확정 요청<br/>revision 확인 후 교체]]
+  classDef stop fill:#f4f4f4,stroke:#aaa,color:#555
+  class N1,N2,N3 stop
+```
+
+### 2. 추천 확정과 동시 편집
+
+추천은 일정을 바꾸지 않는 미리보기이고, 확정할 때 조회 당시의 revision · 장소 순서 · 이동 수단이 그대로인지 확인합니다.
+
+```mermaid
+sequenceDiagram
+  participant U as 사용자 A
+  participant V as 동행자 B
+  participant API as Express API
+  participant DB as PostgreSQL
+  U->>API: 하루 코스 추천 요청
+  API-->>U: 미리보기 (revision 7, 장소 순서, 이동 수단)
+  V->>API: 같은 날짜 일정 수정 (expectedRevision 7)
+  API->>DB: 날짜 행 잠금 · revision 7 → 8
+  U->>API: PATCH day-alternatives 확정 (expectedRevision 7)
+  API->>DB: 날짜 행 FOR UPDATE · 현재 revision 조회
+  alt revision 불일치
+    API-->>U: 409 STALE_ITINERARY
+  else 이동 수단 변경
+    API-->>U: 409 RECOMMENDATION_CONTEXT_CHANGED
+  else 일치
+    API->>DB: 일정 저장 · revision + 1
+    API-->>U: saved
+  end
+  Note over U: 응답을 잃으면 결과 불명 상태를<br/>sessionStorage에 남기고 일정 재조회
+```
+
 ## 핵심 설계 결정
 
 | 결정 | 방식 | 위치 |
@@ -59,6 +107,22 @@ DB는 하나의 PostgreSQL 안에서 schema를 셋으로 나눕니다.
 ## 하루 코스 추천 그래프
 
 `server/ai/tourism-graph.ts`의 LangGraph.js `StateGraph`가 실행 순서를 정합니다.
+
+```mermaid
+flowchart TD
+  S([START]) --> I[interpret<br/>지역 · 중심 좌표 ·<br/>유지할 장소 · 관심사]
+  I --> R[retrieve<br/>후보 · 근거 검색<br/>반경 10 → 15 → 20km]
+  R -->|첫 검색| W[weather_lookup<br/>Open-Meteo 예보]
+  R -->|재검색| G
+  W --> G[generate<br/>규칙 기반 코스 생성]
+  G --> V{validate<br/>조건 맞는 코스 있음?}
+  V -->|없음 · 검색 3회 미만| R
+  V -->|있음 또는 3회 도달| P[route_preview<br/>선택 코스 경로 조회]
+  P --> RV[revalidate_sources<br/>권리 · snapshot ·<br/>적용 기간 · 철회 재확인]
+  RV --> E([END · 미리보기 응답])
+  classDef node fill:#eef3fb,stroke:#7d97c4
+  class I,R,W,G,P,RV node
+```
 
 | 노드 | 하는 일 |
 |------|--------|
@@ -73,6 +137,17 @@ DB는 하나의 PostgreSQL 안에서 schema를 셋으로 나눕니다.
 현재 저장소에는 LLM이나 임베딩 모델이 연결되어 있지 않으며, 코스는 규칙 기반 생성기가 만듭니다. 추천 결과는 일정을 바꾸지 않는 미리보기이고, 사용자가 확정하면 `PATCH .../day-alternatives`가 조회 당시 revision과 장소 순서를 비교한 뒤 저장합니다.
 
 ## 데이터 적재
+
+```mermaid
+flowchart LR
+  O[(OSM 추출본)] --> P1[prepare_hokkaido_data.py<br/>osmium · shapely] --> P2[load_postgis.py] --> G[(geo_data.place<br/>PostGIS)]
+```
+
+```mermaid
+flowchart LR
+  SP[승인된 출처<br/>source-policy.json] --> C1[collector.py<br/>원본 SHA-256 기록] --> C2[normalize.py<br/>인코딩 · 좌표 · 날짜 검증] --> C3[publish.ts<br/>snapshot 발행] --> K[(tourism_knowledge)]
+  WD[withdraw.ts<br/>철회] -.-> K
+```
 
 - **장소 카탈로그**: `scripts/prepare_hokkaido_data.py`가 osmium으로 OSM 추출본에서 관광지 · 음식점 등의 POI를 뽑고 shapely로 geometry를 정리하면, `load_postgis.py`가 psycopg로 `geo_data`에 적재합니다.
 - **공개 관광 자료**: `scripts/tourism/collector.py`가 승인된 출처(`ops/tourism/source-policy.json`)만 수집해 원본 SHA-256과 수집 이력을 SQLite에 기록하고, `normalize.py`가 인코딩 · 열 · 좌표 · 날짜를 검증한 뒤 `publish.ts`가 한 트랜잭션으로 새 snapshot을 발행합니다.
