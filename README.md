@@ -49,6 +49,8 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 
 ## 코스 추천
 
+<p><img src="https://img.shields.io/badge/MAIN%20FEATURE-3577CE?style=flat-square" alt="MAIN 기능" height="20"></p>
+
 ![하루 코스 추천과 확정 과정](docs/assets/readme/workflow.svg)
 
 `server/ai/tourism-graph.ts`의 LangGraph가 검색과 검증 순서를 관리합니다. 현재 코스 생성은 규칙 기반이며 외부 LLM이나 임베딩 모델은 연결되어 있지 않습니다.
@@ -76,6 +78,8 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 
 ## 일정 저장
 
+<p><img src="https://img.shields.io/badge/MAIN%20FEATURE-3577CE?style=flat-square" alt="MAIN 기능" height="20"></p>
+
 추천을 받는 동안 동행자가 같은 일정을 고칠 수 있습니다. 따라서 추천 조회와 일정 변경을 별도 요청으로 나누고, 저장할 때 조회 당시의 버전을 확인합니다.
 
 쓰기 요청에는 `expectedRevision`이 필요합니다. 서버는 날짜 행을 잠근 뒤 현재 revision과 장소 순서를 대조합니다. 값이 없으면 `428 REVISION_REQUIRED`, 버전이 달라졌으면 `409 STALE_ITINERARY`를 반환합니다. 이동 수단 등 추천 조건이 바뀐 경우도 `409 RECOMMENDATION_CONTEXT_CHANGED`로 거절합니다.
@@ -85,6 +89,8 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 확정 요청 뒤 응답을 받지 못한 경우에는 저장 여부를 단정하지 않습니다. 화면이 결과 불명 상태를 sessionStorage에 남기고 현재 일정을 다시 조회해 확인하도록 합니다. 관련 코드는 `itinerary-version.ts`, `itinerary-write.ts`, `recommendation-recovery.ts`에 있습니다.
 
 ## 데이터
+
+<p><img src="https://img.shields.io/badge/SUB%20FEATURE-92B6E5?style=flat-square" alt="SUB 기능" height="20"></p>
 
 ### 장소 카탈로그
 
