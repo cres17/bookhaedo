@@ -36,6 +36,12 @@ jobs:
           sudo apt-get install -y postgresql-client-17
       - run: npm ci
       - run: npm run db:init
+      - name: Seed one collaborative trip so the restore compares real rows
+        run: npx tsx scripts/seed-drill-data.ts
       - run: npm run db:backup -- --output /tmp/bookhaedo-ci.dump
       - run: npm run db:restore:drill -- --archive /tmp/bookhaedo-ci.dump
+      - name: Restore detects content loss that row counts miss
+        run: npx vitest run --config vitest.config.ts tests/backup-restore.test.ts
+        env:
+          RUN_BACKUP_RESTORE_TEST: '1'
       - run: npm run test:load:ci
