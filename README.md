@@ -96,6 +96,60 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 
 수집·정제·발행을 분리해 일부 자료가 실패했을 때 불완전한 버전이 공개되지 않도록 했습니다. 실행 방법과 자료별 조건은 [관광 자료 문서](docs/tourism-langgraph.md)에 있습니다.
 
+## 기술별 역할
+
+![기술 구성과 담당 기능](docs/assets/readme/components.svg)
+
+### 여행 화면과 협업
+
+Vue 3와 Vue Router가 여행 생성·장소 탐색·날짜별 플래너 화면을 연결합니다. TypeScript는 화면과 서버의 데이터 형식을 다루고 Vite는 개발 서버와 배포 빌드를 맡습니다. 로그인 여부는 라우트에서 확인하고 여행별 접근 권한은 서버에서 다시 검사합니다.
+
+동행자의 수정은 `useTripSynchronization`의 폴링으로 가져옵니다. 장소 배치·메모·경비를 같은 여행 안에서 관리하되, 일정 확정은 조회 시점의 revision을 포함해 저장합니다. 다른 사람이 먼저 바꾼 일정을 덮어쓰지 않기 위한 절차입니다.
+
+| 기술 | 화면과 지도에서 하는 일 |
+|---|---|
+| Vue 3 · Vue Router | 로그인·여행·플래너 화면과 이동 |
+| TypeScript · Vite | 공통 타입, 개발 서버와 프런트엔드 빌드 |
+| Google Maps JavaScript API | 장소 마커와 이동 경로 표시 |
+| Google Maps geometry | Routes의 encoded polyline을 지도 좌표로 변환 |
+| Google Places (New) | 장소 사진·평점·리뷰 조회와 일본어 리뷰 비율 계산 |
+| Google Routes | 대중교통 구간의 경로 조회 |
+| Valhalla | 도보·차량·자전거 경로 계산. 홋카이도 OSM으로 만든 로컬 타일 사용 |
+| Open-Meteo | 날짜별 예보와 실내 대안 판단. 같은 좌표의 10일 예보를 캐시에 재사용 |
+
+### API·인증·저장
+
+Express는 인증, 장소 카탈로그, 여행, 외부 제공자, 추천 요청을 라우터로 나눕니다. 요청 문맥과 지표 수집을 먼저 붙이고 출처·요청 제한·권한을 확인한 뒤 기능별 로직으로 넘깁니다. JSON 요청 본문 크기는 24KB로 제한합니다.
+
+| 기술 | 서버에서 하는 일 |
+|---|---|
+| Node.js · Express 5 | REST API와 외부 서비스 중계 |
+| Zod | 요청 본문과 외부 API 응답의 형식 검증 |
+| helmet · express-rate-limit | 보안 헤더와 요청 횟수 제한 |
+| scrypt · 쿠키 세션 | 비밀번호 해시, HttpOnly·SameSite=Lax 세션. DB에는 세션 토큰의 해시 저장 |
+| pg · PostgreSQL 17 | 회원·세션·여행·동행자·일정 저장, 트랜잭션과 revision 검사 |
+| PostGIS | OSM 장소 카탈로그의 공간 검색과 거리 계산 |
+| LangGraph.js | 검색·코스 생성·검증 순서와 재검색 흐름 관리 |
+| Python 데이터 도구 | OSM 전처리, PostGIS 적재, 관광 자료 수집·정제 |
+
+LangGraph가 있다고 해서 외부 LLM을 호출하는 구성은 아닙니다. 현재 코스 생성기는 규칙 기반입니다. 장소 카탈로그와 공개 관광 자료에서 후보를 찾고, 예보·이동 경로·출처 유효성을 확인한 결과를 반환합니다. 관광 자료의 수집·정제·발행·철회는 별도 단계로 관리합니다.
+
+### 운영과 변경 검증
+
+`/internal/metrics`는 Prometheus 형식으로 요청 수·응답 시간·중단 요청·진행 중 요청을 내보냅니다. DB 연결 풀과 외부 제공자 캐시의 hit·miss·joined·failed·bypass도 함께 기록합니다. 운영 환경에서는 지표 조회에 Bearer 토큰이 필요합니다.
+
+| 도구 | 확인하는 내용 |
+|---|---|
+| OpenAPI · DBML | REST API 명세와 DB 모델. `spec:check`로 구현과의 차이 검사 |
+| Vitest · Supertest | 도메인 규칙, API 응답, 동시 수정, 보안·실패 처리 검사 |
+| Playwright | 브라우저에서 여행·추천·저장 흐름 확인 |
+| ESLint · Prettier · vue-tsc | 코드 규칙, 포맷, Vue·TypeScript 타입 검사 |
+| Docker Compose | 로컬 PostgreSQL/PostGIS와 Valhalla 실행 구성 |
+| SQL 마이그레이션 · 백업 도구 | 스키마 변경과 백업·복원 훈련 |
+| GitHub Actions | 빌드·검사·명세 확인을 자동 실행 |
+
+화면은 [frontend/src](frontend/src), API 조립은 [server/app.ts](server/app.ts), 지표는 [metrics.ts](server/observability/metrics.ts), 데이터·운영 작업은 [scripts](scripts)에 있습니다.
+
 ## 실행
 
 Node.js `^22.13 || ^24 || >=26`과 Docker가 필요합니다.
