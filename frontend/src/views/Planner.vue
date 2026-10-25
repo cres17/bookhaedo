@@ -10,7 +10,7 @@ import RouteOptions from '../components/RouteOptions.vue';
 import { transitLink } from '../transit-link';
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { api, json } from '../api';
+import { api, json, ApiError } from '../api';
 import { state, selectTrip, notify, categoryName } from '../store';
 import { recommendationRecovery } from '../recommendation-recovery';
 import type { Trip, Segment, Day, Place } from '../types';
@@ -117,16 +117,21 @@ onBeforeUnmount(() => {
   generation++;
   controller?.abort();
 });
-async function load() {
+// 최신 여행을 읽어 화면에 반영했으면 true. 더 새로운 load가 시작됐거나 실패하면 false
+async function load(): Promise<boolean> {
   const token = ++loadGeneration;
   try {
     const data = await api<{ data: Trip }>('/trips/' + route.params.id);
-    if (token !== loadGeneration) return;
+    if (token !== loadGeneration) return false;
     await applyTripSnapshot(data.data, token);
+    return token === loadGeneration;
   } catch (e: any) {
     if (token === loadGeneration) error.value = e.message;
+    return false;
   }
 }
+// 응답을 받지 못했거나 서버 오류로 끝난 쓰기는 저장됐는지 알 수 없다
+const outcomeUnknown = (e: unknown) => !(e instanceof ApiError) || e.status >= 500;
 async function applyTripSnapshot(snapshot: Trip, token: number) {
   if (token !== loadGeneration || snapshot.id !== String(route.params.id)) return;
   trip.value = snapshot;
@@ -227,8 +232,24 @@ async function saveOrder(ids: string[]) {
     await load();
     notify('변경한 일정을 저장했어요.');
   } catch (e: any) {
-    error.value = e.message;
-    if (e.status === 409) await load();
+    if (!outcomeUnknown(e)) {
+      error.value = e.message;
+      if (e.status === 409) await load();
+      return;
+    }
+    // 저장 여부를 모르는 상태로 이전 순서를 보여 주지 않도록 최신 일정을 다시 읽어 결과를 판정한다
+    if (!(await load())) {
+      error.value = '저장 결과를 확인하지 못했어요. 새로고침해 변경이 반영됐는지 확인해주세요.';
+      return;
+    }
+    const saved = trip.value?.days.find((d) => d.date === date)?.items.map((p) => p.id) || [];
+    if (saved.length === ids.length && saved.every((id, i) => id === ids[i])) {
+      error.value = '';
+      notify('저장 응답이 끊겼지만 다시 확인해 보니 변경이 저장됐어요.');
+    } else {
+      error.value =
+        '저장 응답을 받지 못했고, 최신 일정을 확인해 보니 변경이 반영되지 않았어요. 다시 시도해주세요.';
+    }
   } finally {
     saving.value = false;
   }
