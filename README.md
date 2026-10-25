@@ -25,19 +25,27 @@
 
 ## 화면
 
+<div align="center">
+
 | 첫 화면 | 여행 만들기 | 플래너 |
 |:---:|:---:|:---:|
 | <img src="docs/readme/landing.png" alt="첫 화면" width="320"> | <img src="docs/readme/new-trip.png" alt="여행 생성 화면" width="320"> | <img src="docs/readme/planner.png" alt="일정 플래너" width="320"> |
+
+</div>
 
 장소 데이터를 적재하기 전의 로컬 화면입니다. 카탈로그를 넣으면 지도와 플래너에서 장소를 검색할 수 있습니다.
 
 ## 구조
 
-![Book해도 서비스 구성](docs/assets/readme/architecture.svg)
+<p align="center">
+  <img src="docs/assets/readme/architecture.svg" alt="Book해도 서비스 구성" width="1120">
+</p>
 
 Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 여행 접근 권한을 확인하고, PostgreSQL에 일정과 협업 데이터를 저장합니다. 로그인은 HttpOnly 쿠키로 유지하며 DB에는 세션 토큰의 해시를 보관합니다.
 
 장소와 여행 데이터는 한 DB 안에서 스키마를 나눴습니다.
+
+<div align="center">
 
 | 스키마 | 저장하는 데이터 |
 |:---:|:---:|
@@ -45,12 +53,16 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 | `planner` | 사용자, 세션, 여행, 일정, 동행자, 요청 제한 카운터 |
 | `tourism_knowledge` | 공개 관광 자료, 출처, 발행 snapshot, 철회 기록 |
 
+</div>
+
 지도는 Google Maps를 사용합니다. 장소 상세와 리뷰는 Places, 대중교통 경로는 Routes에서 가져옵니다. 도보·차량·자전거 경로는 Valhalla로 계산하고, 날씨는 Open-Meteo에서 조회합니다.
 
 ## 코스 추천
 
 
-![하루 코스 추천과 확정 과정](docs/assets/readme/workflow.svg)
+<p align="center">
+  <img src="docs/assets/readme/workflow.svg" alt="하루 코스 추천과 확정 과정" width="1120">
+</p>
 
 `server/ai/tourism-graph.ts`의 LangGraph가 검색과 검증 순서를 관리합니다. 현재 코스 생성은 규칙 기반이며 외부 LLM이나 임베딩 모델은 연결되어 있지 않습니다.
 
@@ -66,12 +78,16 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 
 야외 장소의 여행일 예보에 비·눈·이슬비·뇌우가 있거나, 아래 값 중 하나를 넘으면 20km 안의 실내 장소를 찾습니다.
 
+<div align="center">
+
 | 항목 | 대안을 찾는 기준 |
 |:---:|:---:|
 | 강수량 | 5mm 이상 |
 | 적설 | 1cm 이상 |
 | 강수확률 | 70% 이상 |
 | 풍속 | 40km/h 이상 |
+
+</div>
 
 이는 서비스의 추천 기준입니다. 예보가 없으면 `NO_FORECAST`, 날씨 조건에 해당하지 않으면 `FAIR_WEATHER`, 야외 장소가 아니면 `NOT_OUTDOOR`를 반환합니다. 후보를 선택하면 앞뒤 장소와의 경로를 먼저 확인할 수 있습니다.
 
@@ -101,13 +117,17 @@ Vue 화면은 같은 출처의 `/api`를 호출합니다. Express가 세션과 �
 
 ## 기술별 역할
 
-![기술 구성과 담당 기능](docs/assets/readme/components.svg)
+<p align="center">
+  <img src="docs/assets/readme/components.svg" alt="기술 구성과 담당 기능" width="1120">
+</p>
 
 ### 여행 화면과 협업
 
 Vue 3와 Vue Router가 여행 생성·장소 탐색·날짜별 플래너 화면을 연결합니다. TypeScript는 화면과 서버의 데이터 형식을 다루고 Vite는 개발 서버와 배포 빌드를 맡습니다. 로그인 여부는 라우트에서 확인하고 여행별 접근 권한은 서버에서 다시 검사합니다.
 
 동행자의 수정은 `useTripSynchronization`의 폴링으로 가져옵니다. 장소 배치·메모·경비를 같은 여행 안에서 관리하되, 일정 확정은 조회 시점의 revision을 포함해 저장합니다. 다른 사람이 먼저 바꾼 일정을 덮어쓰지 않기 위한 절차입니다.
+
+<div align="center">
 
 | 기술 | 화면과 지도에서 하는 일 |
 |:---:|:---:|
@@ -120,9 +140,13 @@ Vue 3와 Vue Router가 여행 생성·장소 탐색·날짜별 플래너 화면�
 | Valhalla | 도보·차량·자전거 경로 계산. 홋카이도 OSM으로 만든 로컬 타일 사용 |
 | Open-Meteo | 날짜별 예보와 실내 대안 판단. 같은 좌표의 10일 예보를 캐시에 재사용 |
 
+</div>
+
 ### API·인증·저장
 
 Express는 인증, 장소 카탈로그, 여행, 외부 제공자, 추천 요청을 라우터로 나눕니다. 요청 문맥과 지표 수집을 먼저 붙이고 출처·요청 제한·권한을 확인한 뒤 기능별 로직으로 넘깁니다. JSON 요청 본문 크기는 24KB로 제한합니다.
+
+<div align="center">
 
 | 기술 | 서버에서 하는 일 |
 |:---:|:---:|
@@ -135,11 +159,15 @@ Express는 인증, 장소 카탈로그, 여행, 외부 제공자, 추천 요청�
 | LangGraph.js | 검색·코스 생성·검증 순서와 재검색 흐름 관리 |
 | Python 데이터 도구 | OSM 전처리, PostGIS 적재, 관광 자료 수집·정제 |
 
+</div>
+
 LangGraph가 있다고 해서 외부 LLM을 호출하는 구성은 아닙니다. 현재 코스 생성기는 규칙 기반입니다. 장소 카탈로그와 공개 관광 자료에서 후보를 찾고, 예보·이동 경로·출처 유효성을 확인한 결과를 반환합니다. 관광 자료의 수집·정제·발행·철회는 별도 단계로 관리합니다.
 
 ### 운영과 변경 검증
 
 `/internal/metrics`는 Prometheus 형식으로 요청 수·응답 시간·중단 요청·진행 중 요청을 내보냅니다. DB 연결 풀과 외부 제공자 캐시의 hit·miss·joined·failed·bypass도 함께 기록합니다. 운영 환경에서는 지표 조회에 Bearer 토큰이 필요합니다.
+
+<div align="center">
 
 | 도구 | 확인하는 내용 |
 |:---:|:---:|
@@ -150,6 +178,8 @@ LangGraph가 있다고 해서 외부 LLM을 호출하는 구성은 아닙니다.
 | Docker Compose | 로컬 PostgreSQL/PostGIS와 Valhalla 실행 구성 |
 | SQL 마이그레이션 · 백업 도구 | 스키마 변경과 백업·복원 훈련 |
 | GitHub Actions | 빌드·검사·명세 확인을 자동 실행 |
+
+</div>
 
 화면은 [frontend/src](frontend/src), API 조립은 [server/app.ts](server/app.ts), 지표는 [metrics.ts](server/observability/metrics.ts), 데이터·운영 작업은 [scripts](scripts)에 있습니다.
 
@@ -167,6 +197,8 @@ npm run dev
 
 PostGIS는 `localhost:5433`, API는 `3001`, Vite는 `5173`을 사용합니다. `.env`의 브라우저 지도 키를 먼저 입력합니다.
 
+<div align="center">
+
 | 환경변수 | 설정 |
 |:---:|:---:|
 | `DATABASE_URL` | PostgreSQL 접속 주소 |
@@ -175,6 +207,8 @@ PostGIS는 `localhost:5433`, API는 `3001`, Vite는 `5173`을 사용합니다. `
 | `APP_ORIGINS` | 허용할 출처 목록 |
 | `VALHALLA_BASE_URL` | 도보·차량·자전거 경로 서버 주소 |
 | `METRICS_TOKEN` | 운영 지표 조회용 토큰, 32자 이상 |
+
+</div>
 
 장소 카탈로그를 적재하려면 저장소 루트에 `hokkaido-*.osm.pbf`와 `Hokkaido_OD_GeoDataBase.csv`를 준비합니다. 기본 OSM 파일명은 `hokkaido-260907.osm.pbf`입니다.
 
