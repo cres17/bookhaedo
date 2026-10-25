@@ -2,18 +2,12 @@
 
 <h1 align="center">Book해도.</h1>
 
+<p align="center">Vue · Express · PostgreSQL / PostGIS · LangGraph.js</p>
+
+[구조](#architecture) · [주요 흐름](#workflow) · [설계 선택](#핵심-설계-결정) · [실행](#실행)
+
 <p align="center">홋카이도 여행을 지도에서 고르고, 날짜별 일정으로 묶고, 날씨가 바뀌면 근거와 함께 대안 코스를 받아 보는 여행 계획 웹 서비스</p>
 
-![Vue 3](https://img.shields.io/badge/Vue%203-4FC08D?style=flat&logoColor=black&logo=vuedotjs)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logoColor=white&logo=typescript)
-![Google Maps](https://img.shields.io/badge/Google%20Maps-4285F4?style=flat&logoColor=white&logo=googlemaps)
-![Node.js](https://img.shields.io/badge/Node.js-5FA04E?style=flat&logoColor=white&logo=nodedotjs)
-![Express 5](https://img.shields.io/badge/Express%205-0A0A0A?style=flat&logoColor=white&logo=express)
-![LangGraph.js](https://img.shields.io/badge/LangGraph.js-7FC8FF?style=flat&logoColor=black&logo=langgraph)
-![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL%2017-4169E1?style=flat&logoColor=white&logo=postgresql)
-![PostGIS](https://img.shields.io/badge/PostGIS-336791?style=flat&logoColor=white)
-![Valhalla](https://img.shields.io/badge/Valhalla-1F7A5C?style=flat&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logoColor=white&logo=githubactions)
 
 홋카이도 12개 관광권의 장소를 지역·테마·키워드로 찾고, 동행자와 함께 날짜별 일정과 경비를 관리합니다. 일정이 정해진 날에는 그날의 예보와 공개 관광 자료를 바탕으로 실내 대안이나 하루 코스를 추천받고, 경로를 미리 본 뒤 확정할 수 있습니다. 장소 상세에는 원문 이름과 출처, Google 리뷰 중 일본어 리뷰 비율을 함께 보여 줍니다.
 
@@ -25,11 +19,15 @@
 
 로컬에서 `npm run dev`로 실행해 촬영했습니다. 장소 카탈로그를 적재하지 않은 DB(`/api/health`의 `places: 0`)이므로 플래너의 일정은 비어 있고, 장소 데이터는 [데이터 적재](#데이터-적재)를 따라 넣어야 채워집니다.
 
-## 전체 아키텍처
+<a id="architecture"></a>
+
+## 구조 한눈에 보기
 
 <p align="center">
   <img src="docs/assets/readme/architecture.svg" alt="Book해도 전체 아키텍처" width="100%">
 </p>
+
+추천은 읽기 전용 미리보기입니다. 일정 변경은 사용자의 확정 요청과 버전 검증을 거칩니다.
 
 | 흐름 | 설명 |
 |------|------|
@@ -47,9 +45,16 @@ DB는 하나의 PostgreSQL 안에서 schema를 셋으로 나눕니다.
 | `tourism_knowledge` | 공개 관광 자료의 출처 · 발행 snapshot · 철회 기록 |
 | `planner` | 사용자 · 세션 · 여행 · 일정 · 협업 · 요청 제한 카운터 |
 
-## 기능 흐름
+<a id="workflow"></a>
 
-### 1. 날씨에 따른 실내 대안
+## 주요 흐름
+
+![bookhaedo의 주요 처리 흐름](docs/assets/readme/workflow.svg)
+
+## 세부 동작
+
+<details>
+<summary><b>1. 날씨에 따른 실내 대안</b></summary>
 
 일정에 넣은 야외 장소의 날짜 예보가 아래 기준에 걸리면 20km 안의 실내 장소를 대안으로 제시합니다. 기준은 추천용 값이며 공식 기상 특보와는 다릅니다(`shared/weather-policy.ts`).
 
@@ -68,7 +73,10 @@ flowchart TD
   class N1,N2,N3 stop
 ```
 
-### 2. 추천 확정과 동시 편집
+</details>
+
+<details>
+<summary><b>2. 추천 확정과 동시 편집</b></summary>
 
 추천은 일정을 바꾸지 않는 미리보기이고, 확정할 때 조회 당시의 revision · 장소 순서 · 이동 수단이 그대로인지 확인합니다.
 
@@ -94,6 +102,9 @@ sequenceDiagram
   end
   Note over U: 응답을 잃으면 결과 불명 상태를<br/>sessionStorage에 남기고 일정 재조회
 ```
+
+</details>
+
 
 ## 핵심 설계 결정
 
