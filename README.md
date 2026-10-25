@@ -4,20 +4,20 @@
 
 <h1 align="center">Book해도.</h1>
 
-<div align="center">
-
-![Vue 3](https://img.shields.io/badge/Vue%203-4FC08D?style=flat&logoColor=black&logo=vuedotjs)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logoColor=white&logo=typescript)
-![Google Maps](https://img.shields.io/badge/Google%20Maps-4285F4?style=flat&logoColor=white&logo=googlemaps)
-![Node.js](https://img.shields.io/badge/Node.js-5FA04E?style=flat&logoColor=white&logo=nodedotjs)
-![Express 5](https://img.shields.io/badge/Express%205-0A0A0A?style=flat&logoColor=white&logo=express)
-![LangGraph.js](https://img.shields.io/badge/LangGraph.js-7FC8FF?style=flat&logoColor=black&logo=langgraph)
-![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL%2017-4169E1?style=flat&logoColor=white&logo=postgresql)
-![PostGIS](https://img.shields.io/badge/PostGIS-336791?style=flat&logoColor=white)
-![Valhalla](https://img.shields.io/badge/Valhalla-1F7A5C?style=flat&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logoColor=white&logo=githubactions)
-
-</div>
+<p align="center">
+  <img src="https://img.shields.io/badge/Vue%203-4FC08D?style=flat&amp;logoColor=black&amp;logo=vuedotjs" alt="Vue 3" height="20">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&amp;logoColor=white&amp;logo=typescript" alt="TypeScript" height="20">
+  <img src="https://img.shields.io/badge/Google%20Maps-4285F4?style=flat&amp;logoColor=white&amp;logo=googlemaps" alt="Google Maps" height="20">
+  <img src="https://img.shields.io/badge/Node.js-5FA04E?style=flat&amp;logoColor=white&amp;logo=nodedotjs" alt="Node.js" height="20">
+  <br>
+  <img src="https://img.shields.io/badge/Express%205-0A0A0A?style=flat&amp;logoColor=white&amp;logo=express" alt="Express 5" height="20">
+  <img src="https://img.shields.io/badge/LangGraph.js-7FC8FF?style=flat&amp;logoColor=black&amp;logo=langgraph" alt="LangGraph.js" height="20">
+  <img src="https://img.shields.io/badge/PostgreSQL%2017-4169E1?style=flat&amp;logoColor=white&amp;logo=postgresql" alt="PostgreSQL 17" height="20">
+  <br>
+  <img src="https://img.shields.io/badge/PostGIS-336791?style=flat&amp;logoColor=white" alt="PostGIS" height="20">
+  <img src="https://img.shields.io/badge/Valhalla-1F7A5C?style=flat&amp;logoColor=white" alt="Valhalla" height="20">
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&amp;logoColor=white&amp;logo=githubactions" alt="GitHub Actions" height="20">
+</p>
 
 홋카이도 여행 일정을 동행자와 함께 만드는 웹 서비스입니다. 12개 관광권의 장소를 지도에서 찾고 날짜별로 배치하며, 메모와 경비를 함께 관리합니다. 여행일의 날씨가 좋지 않으면 실내 대안이나 다른 하루 코스를 확인할 수 있습니다.
 
