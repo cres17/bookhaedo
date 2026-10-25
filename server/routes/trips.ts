@@ -20,8 +20,10 @@ const app = Router();
 app.get(
   '/api/trips',
   wrap(async (_req, res) => {
+    // 소유 여행과 동행 여행을 각 인덱스로 찾아 합친다. 'user_id=$1 OR EXISTS(동행)' 조건은
+    // 인덱스를 쓰지 못해 전체 여행·일자를 순차 스캔했다 (docs/query-plans.md)
     const q = await pool.query(
-      `SELECT t.id,t.title,(t.user_id=$1) AS "isOwner",t.transport_mode AS "transportMode",min(d.visit_date)::text AS "startDate",max(d.visit_date)::text AS "endDate",count(d.id)::int AS days FROM planner.trip t LEFT JOIN planner.trip_day d ON d.trip_id=t.id WHERE t.user_id=$1 OR EXISTS(SELECT 1 FROM planner.trip_member m WHERE m.trip_id=t.id AND m.user_id=$1) GROUP BY t.id ORDER BY t.updated_at DESC`,
+      `SELECT t.id,t.title,(t.user_id=$1) AS "isOwner",t.transport_mode AS "transportMode",min(d.visit_date)::text AS "startDate",max(d.visit_date)::text AS "endDate",count(d.id)::int AS days FROM (SELECT id FROM planner.trip WHERE user_id=$1 UNION SELECT trip_id FROM planner.trip_member WHERE user_id=$1) mine JOIN planner.trip t ON t.id=mine.id LEFT JOIN planner.trip_day d ON d.trip_id=t.id GROUP BY t.id ORDER BY t.updated_at DESC`,
       [res.locals.user.id],
     );
     res.json({ data: q.rows });
